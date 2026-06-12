@@ -926,7 +926,7 @@ function PostJob({ jobs, setJobs, currentUser, setCurrentPage }) {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs`, {
+      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
