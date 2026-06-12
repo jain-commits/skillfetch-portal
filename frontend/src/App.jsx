@@ -8,11 +8,7 @@ const API_BASE_URL = "https://skillfetch-portal.onrender.com";
 export default function App() {
   const [users, setUsers] = useState([]);
   const [applications, setApplications] = useState([]);
-  // const [loadingJobs, setLoadingJobs] = useState(false);
-  const [loading, setLoading] = useState({
-  jobs: false,
-  apps: false
-});
+  const [loadingJobs, setLoadingJobs] = useState(false);
   const [jobsError, setJobsError] = useState(false);
   const [jobs, setJobs] = useState([]);
   
@@ -22,28 +18,9 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedJobId, setSelectedJobId] = useState(null);
 
-
-  const [loading, setLoading] = useState(true);
-
-useEffect(() => {
-  const loadAll = async () => {
-    setLoading(true);
-
-    await Promise.all([
-      fetchJobs(),
-      fetchApplications(),
-      fetchUsers()
-    ]);
-
-    setLoading(false);
-  };
-
-  loadAll();
-}, []);
-
   // Fetch all jobs on startup
   const fetchJobs = async () => {
-    setLoading(prev => ({ ...prev, jobs: true }));
+    setLoadingJobs(true);
     setJobsError(false);
     try {
       const res = await fetch(`${API_BASE_URL}/api/jobs`);
@@ -55,7 +32,7 @@ useEffect(() => {
       console.error("Error fetching jobs:", error);
       setJobsError(true);
     } finally {
-      setLoading(prev => ({ ...prev, jobs: false }));
+      setLoadingJobs(false);
     }
   };
 
