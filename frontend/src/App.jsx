@@ -290,7 +290,7 @@ function Login({ setCurrentUser, setCurrentPage }) {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -569,7 +569,7 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/applications`, {
+      const response = await fetch(`${API_BASE_URL}/api/applications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -655,7 +655,7 @@ function CandidateProfile({ currentUser, setCurrentUser }) {
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${currentUser.id}/profile`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${currentUser.id}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
