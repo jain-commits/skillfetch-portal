@@ -380,7 +380,7 @@ function AboutUs({ setCurrentPage }) {
     { name: 'Dixon Anto', role: 'Backend Developer', github: 'https://github.com/DixonAnto' },
     { name: 'Karthik', role: 'Frontend Developer', github: 'https://github.com/yourusername2' },
     { name: 'Ajay', role: 'Backend Developer', github: 'https://github.com/yourusername3' },
-    { name: 'Fasil', role: 'Frontend Developer', github: 'https://github.com/yourusername4' },
+    { name: 'Fasil', role: 'Frontend Developer', github: 'https://github.com/fasilv29' },
     { name: 'Jain', role: 'Backend Developer', github: 'https://github.com/jain-commits' },
   ];
 
