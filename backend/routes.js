@@ -41,7 +41,7 @@ router.post('/api/auth/register', async (req, res) => {
 });
 
 // Login
-router.post('/api/auth/login', async (req, res) => {
+router.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email, password });
