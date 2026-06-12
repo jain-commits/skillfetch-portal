@@ -105,57 +105,102 @@ export default function App() {
     toast.success("Logged out successfully!");
   };
 
-  return (
+  
     
-
+    return (
     <div className="app-container">
+      {/* Toast notifications container */}
+      <Toaster />
 
       {/* Header Navigation */}
-      <Toaster /> {/* Toast notifications container */}
+      <header className="header">
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setCurrentPage("home");
+          }}
+          className="logo-link"
+        >
+          <img
+            src="/skillfetch2.png"
+            alt="SkillFetch Logo"
+            className="logo-image"
+          />
+        </a>
 
-     <header className="header">
-  <a
-  href="#"
-  onClick={() => setCurrentPage("home")}
-  className="logo-link"
->
-  <img
-    src="/skillfetch2.png"
-    alt="SkillFetch Logo"
-    className="logo-image"
-  />
-</a>
+        <nav>
+          <div className="nav-bottom" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            
+            {/* IF NO USER IS LOGGED IN */}
+            {!currentUser ? (
+              <>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage("login");
+                  }}
+                  className="btn btn-secondary nav-btn"
+                >
+                  Login
+                </a>
 
-  <nav>
-  {/* The nav-top section containing Home and Jobs has been removed */}
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage("register");
+                  }}
+                  className="btn btn-secondary nav-btn"
+                >
+                  Register
+                </a>
+              </>
+            ) : (
+              /* IF A USER IS LOGGED IN */
+              <>
+                {currentUser.role === 'candidate' && (
+                  <>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("tracker"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+                      My Tracker
+                    </a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("profile"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+                      My Profile
+                    </a>
+                  </>
+                )}
 
-  <div className="nav-bottom">
-    <a
-  href="#"
-  onClick={(e) => {
-    e.preventDefault();
-    setCurrentPage("login");
-  }}
-  className="btn btn-secondary nav-btn"
->
-  Login
-</a>
+                {currentUser.role === 'employer' && (
+                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("employer-dashboard"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+                    Employer Dashboard
+                  </a>
+                )}
 
-    <a
-  href="#"
-  onClick={(e) => {
-    e.preventDefault();
-    setCurrentPage("register");
-  }}
-  className="btn btn-secondary nav-btn"
->
-  Register
-</a>
-  </div>
-</nav>
+                {currentUser.role === 'admin' && (
+                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("admin-panel"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+                    Admin Panel
+                  </a>
+                )}
 
-</header>
+                <span style={{ fontSize: '14px', color: '#9ca3af', borderLeft: '1px solid #e5e7eb', paddingLeft: '15px' }}>
+                  Hi, {currentUser.name ? currentUser.name.split(' ')[0] : 'User'}
+                </span>
 
+                <button 
+                  onClick={handleLogout} 
+                  className="btn btn-secondary nav-btn" 
+                  style={{ padding: '6px 14px', fontSize: '13px' }}
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
+        </nav>
+      </header>
+
+  
 
       {/* Main Pages Content Router */}
       {/* The 'key' prop forces React to replay the animation every time currentPage changes */}
