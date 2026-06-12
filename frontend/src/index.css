@@ -284,3 +284,58 @@ img {
     font-size: 13px;
   }
 }
+
+.card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px); /* Moves the card up slightly */
+      box-shadow: 0 8px 16px rgba(0,0,0,0.06); /* Slightly stronger shadow */
+      border-color: #9a9a9a; /* Slightly darker border */
+    }
+
+    /* --- Modern Job Badges --- */
+.job-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between badges */
+  margin-top: 6px;
+  flex-wrap: wrap; /* Keeps it neat on small phone screens */
+}
+
+.badge-modern {
+  padding: 4px 12px;
+  border-radius: 20px; /* Makes it a perfect pill shape */
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Soft blue theme for the Job Type (e.g., Full-time) */
+.badge-blue {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Soft gray theme for the Location (e.g., Remote) */
+.badge-gray {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Smooth Page Transition Animation */
+.page-transition {
+  animation: fadeSlideUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

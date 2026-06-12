@@ -46,7 +46,14 @@ export default function App() {
     fetchJobs();
   }, []);
 
-
+// Automatically scroll to top whenever the page changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth' // This tells the browser to animate the scroll!
+    });
+  }, [currentPage]);
   
   // Fetch applications and users based on logged-in user role
   useEffect(() => {
@@ -149,8 +156,10 @@ export default function App() {
 
 </header>
 
+
       {/* Main Pages Content Router */}
-      <main className="container">
+      {/* The 'key' prop forces React to replay the animation every time currentPage changes */}
+      <main className="container page-transition" key={currentPage}>
 
        
         {/* Backend connection status banner */}
@@ -255,9 +264,34 @@ export default function App() {
     <div className="footer-section">
       <h4>Quick Links</h4>
       <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Browse Jobs</a></li>
-        <li><a href="#">Employers</a></li>
+        <li><a 
+            href="#" 
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrentPage('home');
+            }}
+          >
+            Home
+          </a></li>
+        <li><a 
+            href="#" 
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrentPage('job-listings');
+            }}
+          >
+            Browse Jobs
+          </a></li>
+        <li><a 
+            href="#" 
+            onClick={(e) => {
+              e.preventDefault();
+              // Directing employers to the login/register screen
+              setCurrentPage('login'); 
+            }}
+          >
+            Employers
+          </a></li>
        <li>
   <a 
     href="#" 
@@ -398,17 +432,29 @@ function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }
 
   return (
     <div>
-      <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
-        <h1>Welcome to SkillFetch</h1>
-        <p>A simple project where Job Seekers find job listings and Employers post job openings.</p>
-        <button onClick={() => setCurrentPage('job-listings')} className="btn">Search All Jobs</button>
-      </div>
-
-     <h2>Recent Jobs</h2>
+    {/* Compact Welcome Card */}
+<div className="card" style={{ 
+  textAlign: 'center', 
+  padding: '30px 20px',    /* Slightly reduced padding for a tighter look */
+  maxWidth: '650px',       /* This restricts how wide the card can get */
+  margin: '0 auto 40px'    /* Centers the card and adds space below it */
+}}>
+  <h1 style={{ fontSize: '32px', marginBottom: '15px' }}>
+    Welcome to SkillFetch
+  </h1>
+  
+  <p style={{ fontSize: '16px', color: '#4b5563', lineHeight: '1.6', marginBottom: '25px' }}>
+    Accelerate Your Career. Connect with top employers, <br />
+    discover roles that match your skills, and apply in seconds.
+  </p>
+  
+  <button onClick={() => setCurrentPage('job-listings')} className="btn">
+    Search All Jobs
+  </button>
+</div>
 
 {loadingJobs ? (
- <Loader />
-
+  <Loader />
 ) : jobsError ? (
   <p>Failed to load jobs. Please try again later.</p>
 ) : recentJobs.length === 0 ? (
@@ -466,20 +512,11 @@ function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }
         )}
 
         <div>
-          <h3 style={{ margin: "0 0 5px 0" }}>
+          <h3 style={{ margin: "0 0 2px 0", color: "#111827" }}>
             {job.title}
           </h3>
-
-          <p
-            style={{
-              margin: 0,
-              fontSize: "14px",
-              color: "#555",
-            }}
-          >
-            <strong>Company:</strong> {job.companyName} |{" "}
-            <strong>Type:</strong> {job.type} |{" "}
-            <strong>Location:</strong> {job.location}
+          <p style={{ margin: "0", fontSize: "14px", color: "#666" }}>
+            <strong>{job.companyName}</strong> &bull; {job.type} &bull; {job.location}
           </p>
         </div>
       </div>
@@ -496,7 +533,6 @@ function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }
     </div>
   ))
 )}
-        
     
     </div>
   );
