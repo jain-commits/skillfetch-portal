@@ -1026,17 +1026,35 @@ function CandidateProfile({ currentUser, setCurrentUser }) {
     formData.append('userId', currentUser.id); 
 
     try {
-      // Temporary mock success so you can test the UI right now
-      setTimeout(() => {
-        setUploadStatus('✅ Resume uploaded successfully! (Mocked)');
+      // THE REAL BACKEND CALL
+      const response = await fetch(`${API_BASE_URL}/api/upload-resume`, {
+        method: 'POST',
+        body: formData, 
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUploadStatus('✅ Resume uploaded successfully!');
+        
+        // Update the local user state so the UI knows about the resume immediately
+        const updatedUser = { 
+          ...currentUser, 
+          resumeName: data.resumeName,
+          resume: { name: data.resumeName } // Match the new DB structure
+        };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        
         setResumeFile(null); 
-      }, 1500);
+      } else {
+        setUploadStatus('❌ Upload failed. Please try again.');
+      }
 
     } catch (error) {
+      console.error(error);
       setUploadStatus('❌ An error occurred connecting to the server.');
     }
   };
-
 
 
 
@@ -1359,7 +1377,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
     </div>
   );}
 
-  
+
 // 9. Post a Job Page Component
 function PostJob({ jobs, setJobs, currentUser, setCurrentPage }) {
   const [title, setTitle] = useState('');
