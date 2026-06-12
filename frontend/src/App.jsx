@@ -310,8 +310,18 @@ export default function App() {
 
 // 11. About Us Page Component
 function AboutUs({ setCurrentPage }) {
+  
+  // Update your actual team details here!
+  const teamMembers = [
+    { name: 'Dixon Anto', role: 'Backend Developer', github: 'https://github.com/yourusername1' },
+    { name: 'Karthik', role: 'Frontend Developer', github: 'https://github.com/yourusername2' },
+    { name: 'Ajay', role: 'Backend Developer', github: 'https://github.com/yourusername3' },
+    { name: 'Fasil', role: 'Frontend Developer', github: 'https://github.com/yourusername4' },
+    { name: 'Jain', role: 'Backend Developer', github: 'https://github.com/jain-commits' },
+  ];
+
   return (
-    <div className="card" style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="card" style={{ padding: '40px 20px', maxWidth: '850px', margin: '0 auto' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>About SkillFetch</h2>
       
       <div style={{ lineHeight: '1.8', fontSize: '16px', color: '#444' }}>
@@ -328,23 +338,65 @@ function AboutUs({ setCurrentPage }) {
           <li><strong>For Employers & Recruiters:</strong> Post job listings, manage incoming applications, and shortlist top-tier talent through an intuitive dashboard.</li>
         </ul>
 
-        <hr style={{ borderColor: '#eeeeee', margin: '30px 0' }} />
+        <hr style={{ borderColor: '#eeeeee', margin: '40px 0' }} />
 
-        <h3 style={{ marginBottom: '10px' }}>The Team Behind SkillFetch</h3>
-        <p>
-          SkillFetch is the proud result of a collaborative project built by a dedicated team of <strong>5 members</strong>. We combined our skills in frontend design, backend architecture, and user experience to bring this platform to life. 
+        {/* Team Section Header */}
+        <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>The Team Behind SkillFetch</h3>
+        <p style={{ textAlign: 'center', marginBottom: '30px', fontSize: '15px' }}>
+          SkillFetch is the proud result of a collaborative project built by a dedicated team of 5 members. 
         </p>
 
-        {/* Optional: You can list your team member names here! */}
-        <ul style={{ listStyleType: 'none', padding: 0, fontWeight: 'bold' }}>
-          <li>👨‍💻 Ajay</li>
-          <li>👩‍💻 Fasil</li>
-          <li>👨‍💻 Karthik</li>
-          <li>👩‍💻 Dixon Anto</li>
-          <li>👨‍💻 Jain</li>
-        </ul>
+        {/* Modern Team Cards Grid */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+          gap: '20px',
+          marginTop: '20px'
+        }}>
+          {teamMembers.map((member, index) => (
+            <div key={index} style={{
+              border: '1px solid #eaeaea',
+              borderRadius: '12px',
+              padding: '20px 10px',
+              textAlign: 'center',
+              backgroundColor: '#fafafa',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
+            }}>
+              {/* Profile Avatar Circle */}
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                backgroundColor: '#0056b3', // Uses your app's primary blue
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                margin: '0 auto 15px auto'
+              }}>
+                {member.name.charAt(0)} {/* Shows the first letter of their name */}
+              </div>
+              
+              <h4 style={{ margin: '0 0 5px 0', fontSize: '16px', color: '#333' }}>{member.name}</h4>
+              <p style={{ margin: '0 0 15px 0', fontSize: '13px', color: '#777' }}>{member.role}</p>
+              
+              {/* GitHub Link Button */}
+              <a 
+                href={member.github} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none', display: 'inline-block' }}
+              >
+                View GitHub
+              </a>
+            </div>
+          ))}
+        </div>
 
-        <div style={{ textAlign: 'center', marginTop: '40px' }}>
+        <div style={{ textAlign: 'center', marginTop: '50px' }}>
           <button onClick={() => setCurrentPage('job-listings')} className="btn">
             Start Browsing Jobs
           </button>
