@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const multer = require('multer');
-const User = require('./models/User'); // Adjust path to your model
+const { User } = require('./models'); // If models.js is in the same folder as index.js
 require('dotenv').config();
 const cors = require("cors");
 const app = express(); 
