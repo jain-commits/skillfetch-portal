@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Loader from './Components/Loader';
 
-//itconst API_BASE_URL = 'http://localhost:5001/api';
+//const API_BASE_URL = 'http://localhost:5001/api';
+
 const API_BASE_URL = "https://skillfetch-portal.onrender.com";
 
 // ==================== APP CONTAINER COMPONENT ====================
@@ -9,7 +10,7 @@ const API_BASE_URL = "https://skillfetch-portal.onrender.com";
 export default function App() {
   const [users, setUsers] = useState([]);
   const [applications, setApplications] = useState([]);
-  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [loadingJobs, setLoadingJobs] = useState(false);
   const [jobsError, setJobsError] = useState(false);
   const [jobs, setJobs] = useState([]);
   
@@ -84,9 +85,6 @@ export default function App() {
     fetchUserData();
   }, [currentUser]);
 
-  if (loadingJobs) {
-  return <Loader />;
-}
 
   // Authentication Helpers
   const handleLogout = () => {
@@ -159,7 +157,7 @@ export default function App() {
         )}
 
         {currentPage === 'home' && (
-          <Home jobs={jobs} setCurrentPage={setCurrentPage} setSelectedJobId={setSelectedJobId} />
+          <Home jobs={jobs} setCurrentPage={setCurrentPage} setSelectedJobId={setSelectedJobId}  loadingJobs={loadingJobs} jobsError={jobsError}/>
         )}
 
         {currentPage === 'login' && (
@@ -237,7 +235,7 @@ export default function App() {
 // ==================== PAGE COMPONENTS ====================
 
 // 1. Home Page Component
-function Home({ jobs, setCurrentPage, setSelectedJobId }) {
+function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }) {
   // Get 3 most recent jobs
   const safeJobs = Array.isArray(jobs) ? jobs : [];
   const recentJobs = safeJobs.slice(0, 3);
@@ -250,41 +248,108 @@ function Home({ jobs, setCurrentPage, setSelectedJobId }) {
         <button onClick={() => setCurrentPage('job-listings')} className="btn">Search All Jobs</button>
       </div>
 
-      <h2>Recent Jobs</h2>
-      {recentJobs.length === 0 ? (
-        <p>Oops! There is no job listings available.</p>
-      ) : (
-        recentJobs.map((job) => (
-          <div key={job.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              {/* Logo display with fallback */}
-              {job.companyLogo ? (
-                <img 
-                  src={job.companyLogo} 
-                  alt={`${job.companyName} logo`} 
-                  style={{ width: "50px", height: "50px", borderRadius: "8px", objectFit: 'contain', border: '1px solid #eee' }} 
-                />
-              ) : (
-                <div style={{ width: "50px", height: "50px", borderRadius: "8px", backgroundColor: "#0056b3", color: "#fff", display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>
-                  {job.companyName ? job.companyName.charAt(0).toUpperCase() : 'J'}
-                </div>
-              )}
-              <div>
-                <h3 style={{ margin: '0 0 5px 0' }}>{job.title}</h3>
-                <p style={{ margin: 0, fontSize: '14px', color: '#555' }}>
-                  <strong>Company:</strong> {job.companyName} | <strong>Type:</strong> {job.type} | <strong>Location:</strong> {job.location}
-                </p>
-              </div>
-            </div>
-            <button 
-              onClick={() => { setSelectedJobId(job.id); setCurrentPage('job-detail'); }} 
-              className="btn btn-secondary"
-            >
-              View Details
-            </button>
+     <h2>Recent Jobs</h2>
+
+{loadingJobs ? (
+ <div
+  style={{
+    textAlign: "center",
+    padding: "50px",
+    border: "2px solid red"
+  }}
+>
+  <Loader />
+</div>
+
+) : jobsError ? (
+  <p>Failed to load jobs. Please try again later.</p>
+) : recentJobs.length === 0 ? (
+  <p>Oops! There are no job listings available.</p>
+) : (
+  recentJobs.map((job) => (
+    <div
+      key={job.id}
+      className="card"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "15px",
+        }}
+      >
+        {/* Logo display with fallback */}
+        {job.companyLogo ? (
+          <img
+            src={job.companyLogo}
+            alt={`${job.companyName} logo`}
+            style={{
+              width: "50px",
+              height: "50px",
+              borderRadius: "8px",
+              objectFit: "contain",
+              border: "1px solid #eee",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: "50px",
+              height: "50px",
+              borderRadius: "8px",
+              backgroundColor: "#0056b3",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "20px",
+            }}
+          >
+            {job.companyName
+              ? job.companyName.charAt(0).toUpperCase()
+              : "J"}
           </div>
-        ))
-      )}
+        )}
+
+        <div>
+          <h3 style={{ margin: "0 0 5px 0" }}>
+            {job.title}
+          </h3>
+
+          <p
+            style={{
+              margin: 0,
+              fontSize: "14px",
+              color: "#555",
+            }}
+          >
+            <strong>Company:</strong> {job.companyName} |{" "}
+            <strong>Type:</strong> {job.type} |{" "}
+            <strong>Location:</strong> {job.location}
+          </p>
+        </div>
+      </div>
+
+      <button
+        onClick={() => {
+          setSelectedJobId(job.id);
+          setCurrentPage("job-detail");
+        }}
+        className="btn btn-secondary"
+      >
+        View Details
+      </button>
+    </div>
+  ))
+)}
+        
+    
     </div>
   );
 }
