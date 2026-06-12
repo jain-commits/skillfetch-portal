@@ -34,7 +34,6 @@ SkillFetch is a database-backed, real-time synchronized job portal. It enables j
 *   **React** (v18.2) — Component-based user interface.
 *   **Vite** (v5.2) — Ultra-fast frontend build tool and dev server.
 *   **Vanilla CSS** — Custom styling, transitions, and layout grids.
-*   **Google Fonts** — Styled with the premium `Inter` font.
 
 ### Backend
 *   **Node.js & Express** — Rest API server.
