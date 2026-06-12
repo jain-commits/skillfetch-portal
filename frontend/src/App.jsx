@@ -29,7 +29,7 @@ export default function App() {
       console.log("API response:", data);
       setJobs(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching jobs:", error);
       setJobsError(true);
     } finally {
       setLoadingJobs(false);
@@ -51,7 +51,7 @@ export default function App() {
     const fetchUserData = async () => {
       // 1. Fetch applications
       try {
-        let appUrl = `${API_BASE_URL}/applications`;
+        let appUrl = `${API_BASE_URL}/api/applications`;
         if (currentUser.role === 'candidate') {
           appUrl += `?candidateId=${currentUser.id}`;
         }
@@ -67,7 +67,7 @@ export default function App() {
       // 2. Fetch users list (required for Employer to show candidate names, and for Admin)
       if (currentUser.role === 'admin' || currentUser.role === 'employer') {
         try {
-          const userRes = await fetch(`${API_BASE_URL}/users`);
+          const userRes = await fetch(`${API_BASE_URL}/api/users`);
           const userData = await userRes.json();
           if (userRes.ok) {
             setUsers(userData);
