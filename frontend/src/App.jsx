@@ -102,47 +102,68 @@ export default function App() {
     
 
     <div className="app-container">
+
       {/* Header Navigation */}
-      <Toaster />
-      <header className="header">
-        <a href="#" onClick={() => setCurrentPage('home')} className="logo-link">
-          SkillFetch <span className="logo-highlight">Portal</span>
-        </a>
-        <nav>
-          <a href="#" onClick={() => setCurrentPage('home')}>Home</a>
-          <a href="#" onClick={() => setCurrentPage('job-listings')}>Jobs</a>
-          
-          {currentUser && currentUser.role === 'candidate' && (
-            <>
-              <a href="#" onClick={() => setCurrentPage('profile')}>My Profile</a>
-              <a href="#" onClick={() => setCurrentPage('tracker')}>My Applications</a>
-            </>
-          )}
+      <Toaster /> {/* Toast notifications container */}
 
-          {currentUser && currentUser.role === 'employer' && (
-            <>
-              <a href="#" onClick={() => setCurrentPage('employer-dashboard')}>Employer Panel</a>
-              <a href="#" onClick={() => setCurrentPage('post-job')}>Post a Job</a>
-            </>
-          )}
+     <header className="header">
+  <a
+  href="#"
+  onClick={() => setCurrentPage("home")}
+  className="logo-link"
+>
+  <img
+    src="/skillfetch2.png"
+    alt="SkillFetch Logo"
+    className="logo-image"
+  />
+</a>
 
-          {currentUser && currentUser.role === 'admin' && (
-            <a href="#" onClick={() => setCurrentPage('admin-panel')}>Admin Board</a>
-          )}
+  <nav>
+  <div className="nav-top">
+    <a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
+    setCurrentPage("home");
+  }}
+>Home</a>
+    <a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
+    setCurrentPage("job-listings");
+  }}
+>
+  Jobs
+</a>
+  </div>
 
-          {!currentUser ? (
-            <>
-              <a href="#" onClick={() => setCurrentPage('login')} className="btn" style={{ padding: '5px 10px', fontSize: '14px' }}>Login</a>{' '}
-              <a href="#" onClick={() => setCurrentPage('register')} className="btn btn-secondary" style={{ padding: '5px 10px', fontSize: '14px' }}>Register</a>
-            </>
-          ) : (
-            <span style={{ marginLeft: '10px' }}>
-              <strong>{currentUser.name}</strong> ({currentUser.role}){' '}
-              <button onClick={handleLogout} className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '12px' }}>Logout</button>
-            </span>
-          )}
-        </nav>
-      </header>
+  <div className="nav-bottom">
+    <a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
+    setCurrentPage("login");
+  }}
+  className="btn btn-secondary nav-btn"
+>
+  Login
+</a>
+
+    <a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
+    setCurrentPage("register");
+  }}
+  className="btn btn-secondary nav-btn"
+>
+  Register
+</a>
+  </div>
+</nav>
+</header>
 
       {/* Main Pages Content Router */}
       <main className="container">

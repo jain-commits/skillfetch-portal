@@ -8,13 +8,36 @@ body {
   line-height: 1.5;
 }
 .header {
-  background-color: #ffffff;
-  color: #1d1d1f;
-  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e5e5e7;
+  padding: 10px 16px;
+}
+
+.logo-image {
+  max-width: 160px;
+  height: auto;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-top,
+.nav-bottom {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.nav-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  min-width: 80px;
+  text-align: center;
 }
 
 .header a {
@@ -220,4 +243,44 @@ h1, h2, h3, h4, h5, h6 {
 img {
   max-width: 100%;
   height: auto;
+}
+
+
+/* ===== Mobile Fix ===== */
+@media (max-width: 768px) {
+
+  .header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo-image {
+    max-width: 110px;
+  }
+
+  nav {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .nav-top,
+  .nav-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .nav-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 70px;
+  }
+
+  /* optional: make plain links consistent */
+  nav a:not(.nav-btn) {
+    font-size: 13px;
+  }
 }
