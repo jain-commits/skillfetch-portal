@@ -5,7 +5,7 @@ const { User, Job, Application } = require('./models');
 // ==================== AUTHENTICATION ROUTES ====================
 
 // Register
-router.post('/auth/register', async (req, res) => {
+router.post('/api/auth/register', async (req, res) => {
   try {
     const { role, name, email, password, companyName, companyLocation } = req.body;
     
@@ -41,7 +41,7 @@ router.post('/auth/register', async (req, res) => {
 });
 
 // Login
-router.post('/auth/login', async (req, res) => {
+router.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email, password });
@@ -96,7 +96,7 @@ router.put('/users/:id/profile', async (req, res) => {
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 
 // Get All Jobs
-router.get('/jobs', async (req, res) => {
+router.get('/api/jobs', async (req, res) => {
   try {
     const jobs = await Job.find().sort({ createdAt: -1 });
     res.json(jobs);
@@ -107,7 +107,7 @@ router.get('/jobs', async (req, res) => {
 });
 
 // Post a Job
-router.post('/jobs', async (req, res) => {
+router.post('/api/jobs', async (req, res) => {
   try {
     const {
       employerId,
@@ -146,7 +146,7 @@ router.post('/jobs', async (req, res) => {
 });
 
 // Delete a Job (Employer/Admin)
-router.delete('/jobs/:id', async (req, res) => {
+router.delete('/api/jobs/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -170,7 +170,7 @@ router.delete('/jobs/:id', async (req, res) => {
 // ==================== APPLICATION ROUTES ====================
 
 // Get Applications (with optional filters)
-router.get('/applications', async (req, res) => {
+router.get('/api/applications', async (req, res) => {
   try {
     const { candidateId, jobId } = req.query;
     const filter = {};
@@ -186,7 +186,7 @@ router.get('/applications', async (req, res) => {
 });
 
 // Submit Application
-router.post('/applications', async (req, res) => {
+router.post('/api/applications', async (req, res) => {
   try {
     const { jobId, candidateId, coverLetter } = req.body;
 
@@ -212,7 +212,7 @@ router.post('/applications', async (req, res) => {
 });
 
 // Update Application Status (Employer/Admin)
-router.put('/applications/:id/status', async (req, res) => {
+router.put('/api/applications/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -236,7 +236,7 @@ router.put('/applications/:id/status', async (req, res) => {
 // ==================== ADMINISTRATIVE BOARD ROUTES ====================
 
 // Get All Users (Admin)
-router.get('/users', async (req, res) => {
+router.get('/api/users', async (req, res) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
     res.json(users);
@@ -247,7 +247,7 @@ router.get('/users', async (req, res) => {
 });
 
 // Suspend/Unsuspend User
-router.put('/users/:id/suspend', async (req, res) => {
+router.put('/api/users/:id/suspend', async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
@@ -266,7 +266,7 @@ router.put('/users/:id/suspend', async (req, res) => {
 });
 
 // Delete User (Cascading)
-router.delete('/users/:id', async (req, res) => {
+router.delete('/api/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
