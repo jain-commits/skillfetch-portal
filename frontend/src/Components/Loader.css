@@ -1,9 +1,16 @@
+.loader-wrapper {
+  min-height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .loader {
             position: relative;
             width: 108px;
             display: flex;
             justify-content: space-between;
           }
+          
           .loader::after , .loader::before  {
             content: '';
             display: inline-block;

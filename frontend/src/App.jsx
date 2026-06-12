@@ -226,10 +226,41 @@ export default function App() {
 
       {/* Simple Footer */}
       <footer className="footer">
-        <div className="container">
-          <p>&copy; 2026 SkillFetch Job Portal Project. Made with ❤️</p>
-        </div>
-      </footer>
+  <div className="container footer-content">
+    
+    <div className="footer-section">
+      <h3>SkillFetch</h3>
+      <p>
+        Connecting talented professionals with top employers.
+        Find your dream job and grow your career.
+      </p>
+    </div>
+
+    <div className="footer-section">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Browse Jobs</a></li>
+        <li><a href="#">Employers</a></li>
+        <li><a href="#">About Us</a></li>
+      </ul>
+    </div>
+
+    <div className="footer-section">
+      <h4>Contact</h4>
+      <p>📧 support@skillfetch.com</p>
+      <p>📞 +91 98765 43210</p>
+      <p>📍 Kerala, India</p>
+    </div>
+
+  </div>
+
+  <div className="footer-bottom">
+    <p>
+      © 2026 SkillFetch Job Portal. All Rights Reserved. Made with ❤️
+    </p>
+  </div>
+</footer>
     </div>
   );
 }
