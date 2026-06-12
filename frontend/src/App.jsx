@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Components/Loader.css'; // Importing the Loader CSS for the loading spinner
 import Loader from './Components/Loader'; // Importing the Loader component to show while fetching data
+import { Toaster, toast } from "react-hot-toast";
 
 
 //const API_BASE_URL = 'http://localhost:5001/api';
@@ -93,12 +94,15 @@ export default function App() {
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
     setCurrentPage('home');
-    alert('Logged out successfully.');
+    toast.success("Logged out successfully!");
   };
 
   return (
+    
+
     <div className="app-container">
       {/* Header Navigation */}
+      <Toaster />
       <header className="header">
         <a href="#" onClick={() => setCurrentPage('home')} className="logo-link">
           SkillFetch <span className="logo-highlight">Portal</span>
@@ -394,12 +398,12 @@ function Login({ setCurrentUser, setCurrentPage }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Wrong email or password!');
+        toast.error(data.message || 'Wrong email or password!');
         return;
       }
       setCurrentUser(data);
       localStorage.setItem('currentUser', JSON.stringify(data));
-      alert('Logged in successfully!');
+      toast.success("Logged in successfully!");
       if (data.role === 'admin') {
         setCurrentPage('admin-panel');
       } else if (data.role === 'employer') {
@@ -409,7 +413,7 @@ function Login({ setCurrentUser, setCurrentPage }) {
       }
     } catch (err) {
       console.error(err);
-      alert('Network error during login.');
+      toast.error("Network error during login.");
     }
   };
 
@@ -483,14 +487,14 @@ function Register({ setCurrentPage }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Registration failed!');
+        toast.error(data.message || 'Registration failed!');
         return;
       }
-      alert('Account created successfully! You can login now.');
+      toast.success("Account created successfully! You can login now.");
       setCurrentPage('login');
     } catch (err) {
       console.error(err);
-      alert('Network error during registration.');
+      toast.error("Network error during registration.");
     }
   };
 
@@ -660,7 +664,7 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
   const handleApplySubmit = async (e) => {
     e.preventDefault();
     if (!currentUser || currentUser.role !== 'candidate') {
-      alert('You must log in as a Candidate to apply!');
+      toast.error('You must log in as a Candidate to apply!');
       setCurrentPage('login');
       return;
     }
@@ -677,15 +681,15 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Application failed!');
+        toast.error(data.message || 'Application failed!');
         return;
       }
       setApplications([data, ...applications]);
-      alert('Applied successfully!');
+      toast.success('Applied successfully!');
       setCurrentPage('tracker');
     } catch (err) {
       console.error(err);
-      alert('Network error during application submission.');
+      toast.error('Network error during application submission.');
     }
   };
 
@@ -761,15 +765,15 @@ function CandidateProfile({ currentUser, setCurrentUser }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Profile update failed!');
+        toast.error(data.message || 'Profile update failed!');
         return;
       }
       setCurrentUser(data);
       localStorage.setItem('currentUser', JSON.stringify(data));
-      alert('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
     } catch (err) {
       console.error(err);
-      alert('Network error during profile update.');
+      toast.error('Network error during profile update.');
     }
   };
 
@@ -880,15 +884,15 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       });
       if (!response.ok) {
         const data = await response.json();
-        alert(data.message || 'Failed to delete job.');
+        toast.error(data.message || 'Failed to delete job.');
         return;
       }
       setJobs(jobs.filter(j => j.id !== jobId));
       setApplications(applications.filter(app => app.jobId !== jobId));
-      alert('Listing removed successfully.');
+      toast.success('Listing removed successfully.');
     } catch (err) {
       console.error(err);
-      alert('Network error during job deletion.');
+      toast.error('Network error during job deletion.');
     }
   };
 
@@ -911,15 +915,15 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Failed to update status.');
+        toast.error(data.message || 'Failed to update status.');
         return;
       }
       setApplications(applications.map(app => app.id === appId ? data : app));
-      alert('Status updated successfully!');
+      toast.success('Status updated successfully!');
       setActiveAppId(null);
     } catch (err) {
       console.error(err);
-      alert('Network error during status update.');
+      toast.error ('Network error during status update.');
     }
   };
 
@@ -1042,15 +1046,15 @@ function PostJob({ jobs, setJobs, currentUser, setCurrentPage }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Failed to post job.');
+        toast.error(data.message || 'Failed to post job.');
         return;
       }
       setJobs([data, ...jobs]);
-      alert('Job opportunity posted successfully!');
+      toast.success('Job opportunity posted successfully!');
       setCurrentPage('employer-dashboard');
     } catch (err) {
       console.error(err);
-      alert('Network error during posting job.');
+      toast.error('Network error during posting job.');
     }
   };
 
@@ -1136,14 +1140,14 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Failed to toggle user suspension.');
+        toast.error(data.message || 'Failed to toggle user suspension.');
         return;
       }
       setUsers(users.map(u => u.id === userId ? data : u));
-      alert(`User is now ${data.isSuspended ? 'Suspended' : 'Unsuspended'}`);
+      toast.success(`User is now ${data.isSuspended ? 'Suspended' : 'Unsuspended'}`);
     } catch (err) {
       console.error(err);
-      alert('Network error during suspension update.');
+      toast.error('Network error during suspension update.');
     }
   };
 
@@ -1155,17 +1159,17 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
       });
       if (!response.ok) {
         const data = await response.json();
-        alert(data.message || 'Failed to delete user.');
+        toast.error(data.message || 'Failed to delete user.');
         return;
       }
       setUsers(users.filter(u => u.id !== userId));
       // Cascade update locally
       setApplications(applications.filter(app => app.candidateId !== userId));
       setJobs(jobs.filter(job => job.employerId !== userId));
-      alert('User account deleted.');
+      toast.success('User account deleted.');
     } catch (err) {
       console.error(err);
-      alert('Network error during user deletion.');
+      toast.error('Network error during user deletion.');
     }
   };
 
@@ -1177,15 +1181,15 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
       });
       if (!response.ok) {
         const data = await response.json();
-        alert(data.message || 'Failed to delete job.');
+        toast.error(data.message || 'Failed to delete job.');
         return;
       }
       setJobs(jobs.filter(j => j.id !== jobId));
       setApplications(applications.filter(app => app.jobId !== jobId));
-      alert('Job posting deleted.');
+      toast.success('Job posting deleted.');
     } catch (err) {
       console.error(err);
-      alert('Network error during job deletion.');
+      toast.error('Network error during job deletion.');
     }
   };
 
