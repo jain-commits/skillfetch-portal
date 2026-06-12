@@ -377,7 +377,7 @@ function AboutUs({ setCurrentPage }) {
   
   // Update your actual team details here!
   const teamMembers = [
-    { name: 'Dixon Anto', role: 'Backend Developer', github: 'https://github.com/yourusername1' },
+    { name: 'Dixon Anto', role: 'Backend Developer', github: 'https://github.com/DixonAnto' },
     { name: 'Karthik', role: 'Frontend Developer', github: 'https://github.com/yourusername2' },
     { name: 'Ajay', role: 'Backend Developer', github: 'https://github.com/yourusername3' },
     { name: 'Fasil', role: 'Frontend Developer', github: 'https://github.com/yourusername4' },
