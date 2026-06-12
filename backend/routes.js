@@ -146,7 +146,7 @@ router.post('/jobs', async (req, res) => {
 });
 
 // Delete a Job (Employer/Admin)
-router.delete('/api/jobs/:id', async (req, res) => {
+router.delete('/jobs/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
