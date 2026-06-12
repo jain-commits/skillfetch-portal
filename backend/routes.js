@@ -170,7 +170,7 @@ router.delete('/api/jobs/:id', async (req, res) => {
 // ==================== APPLICATION ROUTES ====================
 
 // Get Applications (with optional filters)
-router.get('/api/applications', async (req, res) => {
+router.get('/applications', async (req, res) => {
   try {
     const { candidateId, jobId } = req.query;
     const filter = {};
@@ -186,7 +186,7 @@ router.get('/api/applications', async (req, res) => {
 });
 
 // Submit Application
-router.post('/api/applications', async (req, res) => {
+router.post('/applications', async (req, res) => {
   try {
     const { jobId, candidateId, coverLetter } = req.body;
 
@@ -212,7 +212,7 @@ router.post('/api/applications', async (req, res) => {
 });
 
 // Update Application Status (Employer/Admin)
-router.put('/api/applications/:id/status', async (req, res) => {
+router.put('/applications/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
