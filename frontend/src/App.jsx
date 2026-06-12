@@ -1257,7 +1257,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
   const selectedApp = applications.find(app => app.id === activeAppId);
   const selectedCandidate = selectedApp ? users.find(u => u.id === selectedApp.candidateId) : null;
 
-  return (
+ return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Employer Recruiter Dashboard</h2>
@@ -1310,7 +1310,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
       {/* Simple Modal Review Popup */}
       {selectedApp && selectedCandidate && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div className="card" style={{ width: '90%', maxWidth: '500px', backgroundColor: '#fff', position: 'relative' }}>
             <button onClick={() => setActiveAppId(null)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
             <h3>Review: {selectedCandidate.name}</h3>
@@ -1321,9 +1321,31 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
             <p><strong>Skills:</strong> {selectedCandidate.skills || 'N/A'}</p>
             <p><strong>Education:</strong> {selectedCandidate.education || 'N/A'}</p>
             <p><strong>Experience:</strong> {selectedCandidate.experience || 'N/A'}</p>
-            <p><strong>Resume Filename:</strong> <u>{selectedCandidate.resumeName || 'No resume file attached'}</u></p>
             
-            <hr />
+            <hr style={{ margin: '15px 0' }} />
+
+            {/* --- NEW RESUME DOWNLOAD SECTION --- */}
+            <div style={{ margin: '15px 0', padding: '15px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <strong>Attached Resume:</strong>
+              
+              {/* Checks if the resume exists in the user object */}
+              {(selectedCandidate.resume?.name || selectedCandidate.resumeName) ? (
+                <a 
+                  href={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary"
+                  style={{ textDecoration: 'none', padding: '6px 12px', fontSize: '13px' }}
+                >
+                  📄 View / Download PDF
+                </a>
+              ) : (
+                <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '14px' }}>No file uploaded</span>
+              )}
+            </div>
+            
+            <hr style={{ margin: '15px 0' }} />
+
             <p><strong>Cover Letter text:</strong><br />"{selectedApp.coverLetter}"</p>
             
             <div style={{ display: 'flex', gap: '5px', marginTop: '15px' }}>
@@ -1335,9 +1357,9 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
         </div>
       )}
     </div>
-  );
-}
+  );}
 
+  
 // 9. Post a Job Page Component
 function PostJob({ jobs, setJobs, currentUser, setCurrentPage }) {
   const [title, setTitle] = useState('');

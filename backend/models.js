@@ -8,15 +8,20 @@ const userSchema = new mongoose.Schema({
   role: { type: String, required: true, enum: ['candidate', 'employer', 'admin'] },
   isSuspended: { type: Boolean, default: false },
   
-  // Candidate profile fields
+// Candidate profile fields
   phone: { type: String, default: '' },
   location: { type: String, default: '' },
   bio: { type: String, default: '' },
   skills: { type: String, default: '' },
   education: { type: String, default: '' },
   experience: { type: String, default: '' },
-  resumeName: { type: String, default: '' },
-  resumeUrl: { type: String, default: '' },
+  
+  // NATIVE MONGODB FILE STORAGE
+  resume: {
+    data: { type: Buffer, select: false }, // 'select: false' prevents this heavy data from slowing down normal user queries
+    contentType: { type: String },
+    name: { type: String }
+  },
 
   // Employer profile fields
   companyName: { type: String, defaut: '' },

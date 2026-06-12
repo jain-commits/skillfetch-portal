@@ -11,27 +11,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // ==========================================
-// RESUME UPLOAD CONFIGURATION (MULTER)
+// RESUME UPLOAD CONFIGURATION (MEMORY STORAGE)
 // ==========================================
 
-// 1. Configure where and how Multer should save the files
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Saves files to the 'uploads' folder
-  },
-  filename: (req, file, cb) => {
-    // Generates a unique filename using the current timestamp to prevent overwrites
-    cb(null, Date.now() + '-' + file.originalname); 
-  }
-});
-
+// 1. Tell Multer to hold the file in RAM instead of saving to a folder
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// 2. Serve the 'uploads' directory publicly so React can fetch the PDFs later
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 3. The API endpoint to catch the file from React
+
+// // 2. Serve the 'uploads' directory publicly so React can fetch the PDFs later
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// 2. The API endpoint to save the file into MongoDB
 app.post('/api/upload-resume', upload.single('resume'), async (req, res) => {
   try {
     if (!req.file) {
@@ -39,17 +33,18 @@ app.post('/api/upload-resume', upload.single('resume'), async (req, res) => {
     }
 
     const userId = req.body.userId;
-    const filePath = `/uploads/${req.file.filename}`;
-    const originalName = req.file.originalname;
 
-    // Update the user in MongoDB with the new file path AND the file name
+    // Save the raw buffer data, the file type (e.g., application/pdf), and the original name
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
       { 
-        resumeUrl: filePath,
-        resumeName: originalName 
+        resume: {
+          data: req.file.buffer,
+          contentType: req.file.mimetype,
+          name: req.file.originalname
+        }
       }, 
-      { new: true } // Returns the updated user document
+      { new: true } 
     );
 
     if (!updatedUser) {
@@ -57,13 +52,40 @@ app.post('/api/upload-resume', upload.single('resume'), async (req, res) => {
     }
 
     res.status(200).json({ 
-      message: "Resume uploaded successfully", 
-      user: updatedUser 
+      message: "Resume saved to database successfully", 
+      // We send back the name so the frontend knows it worked, but NOT the heavy buffer data
+      resumeName: req.file.originalname 
     });
 
   } catch (error) {
-    console.error("Upload Error:", error);
-    res.status(500).json({ message: "Server error during upload" });
+    console.error("Database Upload Error:", error);
+    res.status(500).json({ message: "Server error during database upload" });
+  }
+});
+
+
+// 3. The API endpoint to retrieve and download the file from MongoDB
+app.get('/users/:id/resume', async (req, res) => {
+  try {
+    // We explicitly ask Mongoose to include the heavy 'resume.data' field this time
+    const user = await User.findById(req.params.id).select('+resume.data');
+
+    if (!user || !user.resume || !user.resume.data) {
+      return res.status(404).json({ message: "No resume found for this user." });
+    }
+
+    // Tell the browser what kind of file this is (PDF, DOCX, etc.)
+    res.set('Content-Type', user.resume.contentType);
+    
+    // Tell the browser to display it or download it with the original file name
+    res.set('Content-Disposition', `inline; filename="${user.resume.name}"`);
+
+    // Send the raw binary data back to the browser
+    res.send(user.resume.data);
+
+  } catch (error) {
+    console.error("Download Error:", error);
+    res.status(500).json({ message: "Error retrieving the file from the database." });
   }
 });
 
