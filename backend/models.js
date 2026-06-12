@@ -16,9 +16,10 @@ const userSchema = new mongoose.Schema({
   education: { type: String, default: '' },
   experience: { type: String, default: '' },
   resumeName: { type: String, default: '' },
+  resumeUrl: { type: String, default: '' },
 
   // Employer profile fields
-  companyName: { type: String, default: '' },
+  companyName: { type: String, defaut: '' },
   companyLocation: { type: String, default: '' },
   companyDesc: { type: String, default: '' }
 }, {

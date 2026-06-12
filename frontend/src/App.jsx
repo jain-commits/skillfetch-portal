@@ -9,7 +9,9 @@ import './Components/Loader2.css';
 
 const API_BASE_URL = "https://skillfetch-portal.onrender.com";
 
+
 // ==================== APP CONTAINER COMPONENT ====================
+
 
 export default function App() {
   const [users, setUsers] = useState([]);
@@ -378,7 +380,7 @@ function AboutUs({ setCurrentPage }) {
   // Update your actual team details here!
   const teamMembers = [
     { name: 'Dixon Anto', role: 'Backend Developer', github: 'https://github.com/DixonAnto' },
-    { name: 'Karthik', role: 'Frontend Developer', github: 'https://github.com/karthik' },
+    { name: 'Karthik', role: 'Frontend Developer', github: 'https://github.com/karthi-1010' },
     { name: 'Ajay', role: 'Backend Developer', github: 'https://github.com/yourusername3' },
     { name: 'Fasil', role: 'Frontend Developer', github: 'https://github.com/fasilv29' },
     { name: 'Jain', role: 'Backend Developer', github: 'https://github.com/jain-commits' },
@@ -953,6 +955,11 @@ function CandidateProfile({ currentUser, setCurrentUser }) {
   const [experience, setExperience] = useState(currentUser?.experience || '');
   const [resumeName, setResumeName] = useState(currentUser?.resumeName || '');
 
+
+// State to hold the actual file and upload status messages
+  const [resumeFile, setResumeFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState('');
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -977,44 +984,164 @@ function CandidateProfile({ currentUser, setCurrentUser }) {
     }
   };
 
+  // 1. Handle File Selection & Validation
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    
+    if (file) {
+      // Validate File Size (e.g., Max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        setUploadStatus('❌ File is too large. Maximum size is 5MB.');
+        setResumeFile(null);
+        e.target.value = null; // Reset the input
+        return;
+      }
+
+      // Validate File Type (Only PDF or Word)
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        setUploadStatus('❌ Please upload a valid PDF or Word document.');
+        setResumeFile(null);
+        e.target.value = null; // Reset the input
+        return;
+      }
+
+      setResumeFile(file);
+      setUploadStatus(''); // Clear any previous errors
+    }
+  };
+
+// 2. Handle the Actual Upload Process
+  const handleUpload = async () => {
+    if (!resumeFile) {
+      setUploadStatus('⚠️ Please select a file first.');
+      return;
+    }
+
+    setUploadStatus('⏳ Uploading...');
+
+    const formData = new FormData();
+    formData.append('resume', resumeFile);
+    formData.append('userId', currentUser.id); 
+
+    try {
+      // Temporary mock success so you can test the UI right now
+      setTimeout(() => {
+        setUploadStatus('✅ Resume uploaded successfully! (Mocked)');
+        setResumeFile(null); 
+      }, 1500);
+
+    } catch (error) {
+      setUploadStatus('❌ An error occurred connecting to the server.');
+    }
+  };
+
+
+
+
   return (
-    <div className="card" style={{ maxWidth: '600px', margin: '20px auto' }}>
-      <h2>My Profile Resume</h2>
-      <form onSubmit={handleProfileSubmit}>
-        <div className="form-group">
-          <label>Full Name</label>
-          <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
+    <div>
+      {/* --- PROFILE DETAILS FORM --- */}
+      <div className="card" style={{ maxWidth: '600px', margin: '20px auto' }}>
+        <h2>My Profile Details</h2>
+        <form onSubmit={handleProfileSubmit}>
+          <div className="form-group">
+            <label>Full Name</label>
+            <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Phone Number</label>
+            <input type="text" className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Location / City</label>
+            <input type="text" className="form-control" value={location} onChange={(e) => setLocation(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>About Me</label>
+            <textarea className="form-control" value={bio} onChange={(e) => setBio(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Technical Skills</label>
+            <input type="text" className="form-control" placeholder="e.g. HTML, CSS, JavaScript" value={skills} onChange={(e) => setSkills(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Highest Education</label>
+            <input type="text" className="form-control" placeholder="e.g. BS Computer Science" value={education} onChange={(e) => setEducation(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Work Experience</label>
+            <textarea className="form-control" placeholder="Describe your last job..." value={experience} onChange={(e) => setExperience(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Resume File Name</label>
+            <input type="text" className="form-control" placeholder="resume_name.pdf" value={resumeName} onChange={(e) => setResumeName(e.target.value)} disabled />
+          </div>
+          <button type="submit" className="btn">Save Profile Changes</button>
+        </form>
+      </div>
+
+      {/* --- RESUME UPLOAD SECTION (Separated from form above) --- */}
+      <div className="card" style={{ maxWidth: '600px', margin: '40px auto', padding: '30px' }}>
+        <h2 style={{ marginBottom: '5px' }}>Upload Your Resume</h2>
+        <p style={{ color: '#666', fontSize: '14px', marginBottom: '25px' }}>
+          Employers will use this document to evaluate your application. Accepted formats: PDF, DOC, DOCX (Max 5MB).
+        </p>
+
+        <div style={{
+          border: '2px dashed #d1d5db',
+          borderRadius: '8px',
+          padding: '30px',
+          textAlign: 'center',
+          backgroundColor: '#f9fafb',
+          marginBottom: '20px'
+        }}>
+          <input 
+            type="file" 
+            id="resume-upload"
+            accept=".pdf,.doc,.docx"
+            onChange={handleFileChange}
+            style={{ display: 'none' }} 
+          />
+          
+          <label 
+            htmlFor="resume-upload" 
+            className="btn btn-secondary" 
+            style={{ cursor: 'pointer', display: 'inline-block', marginBottom: '10px' }}
+          >
+            Browse Files
+          </label>
+          
+          <div style={{ marginTop: '10px', fontSize: '14px', color: '#111827', fontWeight: '500' }}>
+            {resumeFile ? `Selected: ${resumeFile.name}` : 'No file selected'}
+          </div>
         </div>
-        <div className="form-group">
-          <label>Phone Number</label>
-          <input type="text" className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Location / City</label>
-          <input type="text" className="form-control" value={location} onChange={(e) => setLocation(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>About Me</label>
-          <textarea className="form-control" value={bio} onChange={(e) => setBio(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Technical Skills</label>
-          <input type="text" className="form-control" placeholder="e.g. HTML, CSS, JavaScript" value={skills} onChange={(e) => setSkills(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Highest Education</label>
-          <input type="text" className="form-control" placeholder="e.g. BS Computer Science" value={education} onChange={(e) => setEducation(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Work Experience</label>
-          <textarea className="form-control" placeholder="Describe your last job..." value={experience} onChange={(e) => setExperience(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Resume File Name (Mock Upload)</label>
-          <input type="text" className="form-control" placeholder="resume_name.pdf" value={resumeName} onChange={(e) => setResumeName(e.target.value)} />
-        </div>
-        <button type="submit" className="btn">Save Profile Changes</button>
-      </form>
+
+        {uploadStatus && (
+          <div style={{ 
+            marginBottom: '20px', 
+            padding: '10px', 
+            borderRadius: '6px',
+            backgroundColor: uploadStatus.includes('✅') ? '#dcfce7' : '#fee2e2',
+            color: uploadStatus.includes('✅') ? '#166534' : '#991b1b',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            {uploadStatus}
+          </div>
+        )}
+
+        <button 
+          type="button" 
+          onClick={handleUpload} 
+          className="btn"
+          disabled={!resumeFile || uploadStatus.includes('⏳')}
+          style={{ width: '100%', opacity: (!resumeFile || uploadStatus.includes('⏳')) ? 0.5 : 1 }}
+        >
+          {uploadStatus.includes('⏳') ? 'Uploading...' : 'Upload Resume Document'}
+        </button>
+      </div>
     </div>
   );
 }
