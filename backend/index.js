@@ -65,7 +65,7 @@ app.post('/api/upload-resume', upload.single('resume'), async (req, res) => {
 
 
 // 3. The API endpoint to retrieve and download the file from MongoDB
-app.get('/users/:id/resume', async (req, res) => {
+app.get('api/users/:id/resume', async (req, res) => {
   try {
     // We explicitly ask Mongoose to include the heavy 'resume.data' field this time
     const user = await User.findById(req.params.id).select('+resume.data');
