@@ -96,7 +96,7 @@ router.put('/users/:id/profile', async (req, res) => {
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 
 // Get All Jobs
-router.get('/api/jobs', async (req, res) => {
+router.get('/jobs', async (req, res) => {
   try {
     const jobs = await Job.find().sort({ createdAt: -1 });
     res.json(jobs);
@@ -107,7 +107,7 @@ router.get('/api/jobs', async (req, res) => {
 });
 
 // Post a Job
-router.post('/api/jobs', async (req, res) => {
+router.post('/jobs', async (req, res) => {
   try {
     const {
       employerId,
