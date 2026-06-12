@@ -120,24 +120,7 @@ export default function App() {
 </a>
 
   <nav>
-  <div className="nav-top">
-    <a
-  href="#"
-  onClick={(e) => {
-    e.preventDefault();
-    setCurrentPage("home");
-  }}
->Home</a>
-    <a
-  href="#"
-  onClick={(e) => {
-    e.preventDefault();
-    setCurrentPage("job-listings");
-  }}
->
-  Jobs
-</a>
-  </div>
+  {/* The nav-top section containing Home and Jobs has been removed */}
 
   <div className="nav-bottom">
     <a
@@ -163,6 +146,7 @@ export default function App() {
 </a>
   </div>
 </nav>
+
 </header>
 
       {/* Main Pages Content Router */}
