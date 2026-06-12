@@ -1180,46 +1180,7 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
           </tbody>
         </table>
       )}
-      {activeAppId && selectedApp && (
-  <div
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      background: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}
-  >
-    <div style={{ background: '#fff', padding: 20, borderRadius: 8, width: '400px' }}>
       
-      <h3>Application Review</h3>
-
-      <p><strong>Candidate:</strong> {selectedCandidate?.name}</p>
-      <p><strong>Email:</strong> {selectedCandidate?.email}</p>
-      <p><strong>Job:</strong> {getJobTitle(selectedApp.jobId)}</p>
-      <p><strong>Status:</strong> {selectedApp.status || 'Applied'}</p>
-
-      <div style={{ marginTop: 15, display: 'flex', gap: 10 }}>
-        <button onClick={() => handleUpdateStatus(activeAppId, 'Accepted')} className="btn">
-          Accept
-        </button>
-
-        <button onClick={() => handleUpdateStatus(activeAppId, 'Rejected')} className="btn btn-danger">
-          Reject
-        </button>
-
-        <button onClick={() => setActiveAppId(null)} className="btn btn-secondary">
-          Close
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
     </div>
 
     
