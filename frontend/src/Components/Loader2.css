@@ -1,0 +1,18 @@
+/* New Text Loader for Top Banner */
+.loader2 {
+  font-weight: bold;
+  font-family: sans-serif;
+  font-size: 30px;
+  color: #000000; /* Matches your app's blue theme */
+  animation: l1 1s linear infinite alternate;
+}
+
+.loader2:before {
+  content: "Loading...";
+}
+
+@keyframes l1 {
+  to {
+    opacity: 0.2;
+  }
+}

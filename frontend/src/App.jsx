@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './Components/Loader.css'; // Importing the Loader CSS for the loading spinner
 import Loader from './Components/Loader'; // Importing the Loader component to show while fetching data
 import { Toaster, toast } from "react-hot-toast";
-
-
+import Loader2 from './Components/Loader2'; // Importing the second loader for backend connection status
+import './Components/Loader2.css';
 
 //const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -168,10 +168,11 @@ export default function App() {
       {/* Main Pages Content Router */}
       <main className="container">
 
+       
         {/* Backend connection status banner */}
         {loadingJobs && (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-            <p>⏳ Connecting to server, please wait...</p>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+            <div className="loader2"></div>
           </div>
         )}
         {jobsError && (
