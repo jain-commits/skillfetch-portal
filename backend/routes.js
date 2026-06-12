@@ -236,7 +236,7 @@ router.put('/applications/:id/status', async (req, res) => {
 // ==================== ADMINISTRATIVE BOARD ROUTES ====================
 
 // Get All Users (Admin)
-router.get('/api/users', async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
     res.json(users);
@@ -247,7 +247,7 @@ router.get('/api/users', async (req, res) => {
 });
 
 // Suspend/Unsuspend User
-router.put('/api/users/:id/suspend', async (req, res) => {
+router.put('/users/:id/suspend', async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
@@ -266,7 +266,7 @@ router.put('/api/users/:id/suspend', async (req, res) => {
 });
 
 // Delete User (Cascading)
-router.delete('/api/users/:id', async (req, res) => {
+router.delete('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
