@@ -1,112 +1,118 @@
-# SkillFetch Portal 💼
-
-SkillFetch is a database-backed, real-time synchronized job portal. It enables job seekers (Candidates) to search, view, and apply for remote opportunities, allows recruiters (Employers) to post job listings and manage applicant review pipelines, and equips Admins with account moderation and cascading delete controls.
+<div align="center">
+  <h1>SkillFetch Portal 💼</h1>
+  <p><i>A database-backed, real-time synchronized remote job portal.</i></p>
+  
+  ![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
+  ![React](https://img.shields.io/badge/React-18.2-61DAFB.svg?logo=react)
+  ![Node.js](https://img.shields.io/badge/Node.js-Express-339933.svg?logo=node.js)
+  ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248.svg?logo=mongodb)
+</div>
 
 ---
 
-## 🚀 Key Features
+**SkillFetch** is a comprehensive, full-stack job board designed to bridge the gap between remote talent and growing companies. 
 
-*   **Live Job Synchronization**: On startup, the backend automatically fetches the latest remote listings from the public **Jobicy API**, parses and maps the properties, and upserts them locally into MongoDB so they remain fully interactive.
-*   **Candidate Portal**:
-    *   Register, sign in, and persist user sessions via `localStorage`.
-    *   Manage a resume profile (contact info, bio, skills, education, experience).
-    *   Submit job applications with custom pitch/cover letters.
-    *   Track real-time statuses (Applied, Shortlisted, Hired, Rejected) on an application tracking board.
-*   **Employer Panel**:
-    *   Post new job opportunities.
-    *   View candidate details, resumes, and cover letters.
-    *   Manage applicant pipelines by changing statuses (Shortlist, Hire, Reject).
-    *   Delete job postings with automatic cascade deletion of corresponding applications.
-*   **Administrative Board**:
-    *   Monitor total accounts, job postings, and applications.
-    *   Suspend or unsuspend user accounts (suspension blocks user login).
-    *   Delete user accounts with full cascading deletes (deleting an employer removes all their jobs and applications; deleting a candidate removes their applications).
-*   **Polished Aesthetics**:
-    *   Uses a clean, modern design featuring Google Font **Inter** and curated CSS elements.
-    *   Includes company logos with dynamic, styled initials avatars as fallbacks for companies without logo URLs.
-    *   Includes connection status banners and retry actions for network stability.
+It equips **Candidates** with powerful tools to search and apply for remote opportunities, enables **Employers** to post jobs and manage applicant review pipelines, and provides **Admins** with robust moderation controls. The platform is automatically synchronized with the public Jobicy API to ensure a constant stream of fresh, interactive job listings.
+
+## ✨ Key Features
+
+### 🔄 Live Job Synchronization
+On startup, the backend automatically fetches the latest remote listings from the **Jobicy API**. It parses the data, maps the properties, and upserts them locally into MongoDB, ensuring the job board is always populated and fully interactive.
+
+### 🧑‍💻 Candidate Experience
+*   **Persistent Sessions:** Secure registration and login, with sessions maintained via `localStorage`.
+*   **Dynamic Resumes:** Manage a comprehensive profile including contact info, a bio, skills, education, and professional experience.
+*   **One-Click Applications:** Submit applications complete with custom pitches or cover letters.
+*   **Kanban Tracking:** Track application progress in real-time across distinct statuses *(Applied, Shortlisted, Hired, Rejected)*.
+
+### 🏢 Employer Panel
+*   **Job Management:** Post, edit, and manage remote job opportunities.
+*   **Applicant Review:** Seamlessly view candidate profiles, resumes, and cover letters within the platform.
+*   **Pipeline Control:** Move candidates through the hiring pipeline by updating their application status.
+*   **Smart Deletion:** Removing a job posting triggers a cascading delete, automatically cleaning up associated applications.
+
+### 🛡️ Administrative Board
+*   **System Overview:** Monitor total user accounts, active job postings, and total applications.
+*   **Moderation:** Suspend or unsuspend user accounts instantly to block unauthorized access.
+*   **Cascading Removal:** Delete user accounts safely. Deleting an employer removes all their jobs and applications; deleting a candidate wipes their application history.
+
+### 💅 Polished, Modern UI (Updated in v1.2.0)
+*   **Design System:** Built with a clean, modern aesthetic utilizing **Inter** typography and a refined color palette.
+*   **Fluid Animations:** Features smooth CSS transitions and keyframe animations that respect OS-level `prefers-reduced-motion` settings.
+*   **Custom Components:** Utilizes highly reusable, responsive `Card` components for job listings and profiles.
+*   **Resilient Architecture:** Implemented global React Error Boundaries to prevent full-app crashes, ensuring maximum uptime and a premium user experience.
+*   **Smart Avatars:** Generates dynamic, styled initials for companies missing logo URLs.
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Frontend
-*   **React** (v18.2) — Component-based user interface.
-*   **Vite** (v5.2) — Ultra-fast frontend build tool and dev server.
-*   **Vanilla CSS** — Custom styling, transitions, and layout grids.
-
-### Backend
-*   **Node.js & Express** — Rest API server.
-*   **MongoDB Atlas & Mongoose** — Cloud database connection and schema modeling.
-*   **HTTPS (Native Node Module)** — Secure, dependency-free external API requests.
+| Environment | Technologies |
+| :--- | :--- |
+| **Frontend** | React (v18.2), Vite (v5.2), Vanilla CSS |
+| **Backend** | Node.js, Express, Native HTTPS Module |
+| **Database** | MongoDB Atlas, Mongoose ODM |
 
 ---
 
-## 📂 Project Directory Structure
+## 🚀 Getting Started
 
-```text
-Skillfetch/
-├── backend/
-│   ├── index.js          # Express server entry point, MongoDB connection, & seeder run
-│   ├── models.js         # Mongoose Schemas (User, Job, Application)
-│   ├── routes.js         # REST API routes (Auth, Jobs, Applications, Admin, Profiles)
-│   ├── seed.js           # Live API job sync, test account setup, and fallback seeder
-│   ├── package.json      # Backend configuration & server scripts
-│   └── .env              # Environment secrets (MongoDB Atlas connection string - IGNORED)
-├── frontend/
-│   ├── src/
-│   │   ├── main.jsx      # Vite entry point
-│   │   ├── App.jsx       # Single-page router, page views, and API client state
-│   │   └── index.css     # Global stylesheets and typography
-│   ├── index.html        # HTML layout containing Font links
-│   ├── vite.config.js    # Vite bundling configurations
-│   └── package.json      # Frontend package configuration (pruned from unused deps)
-├── .gitignore            # Excludes node_modules, .env, and OS metadata (.DS_Store)
-└── README.md             # Project documentation (this file)
-```
-
----
-
-## 💻 Local Installation & Setup
+Follow these steps to run the SkillFetch Portal locally on your machine.
 
 ### Prerequisites
 *   **Node.js** (v18.0+ recommended)
 *   **Git**
 
-### Step 1: Clone the Repository
+### 1. Clone the Repository
 ```bash
 git clone git@github.com:jain-commits/skillfetch-portal.git
 cd Skillfetch
-```
+2. Configure Environment Variables
+Create a file named .env inside the backend/ directory and insert your MongoDB Atlas connection string:
 
-### Step 2: Configure Backend Environment Variables
-Create a file named `.env` in the `backend/` folder and insert your MongoDB Atlas connection string:
-```env
-MONGODB_URI=your_mongodb_connection_string
-```
+Code snippet
+MONGODB_URI=your_mongodb_connection_string_here
+3. Initialize the Backend
+Open a terminal in the backend/ folder to install dependencies and start the Express server.
 
-### Step 3: Run the Backend Server
-```bash
+Bash
 cd backend
 npm install
 npm start
-```
-*The server will connect to MongoDB, seed/sync job listings, and listen on **port 5001**.*
+Note: The server will connect to MongoDB, sync live job listings, and listen on port 5001.
 
-### Step 4: Run the Frontend Development Server
-Open a new terminal window, navigate to the `frontend/` folder, and start the Vite development server:
-```bash
+4. Initialize the Frontend
+Open a new terminal window in the frontend/ folder to spin up the Vite development server.
+
+Bash
 cd frontend
 npm install
 npm run dev
-```
-*The Vite development server will start and serve the application on **http://localhost:5173/**.*
+Note: The frontend application will be served locally at http://localhost:5173/.
 
----
+🧪 Testing Credentials
+To make testing easier, the application comes with seeded accounts. You can click the prefill buttons on the login page, or manually use the following credentials:
 
-## 👥 Seeded Quick Prefills (For testing)
+Candidate: candidate@jobportal.com | Pass: candidate123
 
-You can quickly sign into the application for testing using the prefill buttons on the login page:
-*   **Candidate Account**: `candidate@jobportal.com` (password: `candidate123`)
-*   **Employer Account**: `employer@jobportal.com` (password: `employer123`)
-*   **Admin Account**: `admin@jobportal.com` (password: `admin123`)
+Employer: employer@jobportal.com | Pass: employer123
+
+Admin: admin@jobportal.com | Pass: admin123
+
+📂 Project Architecture
+Plaintext
+Skillfetch/
+├── backend/
+│   ├── index.js          # Express server entry, DB connection, & seeder run
+│   ├── models.js         # Mongoose Schemas (User, Job, Application)
+│   ├── routes.js         # REST API routes (Auth, Jobs, Applications, Admin)
+│   ├── seed.js           # Live API job sync and test account seeder
+│   └── .env              # Environment secrets (IGNORED IN GIT)
+├── frontend/
+│   ├── src/
+│   │   ├── components/   # Reusable UI elements (Cards, Buttons, ErrorBoundary)
+│   │   ├── styles/       # Modular Vanilla CSS stylesheets
+│   │   ├── App.jsx       # Single-page router and state management
+│   │   └── main.jsx      # Vite entry point
+│   └── vite.config.js    # Bundler configuration
+└── README.md             # Project documentation
