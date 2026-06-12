@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Loader from './Components/Loader';
+import './Components/Loader.css'; // Importing the Loader CSS for the loading spinner
+import Loader from './Components/Loader'; // Importing the Loader component to show while fetching data
+
 
 //const API_BASE_URL = 'http://localhost:5001/api';
 

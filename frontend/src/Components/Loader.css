@@ -13,7 +13,7 @@
             background-image:  radial-gradient(circle 14px, #0d161b 100%, transparent 0);
             background-repeat: no-repeat;
             border-radius: 50%;
-            animation: eyeMove 10s infinite , blink 10s infinite;
+            animation: eyeMove 3s infinite , blink 3s infinite;
           }
           @keyframes eyeMove {
             0%  , 10% {     background-position: 0px 0px}
