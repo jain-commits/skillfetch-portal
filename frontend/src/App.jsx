@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Loader from './Components/Loader';
 
 //itconst API_BASE_URL = 'http://localhost:5001/api';
 const API_BASE_URL = "https://skillfetch-portal.onrender.com";
@@ -8,7 +9,7 @@ const API_BASE_URL = "https://skillfetch-portal.onrender.com";
 export default function App() {
   const [users, setUsers] = useState([]);
   const [applications, setApplications] = useState([]);
-  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [loadingJobs, setLoadingJobs] = useState(true);
   const [jobsError, setJobsError] = useState(false);
   const [jobs, setJobs] = useState([]);
   
@@ -40,6 +41,8 @@ export default function App() {
     fetchJobs();
   }, []);
 
+
+  
   // Fetch applications and users based on logged-in user role
   useEffect(() => {
     if (!currentUser) {
@@ -80,6 +83,10 @@ export default function App() {
 
     fetchUserData();
   }, [currentUser]);
+
+  if (loadingJobs) {
+  return <Loader />;
+}
 
   // Authentication Helpers
   const handleLogout = () => {
@@ -1180,6 +1187,7 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
           </tbody>
         </table>
       )}
+      
       
     </div>
 
