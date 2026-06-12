@@ -23,7 +23,7 @@ export default function App() {
     setLoadingJobs(true);
     setJobsError(false);
     try {
-      const res = await fetch(`${API_BASE_URL}/jobs`);
+      const res = await fetch(`${API_BASE_URL}/api/jobs`);
       if (!res.ok) throw new Error("Could not fetch jobs");
       const data = await res.json();
       console.log("API response:", data);
