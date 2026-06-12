@@ -778,7 +778,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
   const handleDeleteJob = async (jobId) => {
     if (!window.confirm('Are you sure you want to delete this job posting?')) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
         method: 'DELETE'
       });
       if (!response.ok) {
@@ -807,7 +807,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
   const handleUpdateStatus = async (appId, newStatus) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/applications/${appId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/applications/${appId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -1034,7 +1034,7 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
 
   const toggleSuspension = async (userId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}/suspend`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}/suspend`, {
         method: 'PUT'
       });
       const data = await response.json();
@@ -1053,7 +1053,7 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user? This will also delete all their posted jobs or submitted applications.')) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: 'DELETE'
       });
       if (!response.ok) {
@@ -1075,7 +1075,7 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
   const handleDeleteJob = async (jobId) => {
     if (!window.confirm('Are you sure you want to delete this job posting?')) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
         method: 'DELETE'
       });
       if (!response.ok) {
