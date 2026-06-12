@@ -247,6 +247,11 @@ export default function App() {
             currentUser={currentUser} 
           />
         )}
+        
+        {/* --- ADD THIS NEW BLOCK --- */}
+        {currentPage === 'about' && (
+          <AboutUs setCurrentPage={setCurrentPage} />
+        )}
 
       </main>
 
@@ -268,7 +273,17 @@ export default function App() {
         <li><a href="#">Home</a></li>
         <li><a href="#">Browse Jobs</a></li>
         <li><a href="#">Employers</a></li>
-        <li><a href="#">About Us</a></li>
+       <li>
+  <a 
+    href="#" 
+    onClick={(e) => {
+      e.preventDefault();
+      setCurrentPage('about');
+    }}
+  >
+    About Us
+  </a>
+</li>
       </ul>
     </div>
 
@@ -293,6 +308,51 @@ export default function App() {
 
 // ==================== PAGE COMPONENTS ====================
 
+// 11. About Us Page Component
+function AboutUs({ setCurrentPage }) {
+  return (
+    <div className="card" style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>About SkillFetch</h2>
+      
+      <div style={{ lineHeight: '1.8', fontSize: '16px', color: '#444' }}>
+        <p>
+          Welcome to <strong>SkillFetch</strong>, a comprehensive professional networking and job discovery platform. Designed with a seamless user experience in mind, our goal is to bridge the gap between talented job seekers and actively hiring recruiters.
+        </p>
+        
+        <p>
+          Whether you are a professional looking to take the next step in your career, or an employer searching for the perfect candidate to join your team, SkillFetch provides the tools you need:
+        </p>
+
+        <ul style={{ paddingLeft: '20px', marginBottom: '20px' }}>
+          <li><strong>For Job Seekers:</strong> Browse open roles, pitch your skills, submit applications, and track your hiring status all in one place.</li>
+          <li><strong>For Employers & Recruiters:</strong> Post job listings, manage incoming applications, and shortlist top-tier talent through an intuitive dashboard.</li>
+        </ul>
+
+        <hr style={{ borderColor: '#eeeeee', margin: '30px 0' }} />
+
+        <h3 style={{ marginBottom: '10px' }}>The Team Behind SkillFetch</h3>
+        <p>
+          SkillFetch is the proud result of a collaborative project built by a dedicated team of <strong>5 members</strong>. We combined our skills in frontend design, backend architecture, and user experience to bring this platform to life. 
+        </p>
+
+        {/* Optional: You can list your team member names here! */}
+        <ul style={{ listStyleType: 'none', padding: 0, fontWeight: 'bold' }}>
+          <li>👨‍💻 Ajay</li>
+          <li>👩‍💻 Fasil</li>
+          <li>👨‍💻 Karthik</li>
+          <li>👩‍💻 Dixon Anto</li>
+          <li>👨‍💻 Jain</li>
+        </ul>
+
+        <div style={{ textAlign: 'center', marginTop: '40px' }}>
+          <button onClick={() => setCurrentPage('job-listings')} className="btn">
+            Start Browsing Jobs
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 // 1. Home Page Component
 function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }) {
   // Get 3 most recent jobs
@@ -1311,5 +1371,6 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
 
     
   );
+  
   
 }
