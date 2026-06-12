@@ -4,6 +4,7 @@ import Loader from './Components/Loader'; // Importing the Loader component to s
 import { Toaster, toast } from "react-hot-toast";
 
 
+
 //const API_BASE_URL = 'http://localhost:5001/api';
 
 const API_BASE_URL = "https://skillfetch-portal.onrender.com";
