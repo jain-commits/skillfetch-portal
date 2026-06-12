@@ -5,7 +5,7 @@ const { User, Job, Application } = require('./models');
 // ==================== AUTHENTICATION ROUTES ====================
 
 // Register
-router.post('/api/auth/register', async (req, res) => {
+router.post('/auth/register', async (req, res) => {
   try {
     const { role, name, email, password, companyName, companyLocation } = req.body;
     
