@@ -1,7 +1,7 @@
 /* Simple Beginner-Friendly CSS Stylesheet */
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', Arial, sans-serif;
   background-color: #f4f6f9;
   color: #333333;
   margin: 0;
