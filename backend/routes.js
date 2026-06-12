@@ -1,6 +1,81 @@
 const express = require('express');
 const router = express.Router();
 const { User, Job, Application } = require('./models');
+const multer = require('multer');
+const path = require('path');
+const mongoose = require('mongoose');
+const cors = require("cors");
+
+// Middleware
+router.use(cors());
+router.use(express.json());
+
+// ==================== RESUME UPLOAD & DOWNLOAD ROUTES ====================
+
+// 1. Tell Multer to hold the file in RAM (Memory)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// 2. Upload Route
+router.post('/upload-resume', upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const userId = req.body.userId;
+
+    // Save the raw buffer data, file type, and original name directly to MongoDB
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, 
+      { 
+        resume: {
+          data: req.file.buffer,
+          contentType: req.file.mimetype,
+          name: req.file.originalname
+        }
+      }, 
+      { new: true } 
+    );
+
+    if (!updatedUser) {
+       return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ 
+      message: "Resume saved to database successfully", 
+      resumeName: req.file.originalname 
+    });
+
+  } catch (error) {
+    console.error("Database Upload Error:", error);
+    res.status(500).json({ message: "Server error during database upload" });
+  }
+});
+
+// 3. Download/View Route
+router.get('/users/:id/resume', async (req, res) => {
+  try {
+    // Explicitly select the heavy data buffer
+    const user = await User.findById(req.params.id).select('+resume.data');
+
+    if (!user || !user.resume || !user.resume.data) {
+      return res.status(404).json({ message: "No resume found for this user." });
+    }
+
+    // Tell the browser what kind of file it is, and what its name is
+    res.set('Content-Type', user.resume.contentType);
+    res.set('Content-Disposition', `inline; filename="${user.resume.name}"`);
+
+    // Send the raw binary file to the frontend
+    res.send(user.resume.data);
+
+  } catch (error) {
+    console.error("Download Error:", error);
+    res.status(500).json({ message: "Error retrieving the file from the database." });
+  }
+});
+
 
 // ==================== AUTHENTICATION ROUTES ====================
 
