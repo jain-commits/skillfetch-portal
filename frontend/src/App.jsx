@@ -251,15 +251,7 @@ function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }
      <h2>Recent Jobs</h2>
 
 {loadingJobs ? (
- <div
-  style={{
-    textAlign: "center",
-    padding: "50px",
-    border: "2px solid red"
-  }}
->
-  <Loader />
-</div>
+ <Loader />
 
 ) : jobsError ? (
   <p>Failed to load jobs. Please try again later.</p>
