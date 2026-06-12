@@ -1,31 +1,37 @@
 import React, { useState, useEffect } from 'react';
 
-const API_BASE_URL = 'http://127.0.0.1:5001/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 // ==================== APP CONTAINER COMPONENT ====================
 
 export default function App() {
   const [users, setUsers] = useState([]);
-  const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [jobsError, setJobsError] = useState(false);
+  const [jobs, setJobs] = useState([]);
   
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [currentPage, setCurrentPage] = useState('home'); // home, login, register, job-listings, job-detail, profile, tracker, employer-dashboard, post-job, admin-panel
+    return saved ? JSON.parse(saved) : null;});
+  const [currentPage, setCurrentPage] = useState('home');
   const [selectedJobId, setSelectedJobId] = useState(null);
 
   // Fetch all jobs on startup
   const fetchJobs = async () => {
+    setLoadingJobs(true);
+    setJobsError(false);
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs`);
-      const data = await response.json();
-      if (response.ok) {
-        setJobs(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch jobs:', err);
+      const res = await fetch(`${API_BASE_URL}/jobs`);
+      if (!res.ok) throw new Error("Could not fetch jobs");
+      const data = await res.json();
+      console.log("API response:", data);
+      setJobs(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+      setJobsError(true);
+    } finally {
+      setLoadingJobs(false);
     }
   };
 
@@ -127,7 +133,23 @@ export default function App() {
 
       {/* Main Pages Content Router */}
       <main className="container">
-        
+
+        {/* Backend connection status banner */}
+        {loadingJobs && (
+          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+            <p>⏳ Connecting to server, please wait...</p>
+          </div>
+        )}
+        {jobsError && (
+          <div style={{ background: '#fff3cd', border: '1px solid #ffc107', borderRadius: '8px', padding: '15px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <strong>⚠️ Cannot reach the backend server.</strong>
+              <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>Make sure you have run <code>npm start</code> inside the <code>backend/</code> folder.</p>
+            </div>
+            <button onClick={fetchJobs} className="btn" style={{ whiteSpace: 'nowrap', marginLeft: '15px' }}>🔄 Retry</button>
+          </div>
+        )}
+
         {currentPage === 'home' && (
           <Home jobs={jobs} setCurrentPage={setCurrentPage} setSelectedJobId={setSelectedJobId} />
         )}
@@ -209,7 +231,8 @@ export default function App() {
 // 1. Home Page Component
 function Home({ jobs, setCurrentPage, setSelectedJobId }) {
   // Get 3 most recent jobs
-  const recentJobs = jobs.slice(0, 3);
+  const safeJobs = Array.isArray(jobs) ? jobs : [];
+  const recentJobs = safeJobs.slice(0, 3);
 
   return (
     <div>
@@ -221,13 +244,29 @@ function Home({ jobs, setCurrentPage, setSelectedJobId }) {
 
       <h2>Recent Jobs</h2>
       {recentJobs.length === 0 ? (
-        <p>No job listings available.</p>
+        <p>Oops! There is no job listings available.</p>
       ) : (
         recentJobs.map((job) => (
           <div key={job.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h3>{job.title}</h3>
-              <p><strong>Company:</strong> {job.companyName} | <strong>Location:</strong> {job.location}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              {/* Logo display with fallback */}
+              {job.companyLogo ? (
+                <img 
+                  src={job.companyLogo} 
+                  alt={`${job.companyName} logo`} 
+                  style={{ width: "50px", height: "50px", borderRadius: "8px", objectFit: 'contain', border: '1px solid #eee' }} 
+                />
+              ) : (
+                <div style={{ width: "50px", height: "50px", borderRadius: "8px", backgroundColor: "#0056b3", color: "#fff", display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>
+                  {job.companyName ? job.companyName.charAt(0).toUpperCase() : 'J'}
+                </div>
+              )}
+              <div>
+                <h3 style={{ margin: '0 0 5px 0' }}>{job.title}</h3>
+                <p style={{ margin: 0, fontSize: '14px', color: '#555' }}>
+                  <strong>Company:</strong> {job.companyName} | <strong>Type:</strong> {job.type} | <strong>Location:</strong> {job.location}
+                </p>
+              </div>
             </div>
             <button 
               onClick={() => { setSelectedJobId(job.id); setCurrentPage('job-detail'); }} 
@@ -412,13 +451,17 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
 
-  // Simple category and location list extracting
-  const categories = Array.from(new Set(jobs.map(j => j.category)));
-  const locations = Array.from(new Set(jobs.map(j => j.location)));
+  const safeJobs = Array.isArray(jobs) ? jobs : [];
 
-  const filteredJobs = jobs.filter(job => {
-    const matchSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        job.companyName.toLowerCase().includes(searchTerm.toLowerCase());
+  // Simple category and location list extracting
+  const categories = Array.from(new Set(safeJobs.map(j => j.category || '')));
+  const locations = Array.from(new Set(safeJobs.map(j => j.location || '')));
+
+  const filteredJobs = safeJobs.filter(job => {
+    const title = job.title || '';
+    const company = job.companyName || '';
+    const matchSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        company.toLowerCase().includes(searchTerm.toLowerCase());
     const matchCategory = !categoryFilter || job.category === categoryFilter;
     const matchLocation = !locationFilter || job.location === locationFilter;
     return matchSearch && matchCategory && matchLocation;
@@ -468,13 +511,29 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
       ) : (
         filteredJobs.map((job) => (
           <div key={job.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h3>{job.title}</h3>
-              <p><strong>{job.companyName}</strong> &bull; {job.location}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              {/* Logo display with fallback */}
+              {job.companyLogo ? (
+                <img 
+                  src={job.companyLogo} 
+                  alt={`${job.companyName} logo`} 
+                  style={{ width: "50px", height: "50px", borderRadius: "8px", objectFit: 'contain', border: '1px solid #eee' }} 
+                />
+              ) : (
+                <div style={{ width: "50px", height: "50px", borderRadius: "8px", backgroundColor: "#0056b3", color: "#fff", display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>
+                  {job.companyName ? job.companyName.charAt(0).toUpperCase() : 'J'}
+                </div>
+              )}
               <div>
-                <span className="badge">{job.type}</span>
-                <span className="badge">{job.experienceLevel}</span>
-                <span className="badge badge-success">{job.salaryRange}</span>
+                <h3 style={{ margin: '0 0 5px 0' }}>{job.title}</h3>
+                <p style={{ margin: 0, fontSize: '14px', color: '#555' }}>
+                  <strong>{job.companyName}</strong> &bull; {job.location}
+                </p>
+                <div style={{ marginTop: '5px' }}>
+                  <span className="badge">{job.type}</span>
+                  <span className="badge">{job.experienceLevel}</span>
+                  <span className="badge badge-success">{job.salaryRange}</span>
+                </div>
               </div>
             </div>
             <button 
@@ -542,9 +601,8 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
         <p><strong>Salary Range:</strong> {job.salaryRange} | <strong>Type:</strong> {job.type}</p>
         
         <hr style={{ borderColor: '#eeeeee', margin: '15px 0' }} />
-        
         <h3>Job Description</h3>
-        <p style={{ whiteSpace: 'pre-line' }}>{job.description}</p>
+        <div style={{ lineHeight: '1.6', whiteSpace: 'normal', marginBottom: '20px' }} dangerouslySetInnerHTML={{ __html: job.description }} />
         
         <h3>Job Qualifications</h3>
         <p>{job.qualifications}</p>
@@ -687,7 +745,7 @@ function ApplicationTracking({ applications, jobs, currentUser }) {
             {myApps.map((app) => (
               <tr key={app.id}>
                 <td><strong>{getJobTitle(app.jobId)}</strong></td>
-                <td>{app.appliedAt ? app.appliedAt.split('T')[0] : ''}</td>
+                <td>{(app.appliedAt || app.createdAt) ? (app.appliedAt || app.createdAt).split('T')[0] : ''}</td>
                 <td>{app.coverLetter}</td>
                 <td>
                   <span className={`badge ${
@@ -1122,5 +1180,7 @@ function AdminPanel({ users, setUsers, jobs, setJobs, applications, setApplicati
         </table>
       )}
     </div>
+
+    
   );
 }

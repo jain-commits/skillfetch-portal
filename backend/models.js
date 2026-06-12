@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, required: true, enum: ['candidate', 'employer', 'admin','test'] },
+  role: { type: String, required: true, enum: ['candidate', 'employer', 'admin'] },
   isSuspended: { type: Boolean, default: false },
   
   // Candidate profile fields
@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
 const jobSchema = new mongoose.Schema({
   employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   companyName: { type: String, required: true },
+  companyLogo: { type: String, default: '' },
   title: { type: String, required: true },
   category: { type: String, required: true },
   description: { type: String, required: true },
@@ -47,8 +48,7 @@ const jobSchema = new mongoose.Schema({
   location: { type: String, required: true },
   type: { type: String, required: true, enum: ['Full-time', 'Part-time', 'Contract', 'Internship'] },
   experienceLevel: { type: String, required: true, enum: ['Junior', 'Mid-Level', 'Senior'] },
-  skillsRequired: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  skillsRequired: { type: String, required: true }
 }, {
   timestamps: true,
   toJSON: {
@@ -68,7 +68,6 @@ const applicationSchema = new mongoose.Schema({
   jobId: { type: mongoose.Schema.Types.ObjectId, ref: 'Job', required: true },
   candidateId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, default: 'Applied', enum: ['Applied', 'Shortlisted', 'Hired', 'Rejected'] },
-  appliedAt: { type: Date, default: Date.now },
   coverLetter: { type: String, required: true }
 }, {
   timestamps: true,
