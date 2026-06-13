@@ -4,8 +4,12 @@ import Loader from './Components/Loader'; // Importing the Loader component to s
 import { Toaster, toast } from "react-hot-toast";
 import Loader2 from './Components/Loader2'; // Importing the second loader for backend connection status
 import './Components/Loader2.css';
-import { FaMapMarkerAlt, FaClock, FaEnvelope, FaPhone, FaDownload, FaTimes } from 'react-icons/fa';
-import AppleNavbar from './Components/Navbar';
+import { FaMapMarkerAlt, FaClock, FaEnvelope, FaPhone, FaDownload, FaTimes, FaUserCircle, FaBookmark, FaRegBookmark} from 'react-icons/fa';
+import SkillFetchNavbar from './Components/Navbar_v2';
+// import AppleNavbar from './Components/Navbar';
+import Home from './Components/Home';
+import JobSearchEngine from './Components/Home';
+
 
 
 //const API_BASE_URL = 'http://localhost:5001/api';
@@ -112,107 +116,22 @@ export default function App() {
 
   
     
-    return (
+  return (
     <div className="app-container">
       {/* Toast notifications container */}
       <Toaster />
-      <AppleNavbar/>
 
-      {/* Header Navigation */}
-      <header className="header">
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            setCurrentPage("home");
-          }}
-          className="logo-link"
-        >
-          <img
-            src="/skillfetch2.png"
-            alt="SkillFetch Logo"
-            className="logo-image"
-          />
-        </a>
-
-        <nav>
-          <div className="nav-bottom" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            
-            {/* IF NO USER IS LOGGED IN */}
-            {!currentUser ? (
-              <>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage("login");
-                  }}
-                  className="btn btn-secondary nav-btn"
-                >
-                  Login
-                </a>
-
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage("register");
-                  }}
-                  className="btn btn-secondary nav-btn"
-                >
-                  Register
-                </a>
-              </>
-            ) : (
-              /* IF A USER IS LOGGED IN */
-              <>
-                {currentUser.role === 'candidate' && (
-                  <>
-                    <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("tracker"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
-                      My Tracker
-                    </a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("profile"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
-                      My Profile
-                    </a>
-                  </>
-                )}
-
-                {currentUser.role === 'employer' && (
-                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("employer-dashboard"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
-                    Employer Dashboard
-                  </a>
-                )}
-
-                {currentUser.role === 'admin' && (
-                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage("admin-panel"); }} style={{ color: '#4b5563', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
-                    Admin Panel
-                  </a>
-                )}
-
-                <span style={{ fontSize: '14px', color: '#9ca3af', borderLeft: '1px solid #e5e7eb', paddingLeft: '15px' }}>
-                  Hi, {currentUser.name ? currentUser.name.split(' ')[0] : 'User'}
-                </span>
-
-                <button 
-                  onClick={handleLogout} 
-                  className="btn btn-secondary nav-btn" 
-                  style={{ padding: '6px 14px', fontSize: '13px' }}
-                >
-                  Logout
-                </button>
-              </>
-            )}
-          </div>
-        </nav>
-      </header>
-
-  
+      {/* 1. The New Indeed-Style Navbar */}
+      <SkillFetchNavbar 
+        currentUser={currentUser} 
+        setCurrentPage={setCurrentPage} 
+        handleLogout={handleLogout} 
+      />
 
       {/* Main Pages Content Router */}
-      {/* The 'key' prop forces React to replay the animation every time currentPage changes */}
-      <main className="container page-transition" key={currentPage}>
+      {/* Added paddingTop to account for the fixed 64px navbar */}
+      <main className="container page-transition" key={currentPage} style={{ paddingTop: '64px' }}>
 
-       
         {/* Backend connection status banner */}
         {loadingJobs && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
@@ -229,8 +148,12 @@ export default function App() {
           </div>
         )}
 
+        {/* NEW HOME PAGE */}
         {currentPage === 'home' && (
-          <Home jobs={jobs} setCurrentPage={setCurrentPage} setSelectedJobId={setSelectedJobId}  loadingJobs={loadingJobs} jobsError={jobsError}/>
+          <JobSearchEngine 
+            jobs={jobs} 
+            setCurrentPage={setCurrentPage} 
+          />
         )}
 
         {currentPage === 'login' && (
@@ -293,7 +216,6 @@ export default function App() {
           />
         )}
         
-        {/* --- ADD THIS NEW BLOCK --- */}
         {currentPage === 'about' && (
           <AboutUs setCurrentPage={setCurrentPage} />
         )}
@@ -302,76 +224,75 @@ export default function App() {
 
       {/* Simple Footer */}
       <footer className="footer">
-  <div className="container footer-content">
-    
-    <div className="footer-section">
-      <h3>SkillFetch</h3>
-      <p>
-        Connecting talented professionals with top employers.
-        Find your dream job and grow your career.
-      </p>
-    </div>
+        <div className="container footer-content">
+          
+          <div className="footer-section">
+            <h3>SkillFetch</h3>
+            <p>
+              Connecting talented professionals with top employers.
+              Find your dream job and grow your career.
+            </p>
+          </div>
 
-    <div className="footer-section">
-      <h4>Quick Links</h4>
-      <ul>
-        <li><a 
-            href="#" 
-            onClick={(e) => {
-              e.preventDefault();
-              setCurrentPage('home');
-            }}
-          >
-            Home
-          </a></li>
-        <li><a 
-            href="#" 
-            onClick={(e) => {
-              e.preventDefault();
-              setCurrentPage('job-listings');
-            }}
-          >
-            Browse Jobs
-          </a></li>
-        <li><a 
-            href="#" 
-            onClick={(e) => {
-              e.preventDefault();
-              // Directing employers to the login/register screen
-              setCurrentPage('login'); 
-            }}
-          >
-            Employers
-          </a></li>
-       <li>
-  <a 
-    href="#" 
-    onClick={(e) => {
-      e.preventDefault();
-      setCurrentPage('about');
-    }}
-  >
-    About Us
-  </a>
-</li>
-      </ul>
-    </div>
+          <div className="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage('home');
+                  }}
+                >
+                  Home
+                </a></li>
+              <li><a 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage('job-listings');
+                  }}
+                >
+                  Browse Jobs
+                </a></li>
+              <li><a 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage('login'); 
+                  }}
+                >
+                  Employers
+                </a></li>
+             <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage('about');
+                  }}
+                >
+                  About Us
+                </a>
+              </li>
+            </ul>
+          </div>
 
-    <div className="footer-section">
-      <h4>Contact</h4>
-      <p>📧 support@skillfetch.com</p>
-      <p>📞 +91 98765 43210</p>
-      <p>📍 Kerala, India</p>
-    </div>
+          <div className="footer-section">
+            <h4>Contact</h4>
+            <p>📧 support@skillfetch.com</p>
+            <p>📞 +91 98765 43210</p>
+            <p>📍 Kerala, India</p>
+          </div>
 
-  </div>
+        </div>
 
-  <div className="footer-bottom">
-    <p>
-      © 2026 SkillFetch Job Portal. All Rights Reserved. Made with ❤️
-    </p>
-  </div>
-</footer>
+        <div className="footer-bottom">
+          <p>
+            © 2026 SkillFetch Job Portal. All Rights Reserved. Made with ❤️
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -476,118 +397,118 @@ function AboutUs({ setCurrentPage }) {
   );
 }
 // 1. Home Page Component
-function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }) {
-  // Get 3 most recent jobs
-  const safeJobs = Array.isArray(jobs) ? jobs : [];
-  const recentJobs = safeJobs.slice(0, 3);
+// function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }) {
+//   // Get 3 most recent jobs
+//   const safeJobs = Array.isArray(jobs) ? jobs : [];
+//   const recentJobs = safeJobs.slice(0, 3);
 
-  return (
-    <div>
-    {/* Compact Welcome Card */}
-<div className="card" style={{ 
-  textAlign: 'center', 
-  padding: '30px 20px',    /* Slightly reduced padding for a tighter look */
-  maxWidth: '650px',       /* This restricts how wide the card can get */
-  margin: '0 auto 40px'    /* Centers the card and adds space below it */
-}}>
-  <h1 style={{ fontSize: '32px', marginBottom: '15px' }}>
-    Welcome to SkillFetch
-  </h1>
+//   return (
+//     <div>
+//     {/* Compact Welcome Card */}
+// <div className="card" style={{ 
+//   textAlign: 'center', 
+//   padding: '30px 20px',    /* Slightly reduced padding for a tighter look */
+//   maxWidth: '650px',       /* This restricts how wide the card can get */
+//   margin: '0 auto 40px'    /* Centers the card and adds space below it */
+// }}>
+//   <h1 style={{ fontSize: '32px', marginBottom: '15px' }}>
+//     Welcome to SkillFetch
+//   </h1>
   
-  <p style={{ fontSize: '16px', color: '#4b5563', lineHeight: '1.6', marginBottom: '25px' }}>
-    Accelerate Your Career. Connect with top employers, <br />
-    discover roles that match your skills, and apply in seconds.
-  </p>
+//   <p style={{ fontSize: '16px', color: '#4b5563', lineHeight: '1.6', marginBottom: '25px' }}>
+//     Accelerate Your Career. Connect with top employers, <br />
+//     discover roles that match your skills, and apply in seconds.
+//   </p>
   
-  <button onClick={() => setCurrentPage('job-listings')} className="btn">
-    Search All Jobs
-  </button>
-</div>
+//   <button onClick={() => setCurrentPage('job-listings')} className="btn">
+//     Search All Jobs
+//   </button>
+// </div>
 
-{loadingJobs ? (
-  <Loader />
-) : jobsError ? (
-  <p>Failed to load jobs. Please try again later.</p>
-) : recentJobs.length === 0 ? (
-  <p>Oops! There are no job listings available.</p>
-) : (
-  recentJobs.map((job) => (
-    <div
-      key={job.id}
-      className="card"
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "15px",
-        }}
-      >
-        {/* Logo display with fallback */}
-        {job.companyLogo ? (
-          <img
-            src={job.companyLogo}
-            alt={`${job.companyName} logo`}
-            style={{
-              width: "50px",
-              height: "50px",
-              borderRadius: "8px",
-              objectFit: "contain",
-              border: "1px solid #eee",
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: "50px",
-              height: "50px",
-              borderRadius: "8px",
-              backgroundColor: "#0056b3",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: "bold",
-              fontSize: "20px",
-            }}
-          >
-            {job.companyName
-              ? job.companyName.charAt(0).toUpperCase()
-              : "J"}
-          </div>
-        )}
+// {loadingJobs ? (
+//   <Loader />
+// ) : jobsError ? (
+//   <p>Failed to load jobs. Please try again later.</p>
+// ) : recentJobs.length === 0 ? (
+//   <p>Oops! There are no job listings available.</p>
+// ) : (
+//   recentJobs.map((job) => (
+//     <div
+//       key={job.id}
+//       className="card"
+//       style={{
+//         display: "flex",
+//         justifyContent: "space-between",
+//         alignItems: "center",
+//       }}
+//     >
+//       <div
+//         style={{
+//           display: "flex",
+//           alignItems: "center",
+//           gap: "15px",
+//         }}
+//       >
+//         {/* Logo display with fallback */}
+//         {job.companyLogo ? (
+//           <img
+//             src={job.companyLogo}
+//             alt={`${job.companyName} logo`}
+//             style={{
+//               width: "50px",
+//               height: "50px",
+//               borderRadius: "8px",
+//               objectFit: "contain",
+//               border: "1px solid #eee",
+//             }}
+//           />
+//         ) : (
+//           <div
+//             style={{
+//               width: "50px",
+//               height: "50px",
+//               borderRadius: "8px",
+//               backgroundColor: "#0056b3",
+//               color: "#fff",
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "center",
+//               fontWeight: "bold",
+//               fontSize: "20px",
+//             }}
+//           >
+//             {job.companyName
+//               ? job.companyName.charAt(0).toUpperCase()
+//               : "J"}
+//           </div>
+//         )}
 
-        <div>
-          <h3 style={{ margin: "0 0 2px 0", color: "#111827" }}>
-            {job.title}
-          </h3>
-          <p style={{ margin: "0", fontSize: "14px", color: "#666" }}>
-            <strong>{job.companyName}</strong> &bull; {job.type} &bull; {job.location}
-          </p>
-        </div>
-      </div>
+//         <div>
+//           <h3 style={{ margin: "0 0 2px 0", color: "#111827" }}>
+//             {job.title}
+//           </h3>
+//           <p style={{ margin: "0", fontSize: "14px", color: "#666" }}>
+//             <strong>{job.companyName}</strong> &bull; {job.type} &bull; {job.location}
+//           </p>
+//         </div>
+//       </div>
 
-      <button
-        onClick={() => {
-          setSelectedJobId(job.id);
-          setCurrentPage("job-detail");
-        }}
-        className="btn btn-secondary"
-      >
-        View Details
-      </button>
-    </div>
-  ))
-)}
+//       <button
+//         onClick={() => {
+//           setSelectedJobId(job.id);
+//           setCurrentPage("job-detail");
+//         }}
+//         className="btn btn-secondary"
+//       >
+//         View Details
+//       </button>
+//     </div>
+//   ))
+// )}
     
-    </div>
-  );
-}
+//     </div>
+//   );
+// }
 
 // 2. Login Page Component
 function Login({ setCurrentUser, setCurrentPage }) {
