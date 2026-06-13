@@ -12,6 +12,16 @@ app.use(cors());
 app.use(express.json());
 
 
+// 2. Configure CORS to explicitly trust your Vercel frontend
+app.use(cors({
+  origin: 'https://skillfetch-portal.vercel.app', // No trailing slash at the end!
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true // Important if you are passing cookies or authorization headers
+}));
+
+app.use(express.json()); // Your existing body parser
+
+
 // ==========================================
 // RESUME UPLOAD CONFIGURATION (MEMORY STORAGE)
 // ==========================================
