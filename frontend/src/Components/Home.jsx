@@ -14,19 +14,18 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const [showLocSuggestions, setShowLocSuggestions] = useState(false);
 
-  // --- Auto-Complete Data Generation ---
-  // Get unique titles and locations from actual database jobs
+  // --- Auto-Complete Logic (Optimized) ---
   const uniqueTitles = useMemo(() => [...new Set(jobs.map(j => j.title))].filter(Boolean), [jobs]);
   const uniqueLocations = useMemo(() => [...new Set(jobs.map(j => j.location))].filter(Boolean), [jobs]);
 
-  // Filter suggestions based on what is typed (or show top 5 if empty)
-  const titleSuggestions = searchTitle 
+  // OPTIMIZATION 1: Only show suggestions if the user has typed at least 1 character
+  const titleSuggestions = searchTitle.trim().length > 0 
     ? uniqueTitles.filter(t => t.toLowerCase().includes(searchTitle.toLowerCase())).slice(0, 5)
-    : uniqueTitles.slice(0, 5);
+    : [];
 
-  const locSuggestions = searchLocation 
+  const locSuggestions = searchLocation.trim().length > 0 
     ? uniqueLocations.filter(l => l.toLowerCase().includes(searchLocation.toLowerCase())).slice(0, 5)
-    : uniqueLocations.slice(0, 5);
+    : [];
 
   // --- Handlers ---
  const handleSearch = () => {
@@ -57,7 +56,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
     setShowLocSuggestions(false);
   };
 
-  // --- Reusable Search Bar UI (Saved as a variable, NOT a component, to prevent focus loss) ---
+  // --- Reusable Search Bar UI (Optimized) ---
   const renderSearchBar = () => (
     <div className="search-bar-wrapper">
       
@@ -70,23 +69,47 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           value={searchTitle}
           onChange={(e) => setSearchTitle(e.target.value)}
           onFocus={() => setShowTitleSuggestions(true)}
-          onBlur={() => setShowTitleSuggestions(false)} // Hides when clicking outside
+          onBlur={() => setShowTitleSuggestions(false)} 
         />
         
-        {/* Title Suggestions Dropdown */}
+        {/* Title Suggestions Dropdown (Optimized Popup) */}
         {showTitleSuggestions && titleSuggestions.length > 0 && (
-          <div className="autocomplete-dropdown" style={{ top: '55px', width: '100%' }}>
+          <div style={{ 
+            position: 'absolute',
+            top: '100%', // Pushes it exactly below the input
+            left: '0',
+            width: '100%', 
+            backgroundColor: '#ffffff',
+            border: '1px solid #e4e2e0',
+            borderRadius: '8px',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.15)', // Premium float effect
+            zIndex: 9999, // Guarantees it renders over EVERYTHING
+            marginTop: '8px',
+            overflow: 'hidden' // Keeps the rounded corners clean
+          }}>
             {titleSuggestions.map((sug, idx) => (
               <div 
                 key={`title-${idx}`} 
-                className="autocomplete-item" 
-                // onMouseDown fires before onBlur, allowing the click to register!
                 onMouseDown={() => { 
                   setSearchTitle(sug); 
                   setShowTitleSuggestions(false); 
                 }}
+                style={{
+                  padding: '12px 16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  borderBottom: idx === titleSuggestions.length - 1 ? 'none' : '1px solid #f3f2f1',
+                  color: '#2d2d2d',
+                  fontSize: '15px',
+                  backgroundColor: 'transparent',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f2f1'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <FaSearch style={{ color: '#767676', fontSize: '12px' }} /> {sug}
+                <FaSearch style={{ color: '#767676', fontSize: '14px' }} /> {sug}
               </div>
             ))}
           </div>
@@ -107,19 +130,43 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           onBlur={() => setShowLocSuggestions(false)}
         />
 
-        {/* Location Suggestions Dropdown */}
+        {/* Location Suggestions Dropdown (Optimized Popup) */}
         {showLocSuggestions && locSuggestions.length > 0 && (
-          <div className="autocomplete-dropdown" style={{ top: '55px', width: '100%' }}>
+          <div style={{ 
+            position: 'absolute',
+            top: '100%',
+            left: '0',
+            width: '100%', 
+            backgroundColor: '#ffffff',
+            border: '1px solid #e4e2e0',
+            borderRadius: '8px',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
+            zIndex: 9999,
+            marginTop: '8px',
+            overflow: 'hidden'
+          }}>
             {locSuggestions.map((sug, idx) => (
               <div 
                 key={`loc-${idx}`} 
-                className="autocomplete-item" 
                 onMouseDown={() => { 
                   setSearchLocation(sug); 
                   setShowLocSuggestions(false); 
                 }}
+                style={{
+                  padding: '12px 16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  borderBottom: idx === locSuggestions.length - 1 ? 'none' : '1px solid #f3f2f1',
+                  color: '#2d2d2d',
+                  fontSize: '15px',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f2f1'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <FaMapMarkerAlt style={{ color: '#767676', fontSize: '12px' }} /> {sug}
+                <FaMapMarkerAlt style={{ color: '#767676', fontSize: '14px' }} /> {sug}
               </div>
             ))}
           </div>
@@ -129,37 +176,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
       <button className="search-btn" onClick={handleSearch}>Find jobs</button>
     </div>
   );
-
-
-
-
-
-  // --- STATE 1: CLEAN LANDING PAGE ---
-  if (!hasSearched) {
-    return (
-      <div className="hero-container">
-        {renderSearchBar()}
-        
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h1 className="hero-logo-large">SkillFetch</h1>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', margin: '0 0 8px 0' }}>Your next job starts here</h2>
-          <p style={{ color: '#4b4b4b', margin: '0 0 20px 0', fontSize: '14px' }}>
-            Create an account or sign in to see your personalised job recommendations.
-          </p>
-          <button 
-            className="get-started-btn"
-            onClick={() => setCurrentPage('login')}
-          >
-            Get Started →
-          </button>
-
-          <p style={{ marginTop: '50px', fontSize: '14px', color: '#2d2d2d', cursor: 'pointer' }}>
-            What's trending on SkillFetch ⌄
-          </p>
-        </div>
-      </div>
-    );
-  }
+}
 
 
 
