@@ -9,6 +9,8 @@ import SkillFetchNavbar from './Components/Navbar_v2';
 // import AppleNavbar from './Components/Navbar';
 import Home from './Components/Home';
 import JobSearchEngine from './Components/Home';
+import CompanyReviews from './Components/CompanyReviews';
+import SalaryGuide from './Components/SalaryGuide';
 
 
 
