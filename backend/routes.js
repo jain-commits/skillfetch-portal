@@ -244,62 +244,19 @@ router.put('/users/:id/profile', async (req, res) => {
 
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
-// ==================== JOB OPPORTUNITIES ROUTES ====================
+// routes.js
+const syncJobsFromAdzuna = require('./utils/syncJobs');
 
-// Get All Jobs (Merged Local + Adzuna)
 router.get('/jobs', async (req, res) => {
   try {
-    // 1. Fetch custom jobs posted by your local Employers in MongoDB
-    const localJobs = await Job.find().sort({ createdAt: -1 });
-    
-    // Map local jobs to ensure they have the standard structure
-    const formattedLocalJobs = localJobs.map(job => ({
-      id: job._id.toString(),
-      employerId: job.employerId,
-      title: job.title,
-      companyName: job.companyName,
-      location: job.location,
-      type: job.type,
-      salaryRange: job.salaryRange,
-      description: job.description,
-      source: 'SkillFetch' // Tagging to know it's local
-    }));
+    // Optional: Auto-sync once when someone visits the jobs page
+    await syncJobsFromAdzuna(); 
 
-    // 2. Fetch live jobs from Adzuna API (YOUR NEW AXIOS CODE GOES HERE)
-    const ADZUNA_APP_ID = '39d63b7b';
-    const ADZUNA_APP_KEY = '8fb030194b91cf924b6e4a4c8c0e7994';
-    
-    // 'in' is for India jobs. 'results_per_page=50' grabs a good chunk.
-    const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/in/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=50`;
-
-    let adzunaJobs = [];
-    try {
-      // USING AXIOS INSTEAD OF FETCH
-      const adzunaResponse = await axios.get(adzunaUrl);
-      const adzunaData = adzunaResponse.data; // Axios automatically parses JSON into .data
-
-      adzunaJobs = adzunaData.results.map(job => ({
-        id: String(job.id), 
-        title: job.title,
-        companyName: job.company.display_name,
-        location: job.location.display_name,
-        type: job.contract_time === 'full_time' ? 'Full-time' : (job.contract_time === 'part_time' ? 'Part-time' : 'Contract'),
-        salaryRange: job.salary_min && job.salary_max ? `₹${job.salary_min} - ₹${job.salary_max}` : 'Not specified',
-        description: job.description,
-        source: 'Adzuna',
-        applyUrl: job.redirect_url 
-      }));
-    } catch (apiError) {
-      console.error("Adzuna API Error Details:", apiError.message);
-    }
-
-    // 3. Combine both lists and send to React
-    const allJobs = [...formattedLocalJobs, ...adzunaJobs];
+    // Fetch EVERYTHING from MongoDB (both local & saved Adzuna jobs)
+    const allJobs = await Job.find().sort({ createdAt: -1 });
     res.json(allJobs);
-
   } catch (error) {
-    console.error('Get jobs error:', error);
-    res.status(500).json({ message: 'Server error fetching jobs' });
+    res.status(500).json({ message: 'Error fetching jobs' });
   }
 });
 

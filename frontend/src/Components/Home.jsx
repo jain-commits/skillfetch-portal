@@ -29,7 +29,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
     : uniqueLocations.slice(0, 5);
 
   // --- Handlers ---
-  const handleSearch = () => {
+ const handleSearch = () => {
     let results = jobs.filter(job => {
       const matchTitle = job.title.toLowerCase().includes(searchTitle.toLowerCase()) || 
                          (job.companyName && job.companyName.toLowerCase().includes(searchTitle.toLowerCase()));
@@ -42,10 +42,17 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
     }
 
     setFilteredJobs(results);
-    if (results.length > 0) setSelectedJob(results[0]);
-    setHasSearched(true);
     
-    // Hide dropdowns after search
+    // --- FIX: Ensure the selectedJob is still in the new results list ---
+    if (results.length > 0) {
+      // If the currently selected job is still in the list, keep it. If not, pick the first one.
+      const isStillInResults = results.find(j => j.id === selectedJob?.id);
+      if (!isStillInResults) setSelectedJob(results[0]);
+    } else {
+      setSelectedJob(null);
+    }
+    
+    setHasSearched(true);
     setShowTitleSuggestions(false);
     setShowLocSuggestions(false);
   };
@@ -124,6 +131,9 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
   );
 
 
+
+
+
   // --- STATE 1: CLEAN LANDING PAGE ---
   if (!hasSearched) {
     return (
@@ -150,6 +160,9 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
       </div>
     );
   }
+
+
+
 
   // --- STATE 2: SPLIT SCREEN RESULTS ---
   return (
@@ -185,6 +198,9 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
       </div>
 
       <div className="split-layout">
+
+
+
         
         {/* LEFT COLUMN: Job Cards */}
         <div className="jobs-list-column">
@@ -219,7 +235,17 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           )}
         </div>
 
-       {selectedJob.source === 'Adzuna' ? (
+      {/* RIGHT COLUMN: Sticky Job Details */}
+        {selectedJob && (
+          <div className="job-detail-sticky">
+            <h2 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>{selectedJob.title}</h2>
+            <p style={{ fontSize: '16px', color: '#2557a7', textDecoration: 'underline', marginBottom: '5px', cursor: 'pointer' }}>
+              {selectedJob.companyName || 'SkillFetch Partner'}
+            </p>
+            <p style={{ fontSize: '16px', color: '#4b4b4b', marginBottom: '20px' }}>{selectedJob.location}</p>
+            
+            {/* The Adzuna/Local Apply Logic */}
+            {selectedJob.source === 'Adzuna' ? (
               <a 
                 href={selectedJob.applyUrl} 
                 target="_blank" 
@@ -255,18 +281,16 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
               </div>
 
               <h3 style={{ fontSize: '18px', marginBottom: '10px' }}>Full job description</h3>
-
-{/* We swap the <p> for a <div> and use React's built-in HTML renderer */}
-<div 
-  style={{ fontSize: '14px', lineHeight: '1.6', color: '#2d2d2d' }} 
-  dangerouslySetInnerHTML={{ __html: selectedJob.description }} 
-/>
+              <div 
+                style={{ fontSize: '14px', lineHeight: '1.6', color: '#2d2d2d' }} 
+                dangerouslySetInnerHTML={{ __html: selectedJob.description }} 
+              />
             </div>
           </div>
-        
-      </div>
-    
-  );
-}
+        )}
+        </div>
+    </div>
+    );
+    }
 
 export default JobSearchEngine;
