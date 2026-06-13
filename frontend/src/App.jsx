@@ -4,12 +4,8 @@ import Loader from './Components/Loader'; // Importing the Loader component to s
 import { Toaster, toast } from "react-hot-toast";
 import Loader2 from './Components/Loader2'; // Importing the second loader for backend connection status
 import './Components/Loader2.css';
-import { FaMapMarkerAlt, FaClock, FaEnvelope, FaPhone, FaDownload, FaTimes, FaUserCircle, FaBookmark, FaRegBookmark} from 'react-icons/fa';
-import SkillFetchNavbar from './Components/Navbar_v2';
+import { FaMapMarkerAlt, FaClock, FaEnvelope, FaPhone, FaDownload, FaTimes } from 'react-icons/fa';
 // import AppleNavbar from './Components/Navbar';
-import Home from './Components/Home';
-import JobSearchEngine from './Components/Home';
-
 
 
 //const API_BASE_URL = 'http://localhost:5001/api';
@@ -120,6 +116,41 @@ export default function App() {
     <div className="app-container">
       {/* Toast notifications container */}
       <Toaster />
+      {/* <AppleNavbar/> */}
+
+      {/* Header Navigation */}
+      <header className="header">
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setCurrentPage("home");
+          }}
+          className="logo-link"
+        >
+          <img
+            src="/skillfetch2.png"
+            alt="SkillFetch Logo"
+            className="logo-image"
+          />
+        </a>
+
+        <nav>
+          <div className="nav-bottom" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            
+            {/* IF NO USER IS LOGGED IN */}
+            {!currentUser ? (
+              <>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage("login");
+                  }}
+                  className="btn btn-secondary nav-btn"
+                >
+                  Login
+                </a>
 
       {/* 1. The New Indeed-Style Navbar */}
       <SkillFetchNavbar 
