@@ -5,7 +5,7 @@ import { Toaster, toast } from "react-hot-toast";
 import Loader2 from './Components/Loader2'; // Importing the second loader for backend connection status
 import './Components/Loader2.css';
 import { FaMapMarkerAlt, FaClock, FaEnvelope, FaPhone, FaDownload, FaTimes } from 'react-icons/fa';
-import AppleNavbar from './Components/Navbar';
+// import AppleNavbar from './Components/Navbar';
 
 
 //const API_BASE_URL = 'http://localhost:5001/api';
@@ -116,7 +116,7 @@ export default function App() {
     <div className="app-container">
       {/* Toast notifications container */}
       <Toaster />
-      <AppleNavbar/>
+      {/* <AppleNavbar/> */}
 
       {/* Header Navigation */}
       <header className="header">

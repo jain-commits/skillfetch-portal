@@ -1,3 +1,6 @@
+
+//This nav bar is only used for testing; never used. 
+
 import React from 'react';
 import { FaApple } from 'react-icons/fa';
 import { IoSearchOutline, IoBagOutline } from 'react-icons/io5';
