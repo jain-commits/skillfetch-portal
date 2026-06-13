@@ -27,7 +27,9 @@ const userSchema = new mongoose.Schema({
   companyName: { type: String, defaut: '' },
   companyLocation: { type: String, default: '' },
   companyDesc: { type: String, default: '' }
-}, {
+}, 
+
+  {
   timestamps: true,
   toJSON: {
     virtuals: true,
@@ -42,7 +44,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // ==================== JOB SCHEMA ====================
-// ==================== JOB SCHEMA ====================
+
 const jobSchema = new mongoose.Schema({
   // Make employerId optional for API-fetched jobs
   employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
@@ -68,10 +70,14 @@ const jobSchema = new mongoose.Schema({
   skillsRequired: { type: String }
 }, {
   timestamps: true,
-  // ... (rest of your toJSON logic remains exactly the same)
+  // ... (rest of our toJSON logic remains exactly the same)
 });
 
+
+
 // ==================== APPLICATION SCHEMA ====================
+
+
 const applicationSchema = new mongoose.Schema({
   jobId: { type: mongoose.Schema.Types.ObjectId, ref: 'Job', required: true },
   candidateId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

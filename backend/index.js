@@ -31,8 +31,6 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 
-
-// // 2. Serve the 'uploads' directory publicly so React can fetch the PDFs later
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 2. The API endpoint to save the file into MongoDB

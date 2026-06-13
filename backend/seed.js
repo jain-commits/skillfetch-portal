@@ -59,6 +59,8 @@ function parseExperienceLevel(title) {
 async function seedDatabase() {
   try {
     console.log('Seeding database users check...');
+
+
     
     // 1. Seed/Ensure Users Exist
     let adminUser = await User.findOne({ email: 'admin@jobportal.com' });
@@ -164,6 +166,7 @@ async function seedDatabase() {
         jobIds.push(existingJob._id);
       }
     } else {
+      
       // Offline fallback: static jobs
       const fallbackJobs = [
         {
