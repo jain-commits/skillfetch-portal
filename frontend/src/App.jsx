@@ -1092,10 +1092,7 @@ function CandidateProfile({ currentUser, setCurrentUser }) {
             <label>Work Experience</label>
             <textarea className="form-control" placeholder="Describe your last job..." value={experience} onChange={(e) => setExperience(e.target.value)} />
           </div>
-          <div className="form-group">
-            <label>Resume File Name</label>
-            <input type="text" className="form-control" placeholder="resume_name.pdf" value={resumeName} onChange={(e) => setResumeName(e.target.value)} disabled />
-          </div>
+          
           <button type="submit" className="btn">Save Profile Changes</button>
         </form>
       </div>
