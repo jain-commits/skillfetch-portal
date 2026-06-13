@@ -580,6 +580,8 @@ body {
   gap: 24px !important;
   margin-left: 40px !important;
   height: 100% !important;
+  align-items: center;   /* This centers them vertically */
+  gap: 20px;             /* This adds equal space between each link */
 }
 
 .sf-nav-main-link {
@@ -593,11 +595,14 @@ body {
   border-bottom: 3px solid transparent !important;
   cursor: pointer !important;
   box-sizing: border-box !important;
+  transition: color 0.2s;
+  padding: 10px 0;
 }
 
 .sf-nav-main-link.active {
   border-bottom-color: #2557a7 !important;
   font-weight: 600 !important;
+  border-bottom: 2px solid #2d2d2d; /* Or whatever your 'active' style is */
 }
 
 .sf-nav-links {
@@ -823,3 +828,5 @@ body {
   max-height: 300px;
   overflow-y: auto;
 }
+
+

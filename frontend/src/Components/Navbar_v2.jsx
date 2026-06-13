@@ -1,9 +1,9 @@
 import React from 'react';
 import { FaUserCircle } from 'react-icons/fa';
 
-function SkillFetchNavbar({ currentUser, setCurrentPage, handleLogout }) {
+function SkillFetchNavbar({ currentUser, currentPage, setCurrentPage, handleLogout }) {
   return (
-    <nav className="sf-navbar">
+   <nav className="sf-navbar"> {/* Added missing wrapper */}
       
       {/* Left side: Logo + Main Links */}
       <div className="sf-nav-left">
@@ -13,12 +13,28 @@ function SkillFetchNavbar({ currentUser, setCurrentPage, handleLogout }) {
         >
           SkillFetch
         </div>
-        
-        {/* Indeed replica left-links */}
+
         <div className="sf-nav-main-links">
-          <div className="sf-nav-main-link active">Home</div>
-          <div className="sf-nav-main-link">Company reviews</div>
-          <div className="sf-nav-main-link">Salary guide</div>
+          <div 
+            className={`sf-nav-main-link ${currentPage === 'home' ? 'active' : ''}`} 
+            onClick={() => setCurrentPage('home')}
+          >
+            Home
+          </div>
+
+          <div 
+            className={`sf-nav-main-link ${currentPage === 'reviews' ? 'active' : ''}`} 
+            onClick={() => setCurrentPage('reviews')}
+          >
+            Company reviews
+          </div>
+
+          <div 
+            className={`sf-nav-main-link ${currentPage === 'salaries' ? 'active' : ''}`} 
+            onClick={() => setCurrentPage('salaries')}
+          >
+            Salary guide
+          </div>
         </div>
       </div>
 

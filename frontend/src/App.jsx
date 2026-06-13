@@ -10,14 +10,18 @@ import SkillFetchNavbar from './Components/Navbar_v2';
 import Home from './Components/Home';
 import JobSearchEngine from './Components/Home';
 
+import CompanyReviews from './components/CompanyReviews';
+import SalaryGuide from './components/SalaryGuide';
+
+
 
 
 //const API_BASE_URL = 'http://localhost:5001/api';
 
 const API_BASE_URL = "https://skillfetch-portal.onrender.com";
 
-
 // ==================== APP CONTAINER COMPONENT ====================
+// Make sure these are at the very top of your file with your other imports!
 
 
 export default function App() {
@@ -29,7 +33,8 @@ export default function App() {
   
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;});
+    return saved ? JSON.parse(saved) : null;
+  });
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedJobId, setSelectedJobId] = useState(null);
 
@@ -55,7 +60,7 @@ export default function App() {
     fetchJobs();
   }, []);
 
-// Automatically scroll to top whenever the page changes
+  // Automatically scroll to top whenever the page changes
   useEffect(() => {
     window.scrollTo({
       top: 0,
@@ -101,10 +106,9 @@ export default function App() {
         }
       }
     };
-
+  
     fetchUserData();
   }, [currentUser]);
-
 
   // Authentication Helpers
   const handleLogout = () => {
@@ -114,8 +118,6 @@ export default function App() {
     toast.success("Logged out successfully!");
   };
 
-  
-    
   return (
     <div className="app-container">
       {/* Toast notifications container */}
@@ -125,6 +127,7 @@ export default function App() {
       <SkillFetchNavbar 
         currentUser={currentUser} 
         setCurrentPage={setCurrentPage} 
+        currentPage={currentPage}  
         handleLogout={handleLogout} 
       />
 
@@ -155,6 +158,16 @@ export default function App() {
             setCurrentPage={setCurrentPage} 
           />
         )}
+
+        {/* --- THE NEW PAGES --- */}
+        {currentPage === 'reviews' && (
+          <CompanyReviews setCurrentPage={setCurrentPage} />
+        )}
+
+        {currentPage === 'salaries' && (
+          <SalaryGuide />
+        )}
+        {/* ----------------------- */}
 
         {currentPage === 'login' && (
           <Login setCurrentUser={setCurrentUser} setCurrentPage={setCurrentPage} />
@@ -221,7 +234,7 @@ export default function App() {
         )}
 
       </main>
-
+    
       {/* Simple Footer */}
       <footer className="footer">
         <div className="container footer-content">
@@ -286,6 +299,8 @@ export default function App() {
           </div>
 
         </div>
+
+
 
         <div className="footer-bottom">
           <p>
@@ -611,12 +626,16 @@ function Register({ setCurrentPage }) {
           companyName,
           companyLocation
         })
+
+
       });
       const data = await response.json();
       if (!response.ok) {
         toast.error(data.message || 'Registration failed!');
         return;
       }
+
+
       toast.success("Account created successfully! You can login now.");
       setCurrentPage('login');
     } catch (err) {
