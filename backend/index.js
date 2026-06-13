@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/jobs', jobRouter);
+app.use('/api/jobs', require('./routes/jobs'));
 
 
 // 2. Configure CORS to explicitly trust your Vercel frontend
