@@ -4,6 +4,8 @@ import Loader from './Components/Loader'; // Importing the Loader component to s
 import { Toaster, toast } from "react-hot-toast";
 import Loader2 from './Components/Loader2'; // Importing the second loader for backend connection status
 import './Components/Loader2.css';
+import { FaMapMarkerAlt, FaClock, FaEnvelope, FaPhone, FaDownload, FaTimes } from 'react-icons/fa';
+
 
 //const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -1212,32 +1214,18 @@ function ApplicationTracking({ applications, jobs, currentUser }) {
 
 // 8. Employer Dashboard Page Component
 function EmployerDashboard({ jobs, setJobs, applications, setApplications, users, currentUser, setCurrentPage, setSelectedJobId }) {
-  const [activeAppId, setActiveAppId] = useState(null); // Used to show simple candidate modal review
+  const [activeAppId, setActiveAppId] = useState(null);
 
+  // --- Derived Data (Optimized Filtering) ---
   const myJobs = jobs.filter(j => j.employerId === currentUser.id);
   const myJobIds = myJobs.map(j => j.id);
   const receivedApps = applications.filter(app => myJobIds.includes(app.jobId));
+  
+  // Stats Calculations
+  const totalHires = receivedApps.filter(app => app.status === 'Hired').length;
+  const totalShortlisted = receivedApps.filter(app => app.status === 'Shortlisted').length;
 
-  const handleDeleteJob = async (jobId) => {
-    if (!window.confirm('Are you sure you want to delete this job posting?')) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        toast.error(data.message || 'Failed to delete job.');
-        return;
-      }
-      setJobs(jobs.filter(j => j.id !== jobId));
-      setApplications(applications.filter(app => app.jobId !== jobId));
-      toast.success('Listing removed successfully.');
-    } catch (err) {
-      console.error(err);
-      toast.error('Network error during job deletion.');
-    }
-  };
-
+  // --- Helpers ---
   const getJobTitle = (jobId) => {
     const job = jobs.find(j => j.id === jobId);
     return job ? job.title : 'Unknown Job';
@@ -1248,6 +1236,30 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
     return user ? user.name : 'Unknown Candidate';
   };
 
+  const getBadgeClass = (status) => {
+    switch(status) {
+      case 'Hired': return 'badge-hired';
+      case 'Shortlisted': return 'badge-shortlisted';
+      case 'Rejected': return 'badge-rejected';
+      default: return 'badge-applied';
+    }
+  };
+
+  // --- Handlers ---
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm('Are you sure you want to delete this job posting? This will also delete all associated applications.')) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete job.');
+      
+      setJobs(jobs.filter(j => j.id !== jobId));
+      setApplications(applications.filter(app => app.jobId !== jobId));
+      toast.success('Listing removed successfully.');
+    } catch (err) {
+      toast.error('Network error during job deletion.');
+    }
+  };
+
   const handleUpdateStatus = async (appId, newStatus) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/applications/${appId}/status`, {
@@ -1255,47 +1267,81 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+      if (!response.ok) throw new Error('Failed to update status.');
+      
       const data = await response.json();
-      if (!response.ok) {
-        toast.error(data.message || 'Failed to update status.');
-        return;
-      }
       setApplications(applications.map(app => app.id === appId ? data : app));
-      toast.success('Status updated successfully!');
-      setActiveAppId(null);
+      toast.success(`Candidate marked as ${newStatus}!`);
+      setActiveAppId(null); // Close modal automatically
     } catch (err) {
-      console.error(err);
-      toast.error ('Network error during status update.');
+      toast.error('Network error during status update.');
     }
   };
 
   const selectedApp = applications.find(app => app.id === activeAppId);
   const selectedCandidate = selectedApp ? users.find(u => u.id === selectedApp.candidateId) : null;
 
- return (
+  return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Employer Recruiter Dashboard</h2>
-        <button onClick={() => setCurrentPage('post-job')} className="btn">Post a New Job</button>
+      {/* Header Area */}
+      <div className="dashboard-header">
+        <div>
+          <h2 style={{ margin: 0 }}>Employer Dashboard</h2>
+          <p style={{ margin: '5px 0 0 0', color: '#6b7280' }}>Manage your job postings and review candidates.</p>
+        </div>
+        <button onClick={() => setCurrentPage('post-job')} className="btn">
+          + Post New Job
+        </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+      {/* Stats Summary Panel */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <h4>Active Listings</h4>
+          <div className="stat-number">{myJobs.length}</div>
+        </div>
+        <div className="stat-card">
+          <h4>Total Applicants</h4>
+          <div className="stat-number">{receivedApps.length}</div>
+        </div>
+        <div className="stat-card">
+          <h4>Shortlisted</h4>
+          <div className="stat-number">{totalShortlisted}</div>
+        </div>
+        <div className="stat-card">
+          <h4>Hired</h4>
+          <div className="stat-number" style={{ color: '#166534' }}>{totalHires}</div>
+        </div>
+      </div>
+
+      {/* Main Content Split */}
+      <div className="dashboard-content-grid">
         
         {/* Left Side: My Posted Listings */}
         <div>
-          <h3>My Active Job Listings</h3>
+          <h3 style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '10px', marginBottom: '20px' }}>
+            Active Job Listings
+          </h3>
+          
           {myJobs.length === 0 ? (
-            <p>You have not posted any jobs yet.</p>
+            <div className="card" style={{ textAlign: 'center', color: '#6b7280', padding: '40px 20px' }}>
+              <p>You have not posted any jobs yet.</p>
+              <button onClick={() => setCurrentPage('post-job')} className="btn btn-secondary" style={{ marginTop: '10px' }}>Create your first listing</button>
+            </div>
           ) : (
             myJobs.map((job) => (
-              <div key={job.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={job.id} className="list-item-card">
                 <div>
-                  <strong>{job.title}</strong>
-                  <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>{job.location} | {job.type}</p>
+                  <strong style={{ fontSize: '16px', color: '#111827' }}>{job.title}</strong>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center' }}><FaMapMarkerAlt style={{ marginRight: '4px' }} /> {job.location}</span>
+                    <span>|</span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}><FaClock style={{ marginRight: '4px' }} /> {job.type}</span>
+                  </p>
                 </div>
-                <div>
-                  <button onClick={() => { setSelectedJobId(job.id); setCurrentPage('job-detail'); }} className="btn btn-secondary" style={{ padding: '5px 10px', fontSize: '12px', marginRight: '5px' }}>Details</button>
-                  <button onClick={() => handleDeleteJob(job.id)} className="btn btn-danger" style={{ padding: '5px 10px', fontSize: '12px' }}>Delete</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => { setSelectedJobId(job.id); setCurrentPage('job-detail'); }} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>View</button>
+                  <button onClick={() => handleDeleteJob(job.id)} className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}>Delete</button>
                 </div>
               </div>
             ))
@@ -1304,18 +1350,31 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
         {/* Right Side: Received Applications */}
         <div>
-          <h3>Applications Received</h3>
+          <h3 style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '10px', marginBottom: '20px' }}>
+            Recent Applications
+          </h3>
+
           {receivedApps.length === 0 ? (
-            <p>No candidates have applied to your jobs yet.</p>
+            <div className="card" style={{ textAlign: 'center', color: '#6b7280', padding: '40px 20px' }}>
+              <p>No candidates have applied to your jobs yet.</p>
+            </div>
           ) : (
             receivedApps.map((app) => (
-              <div key={app.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={app.id} className="list-item-card">
                 <div>
-                  <strong>{getCandidateName(app.candidateId)}</strong>
-                  <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>For: {getJobTitle(app.jobId)}</p>
-                  <span className="badge">{app.status || 'Applied'}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                    <strong style={{ fontSize: '16px', color: '#111827' }}>{getCandidateName(app.candidateId)}</strong>
+                    <span className={`badge ${getBadgeClass(app.status)}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
+                      {app.status || 'Applied'}
+                    </span>
+                  </div>
+                  <p style={{ margin: '0', fontSize: '13px', color: '#6b7280' }}>
+                    Applying for: <strong>{getJobTitle(app.jobId)}</strong>
+                  </p>
                 </div>
-                <button onClick={() => setActiveAppId(app.id)} className="btn">Review Application</button>
+                <button onClick={() => setActiveAppId(app.id)} className="btn" style={{ padding: '6px 14px', fontSize: '13px' }}>
+                  Review
+                </button>
               </div>
             ))
           )}
@@ -1323,56 +1382,91 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
       </div>
 
-      {/* Simple Modal Review Popup */}
+      {/* Candidate Review Modal */}
+     {/* Sleek ATS Split-Screen Review Modal */}
       {selectedApp && selectedCandidate && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div className="card" style={{ width: '90%', maxWidth: '500px', backgroundColor: '#fff', position: 'relative' }}>
-            <button onClick={() => setActiveAppId(null)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
-            <h3>Review: {selectedCandidate.name}</h3>
-            <p><strong>Candidate Email:</strong> {selectedCandidate.email}</p>
-            <p><strong>Phone:</strong> {selectedCandidate.phone || 'N/A'}</p>
-            <p><strong>Location:</strong> {selectedCandidate.location || 'N/A'}</p>
-            <p><strong>Bio:</strong> {selectedCandidate.bio || 'N/A'}</p>
-            <p><strong>Skills:</strong> {selectedCandidate.skills || 'N/A'}</p>
-            <p><strong>Education:</strong> {selectedCandidate.education || 'N/A'}</p>
-            <p><strong>Experience:</strong> {selectedCandidate.experience || 'N/A'}</p>
+        <div className="review-modal-overlay">
+          <div className="review-modal-container">
             
-            <hr style={{ margin: '15px 0' }} />
-
-            {/* --- NEW RESUME DOWNLOAD SECTION --- */}
-            <div style={{ margin: '15px 0', padding: '15px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong>Attached Resume:</strong>
-              
-              {/* Checks if the resume exists in the user object */}
-              {(selectedCandidate.resume?.name || selectedCandidate.resumeName) ? (
-                <a 
-                  href={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary"
-                  style={{ textDecoration: 'none', padding: '6px 12px', fontSize: '13px' }}
-                >
-                  📄 View / Download PDF
-                </a>
-              ) : (
-                <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '14px' }}>No file uploaded</span>
-              )}
+            {/* Header */}
+            <div className="review-modal-header">
+              <div>
+                <h2 style={{ margin: '0 0 4px 0', fontSize: '20px' }}>{selectedCandidate.name}</h2>
+                <span className={`badge ${getBadgeClass(selectedApp.status)}`} style={{ fontSize: '12px' }}>
+                  Status: {selectedApp.status || 'Applied'}
+                </span>
+              </div>
+              <button 
+                onClick={() => setActiveAppId(null)} 
+                style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b' }}
+              >
+                <FaTimes />
+              </button>
             </div>
-            
-            <hr style={{ margin: '15px 0' }} />
 
-            <p><strong>Cover Letter text:</strong><br />"{selectedApp.coverLetter}"</p>
-            
-            <div style={{ display: 'flex', gap: '5px', marginTop: '15px' }}>
-              <button onClick={() => handleUpdateStatus(selectedApp.id, 'Shortlisted')} className="btn btn-secondary">Shortlist</button>
-              <button onClick={() => handleUpdateStatus(selectedApp.id, 'Hired')} className="btn">Hire Candidate</button>
-              <button onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')} className="btn btn-danger">Reject</button>
+            {/* Split Body */}
+            <div className="review-modal-body">
+              
+              {/* Left Panel: Minimal Text Info */}
+              <div className="review-left-panel">
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="info-group">
+                    <h5>Contact</h5>
+                    <p><FaEnvelope style={{ color: '#94a3b8', marginRight: '5px' }}/> {selectedCandidate.email}</p>
+                    <p><FaPhone style={{ color: '#94a3b8', marginRight: '5px' }}/> {selectedCandidate.phone || 'N/A'}</p>
+                  </div>
+                  <div className="info-group">
+                    <h5>Location</h5>
+                    <p><FaMapMarkerAlt style={{ color: '#94a3b8', marginRight: '5px' }}/> {selectedCandidate.location || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="info-group">
+                  <h5>Professional Summary</h5>
+                  <p><strong>Skills:</strong> {selectedCandidate.skills || 'Not listed'}</p>
+                  <p><strong>Experience:</strong> {selectedCandidate.experience || 'Not listed'}</p>
+                  <p><strong>Education:</strong> {selectedCandidate.education || 'Not listed'}</p>
+                </div>
+
+                <div className="info-group" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <h5>Applicant Pitch (Cover Letter)</h5>
+                  <p style={{ fontStyle: 'italic', color: '#475569' }}>"{selectedApp.coverLetter}"</p>
+                </div>
+
+                {/* Actions */}
+                <div className="action-buttons-grid">
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Shortlisted')} className="btn btn-secondary" style={{ background: '#fef08a', color: '#854d0e', border: 'none' }}>Shortlist</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Hired')} className="btn" style={{ background: '#166534', border: 'none' }}>Hire</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')} className="btn btn-danger" style={{ border: 'none' }}>Reject</button>
+                </div>
+              </div>
+
+              {/* Right Panel: Live PDF Preview */}
+              <div className="review-right-panel">
+                {(selectedCandidate.resume?.name || selectedCandidate.resumeName) ? (
+                  <iframe 
+                    src={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
+                    title="Resume Preview"
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: 'none' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
+                    <FaDownload style={{ fontSize: '40px', marginBottom: '15px', opacity: 0.5 }} />
+                    <p>No resume uploaded by candidate</p>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
       )}
     </div>
-  );}
+  );
+}
 
 
 // 9. Post a Job Page Component
