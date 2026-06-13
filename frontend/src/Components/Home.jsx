@@ -219,21 +219,23 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           )}
         </div>
 
-        {/* RIGHT COLUMN: Sticky Job Details */}
-        {selectedJob && (
-          <div className="job-detail-sticky">
-            <h2 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>{selectedJob.title}</h2>
-            <p style={{ fontSize: '16px', color: '#2557a7', textDecoration: 'underline', marginBottom: '5px', cursor: 'pointer' }}>
-              {selectedJob.companyName || 'SkillFetch Partner'}
-            </p>
-            <p style={{ fontSize: '16px', color: '#4b4b4b', marginBottom: '20px' }}>{selectedJob.location}</p>
-            
-            <button 
-              onClick={() => setCurrentPage('login')}
-              style={{ backgroundColor: '#085ff7', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: '700', cursor: 'pointer', width: '200px', marginBottom: '30px' }}
-            >
-              Apply now
-            </button>
+       {selectedJob.source === 'Adzuna' ? (
+              <a 
+                href={selectedJob.applyUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ backgroundColor: '#085ff7', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: '700', cursor: 'pointer', width: '200px', marginBottom: '30px', display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}
+              >
+                Apply on Adzuna ↗
+              </a>
+            ) : (
+              <button 
+                onClick={() => setCurrentPage('login')}
+                style={{ backgroundColor: '#085ff7', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: '700', cursor: 'pointer', width: '200px', marginBottom: '30px' }}
+              >
+                Apply now
+              </button>
+            )}
 
             <div style={{ borderTop: '1px solid #ececec', paddingTop: '20px' }}>
               <h3 style={{ fontSize: '18px', marginBottom: '15px' }}>Job details</h3>
@@ -253,7 +255,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
               </div>
 
               <h3 style={{ fontSize: '18px', marginBottom: '10px' }}>Full job description</h3>
-              
+
 {/* We swap the <p> for a <div> and use React's built-in HTML renderer */}
 <div 
   style={{ fontSize: '14px', lineHeight: '1.6', color: '#2d2d2d' }} 
@@ -261,9 +263,9 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
 />
             </div>
           </div>
-        )}
+        
       </div>
-    </div>
+    
   );
 }
 
