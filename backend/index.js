@@ -11,6 +11,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/jobs', jobRouter);
+
 
 // 2. Configure CORS to explicitly trust your Vercel frontend
 app.use(cors({
@@ -18,6 +20,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true // Important if you are passing cookies or authorization headers
 }));
+
 
 app.use(express.json()); // Your existing body parser
 
@@ -29,7 +32,6 @@ app.use(express.json()); // Your existing body parser
 // 1. Tell Multer to hold the file in RAM instead of saving to a folder
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-
 
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -54,6 +56,7 @@ app.post('/api/upload-resume', upload.single('resume'), async (req, res) => {
       }, 
       { new: true } 
     );
+
 
     if (!updatedUser) {
        return res.status(404).json({ message: "User not found" });

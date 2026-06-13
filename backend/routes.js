@@ -279,6 +279,8 @@ router.get('/applications', async (req, res) => {
   }
 });
 
+
+
 // Submit Application
 router.post('/applications', async (req, res) => {
   try {
@@ -305,6 +307,8 @@ router.post('/applications', async (req, res) => {
   }
 });
 
+
+
 // Update Application Status (Employer/Admin)
 router.put('/applications/:id/status', async (req, res) => {
   try {
@@ -325,6 +329,9 @@ router.put('/applications/:id/status', async (req, res) => {
     res.status(500).json({ message: 'Server error updating status' });
   }
 });
+
+
+
 
 
 // ==================== ADMINISTRATIVE BOARD ROUTES ====================

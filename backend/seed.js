@@ -24,6 +24,8 @@ function fetchJson(url) {
   });
 }
 
+
+
 // Normalize job type to match enum: ['Full-time', 'Part-time', 'Contract', 'Internship']
 function normalizeJobType(jobType) {
   if (!jobType) return 'Full-time';
@@ -166,7 +168,7 @@ async function seedDatabase() {
         jobIds.push(existingJob._id);
       }
     } else {
-      
+
       // Offline fallback: static jobs
       const fallbackJobs = [
         {

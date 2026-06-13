@@ -1438,39 +1438,55 @@ function PostJob({ jobs, setJobs, currentUser, setCurrentPage }) {
   const [qualifications, setQualifications] = useState('');
 
   const handlePostSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          employerId: currentUser.id,
-          companyName: currentUser.companyName || 'My Company',
-          title,
-          category,
-          type,
-          location,
-          salaryRange,
-          experienceLevel,
-          skillsRequired,
-          description,
-          qualifications
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        toast.error(data.message || 'Failed to post job.');
-        return;
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        employerId: currentUser.id,
+        companyName: currentUser.companyName || 'My Company',
+        title,
+        category,
+        type,
+        location,
+        salaryRange,
+        experienceLevel,
+        skillsRequired,
+        description,
+        qualifications
+      })
+    });
+
+    // 1. Move the check UP here
+    if (!response.ok) {
+      // If it's an HTML error page, response.json() will crash, so let's handle it safely
+      let errorMessage = 'Failed to post job.';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // Fallback if the response wasn't JSON (like your 404 HTML page)
+        errorMessage = `Server error: ${response.status} ${response.statusText}`;
       }
-      setJobs([data, ...jobs]);
-      toast.success('Job opportunity posted successfully!');
-      setCurrentPage('employer-dashboard');
-    } catch (err) {
-      console.error(err);
-      toast.error('Network error during posting job.');
+      
+      toast.error(errorMessage);
+      return;
     }
-  };
+
+    // 2. Only parse JSON if response is 2xx OK
+    const data = await response.json();
+    setJobs([data, ...jobs]);
+    toast.success('Job opportunity posted successfully!');
+    setCurrentPage('employer-dashboard');
+    
+  } catch (err) {
+    console.error(err);
+    toast.error('Network error during posting job.');
+  }
+};
+
 
   return (
     <div className="card" style={{ maxWidth: '600px', margin: '20px auto' }}>
