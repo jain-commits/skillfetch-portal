@@ -56,18 +56,16 @@ router.post('/upload-resume', upload.single('resume'), async (req, res) => {
 // 3. Download/View Route
 router.get('/users/:id/resume', async (req, res) => {
   try {
-    // Explicitly select the heavy data buffer
     const user = await User.findById(req.params.id).select('+resume.data');
 
     if (!user || !user.resume || !user.resume.data) {
       return res.status(404).json({ message: "No resume found for this user." });
     }
 
-    // Tell the browser what kind of file it is, and what its name is
-    res.set('Content-Type', user.resume.contentType);
+    // --- FIX: Force the browser to read it as a PDF ---
+    res.set('Content-Type', 'application/pdf'); 
     res.set('Content-Disposition', `inline; filename="${user.resume.name}"`);
 
-    // Send the raw binary file to the frontend
     res.send(user.resume.data);
 
   } catch (error) {
