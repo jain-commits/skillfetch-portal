@@ -1382,57 +1382,106 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
       </div>
 
-      {/* Simple Modal Review Popup */}
+      {/* Candidate Review Modal */}
+
+    {/* Sleek ATS Split-Screen Review Modal */}
       {selectedApp && selectedCandidate && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div className="card" style={{ width: '90%', maxWidth: '500px', backgroundColor: '#fff', position: 'relative' }}>
-            <button onClick={() => setActiveAppId(null)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
-            <h3>Review: {selectedCandidate.name}</h3>
-            <p><strong>Candidate Email:</strong> {selectedCandidate.email}</p>
-            <p><strong>Phone:</strong> {selectedCandidate.phone || 'N/A'}</p>
-            <p><strong>Location:</strong> {selectedCandidate.location || 'N/A'}</p>
-            <p><strong>Bio:</strong> {selectedCandidate.bio || 'N/A'}</p>
-            <p><strong>Skills:</strong> {selectedCandidate.skills || 'N/A'}</p>
-            <p><strong>Education:</strong> {selectedCandidate.education || 'N/A'}</p>
-            <p><strong>Experience:</strong> {selectedCandidate.experience || 'N/A'}</p>
+        <div className="review-modal-overlay">
+          <div className="review-modal-container">
             
-            <hr style={{ margin: '15px 0' }} />
-
-            {/* --- NEW RESUME DOWNLOAD SECTION --- */}
-            <div style={{ margin: '15px 0', padding: '15px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <strong>Attached Resume:</strong>
-              
-              {/* Checks if the resume exists in the user object */}
-              {(selectedCandidate.resume?.name || selectedCandidate.resumeName) ? (
-                <a 
-                  href={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary"
-                  style={{ textDecoration: 'none', padding: '6px 12px', fontSize: '13px' }}
-                >
-                  📄 View / Download PDF
-                </a>
-              ) : (
-                <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '14px' }}>No file uploaded</span>
-              )}
+            {/* Header */}
+            <div className="review-modal-header">
+              <div>
+                <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: '#0f172a' }}>
+                  {selectedCandidate.name}
+                </h2>
+                <span className={`badge ${getBadgeClass(selectedApp.status)}`} style={{ fontSize: '12px' }}>
+                  Status: {selectedApp.status || 'Applied'}
+                </span>
+              </div>
+              <button 
+                onClick={() => setActiveAppId(null)} 
+                style={{ background: 'transparent', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#64748b' }}
+              >
+                <FaTimes />
+              </button>
             </div>
-            
-            <hr style={{ margin: '15px 0' }} />
 
-            <p><strong>Cover Letter text:</strong><br />"{selectedApp.coverLetter}"</p>
-            
-            <div style={{ display: 'flex', gap: '5px', marginTop: '15px' }}>
-              <button onClick={() => handleUpdateStatus(selectedApp.id, 'Shortlisted')} className="btn btn-secondary">Shortlist</button>
-              <button onClick={() => handleUpdateStatus(selectedApp.id, 'Hired')} className="btn">Hire Candidate</button>
-              <button onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')} className="btn btn-danger">Reject</button>
+            {/* Split Body */}
+            <div className="review-modal-body">
+              
+              {/* Left Panel: Info & Actions */}
+              <div className="review-left-panel">
+                
+                {/* Mobile-Only PDF Button */}
+                {(selectedCandidate.resume?.name || selectedCandidate.resumeName) && (
+                  <div className="mobile-resume-action">
+                    <a 
+                      href={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary"
+                      style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
+                    >
+                      <FaDownload /> Open Resume PDF
+                    </a>
+                  </div>
+                )}
+
+                <div className="info-section">
+                  <h5>Contact Details</h5>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '14px' }}><FaEnvelope style={{ color: '#94a3b8', marginRight: '6px' }}/> {selectedCandidate.email}</p>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '14px' }}><FaPhone style={{ color: '#94a3b8', marginRight: '6px' }}/> {selectedCandidate.phone || 'N/A'}</p>
+                  <p style={{ margin: 0, fontSize: '14px' }}><FaMapMarkerAlt style={{ color: '#94a3b8', marginRight: '6px' }}/> {selectedCandidate.location || 'N/A'}</p>
+                </div>
+
+                <div className="info-section">
+                  <h5>Professional Summary</h5>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '14px', lineHeight: '1.5' }}><strong>Skills:</strong> {selectedCandidate.skills || 'Not listed'}</p>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '14px', lineHeight: '1.5' }}><strong>Exp:</strong> {selectedCandidate.experience || 'Not listed'}</p>
+                  <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5' }}><strong>Edu:</strong> {selectedCandidate.education || 'Not listed'}</p>
+                </div>
+
+                <div className="info-section" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <h5>Applicant Pitch</h5>
+                  <p style={{ margin: 0, fontStyle: 'italic', color: '#475569', fontSize: '14px', lineHeight: '1.6' }}>
+                    "{selectedApp.coverLetter}"
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="action-buttons-grid">
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Shortlisted')} className="btn" style={{ background: '#fef08a', color: '#854d0e', border: '1px solid #fde047' }}>⭐ Shortlist</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Hired')} className="btn" style={{ background: '#166534', color: '#fff', border: 'none' }}>✅ Hire</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')} className="btn btn-danger">❌ Reject</button>
+                </div>
+              </div>
+
+              {/* Right Panel: Laptop PDF Viewer */}
+              <div className="review-right-panel">
+                {(selectedCandidate.resume?.name || selectedCandidate.resumeName) ? (
+                  <iframe 
+                    src={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
+                    title="Resume Preview"
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: 'none' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', backgroundColor: '#f1f5f9' }}>
+                    <FaDownload style={{ fontSize: '48px', marginBottom: '15px', opacity: 0.3 }} />
+                    <p style={{ margin: 0, fontWeight: '500' }}>No resume uploaded</p>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
       )}
     </div>
-  );}
-
+  );
+}
 
 // 9. Post a Job Page Component
 function PostJob({ jobs, setJobs, currentUser, setCurrentPage }) {
