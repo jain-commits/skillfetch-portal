@@ -308,6 +308,6 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
         </div>
     </div>
     );
-    }
+    
 
 export default JobSearchEngine;
