@@ -320,7 +320,7 @@ function AboutUs({ setCurrentPage }) {
   const teamMembers = [
     { name: 'Dixon Anto', role: 'Backend Developer', github: 'https://github.com/DixonAnto' },
     { name: 'Karthik', role: 'Frontend Developer', github: 'https://github.com/karthi-1010' },
-    { name: 'Ajay', role: 'Backend Developer', github: 'https://github.com/yourusername3' },
+    { name: 'Ajay', role: 'Backend Developer', github: 'https://github.com/ajay1428' },
     { name: 'Fasil', role: 'Frontend Developer', github: 'https://github.com/fasilv29' },
     { name: 'Jain', role: 'Backend Developer', github: 'https://github.com/jain-commits' },
   ];
