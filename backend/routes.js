@@ -168,74 +168,138 @@ router.put('/users/:id/profile', async (req, res) => {
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 
-// Get All Jobs
+// // Get All Jobs
+// router.get('/jobs', async (req, res) => {
+//   try {
+//     const jobs = await Job.find().sort({ createdAt: -1 });
+//     res.json(jobs);
+//   } catch (error) {
+//     console.error('Get jobs error:', error);
+//     res.status(500).json({ message: 'Server error fetching jobs' });
+//   }
+// });
+
+// // Post a Job
+// router.post('/jobs', async (req, res) => {
+//   try {
+//     const {
+//       employerId,
+//       companyName,
+//       title,
+//       category,
+//       type,
+//       location,
+//       salaryRange,
+//       experienceLevel,
+//       skillsRequired,
+//       description,
+//       qualifications
+//     } = req.body;
+
+//     const newJob = new Job({
+//       employerId,
+//       companyName,
+//       title,
+//       category,
+//       type,
+//       location,
+//       salaryRange,
+//       experienceLevel,
+//       skillsRequired,
+//       description,
+//       qualifications
+//     });
+
+//     await newJob.save();
+//     res.status(201).json(newJob);
+//   } catch (error) {
+//     console.error('Post job error:', error);
+//     res.status(500).json({ message: 'Server error posting job' });
+//   }
+// });
+
+// // Delete a Job (Employer/Admin)
+// router.delete('/jobs/:id', async (req, res) => {
+//   try {
+//     const { id } = req.params;
+    
+//     // Delete job
+//     const job = await Job.findByIdAndDelete(id);
+//     if (!job) {
+//       return res.status(404).json({ message: 'Job not found' });
+//     }
+
+//     // Cascade: delete applications for this job
+//     await Application.deleteMany({ jobId: id });
+
+//     res.json({ message: 'Job posting deleted and cascaded applications.' });
+//   } catch (error) {
+//     console.error('Delete job error:', error);
+//     res.status(500).json({ message: 'Server error deleting job' });
+//   }
+// });
+
+
+// ==================== JOB OPPORTUNITIES ROUTES ====================
+
+// Get All Jobs (Merged Local + Adzuna)
 router.get('/jobs', async (req, res) => {
   try {
-    const jobs = await Job.find().sort({ createdAt: -1 });
-    res.json(jobs);
+    // 1. Fetch custom jobs posted by your local Employers in MongoDB
+    const localJobs = await Job.find().sort({ createdAt: -1 });
+    
+    // Map local jobs to ensure they have the standard structure
+    const formattedLocalJobs = localJobs.map(job => ({
+      id: job._id.toString(),
+      employerId: job.employerId,
+      title: job.title,
+      companyName: job.companyName,
+      location: job.location,
+      type: job.type,
+      salaryRange: job.salaryRange,
+      description: job.description,
+      source: 'SkillFetch' // Tagging to know it's local
+    }));
+
+    // 2. Fetch live jobs from Adzuna API
+    const ADZUNA_APP_ID = '39d63b7b';
+    const ADZUNA_APP_KEY = '8fb030194b91cf924b6e4a4c8c0e7994';
+    
+    // 'in' is for India jobs. 'results_per_page=50' grabs a good chunk.
+    const adzunaUrl = `https://api.adzuna.com/v1/api/jobs/in/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=50`;
+
+    let adzunaJobs = [];
+    try {
+      // (Note: Requires Node.js v18+ for native fetch. If using an older version, install and use axios)
+      const adzunaResponse = await fetch(adzunaUrl);
+      const adzunaData = await adzunaResponse.json();
+
+      // Map Adzuna's weird JSON format to exactly match your SkillFetch format!
+      adzunaJobs = adzunaData.results.map(job => ({
+        id: String(job.id), 
+        title: job.title,
+        companyName: job.company.display_name,
+        location: job.location.display_name,
+        // Clean up Adzuna's snake_case job types
+        type: job.contract_time === 'full_time' ? 'Full-time' : (job.contract_time === 'part_time' ? 'Part-time' : 'Contract'),
+        salaryRange: job.salary_min && job.salary_max ? `₹${job.salary_min} - ₹${job.salary_max}` : 'Not specified',
+        // Adzuna sends raw text descriptions
+        description: job.description,
+        source: 'Adzuna',
+        applyUrl: job.redirect_url // The actual link to apply on Adzuna
+      }));
+    } catch (apiError) {
+      console.error("Adzuna API Error:", apiError);
+      // If Adzuna crashes, we silently catch it so the app still loads local jobs
+    }
+
+    // 3. Combine both lists and send to React
+    const allJobs = [...formattedLocalJobs, ...adzunaJobs];
+    res.json(allJobs);
+
   } catch (error) {
     console.error('Get jobs error:', error);
     res.status(500).json({ message: 'Server error fetching jobs' });
-  }
-});
-
-// Post a Job
-router.post('/jobs', async (req, res) => {
-  try {
-    const {
-      employerId,
-      companyName,
-      title,
-      category,
-      type,
-      location,
-      salaryRange,
-      experienceLevel,
-      skillsRequired,
-      description,
-      qualifications
-    } = req.body;
-
-    const newJob = new Job({
-      employerId,
-      companyName,
-      title,
-      category,
-      type,
-      location,
-      salaryRange,
-      experienceLevel,
-      skillsRequired,
-      description,
-      qualifications
-    });
-
-    await newJob.save();
-    res.status(201).json(newJob);
-  } catch (error) {
-    console.error('Post job error:', error);
-    res.status(500).json({ message: 'Server error posting job' });
-  }
-});
-
-// Delete a Job (Employer/Admin)
-router.delete('/jobs/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // Delete job
-    const job = await Job.findByIdAndDelete(id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-
-    // Cascade: delete applications for this job
-    await Application.deleteMany({ jobId: id });
-
-    res.json({ message: 'Job posting deleted and cascaded applications.' });
-  } catch (error) {
-    console.error('Delete job error:', error);
-    res.status(500).json({ message: 'Server error deleting job' });
   }
 });
 
