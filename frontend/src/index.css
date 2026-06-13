@@ -418,11 +418,11 @@ img {
 .badge-rejected { background-color: #fee2e2; color: #991b1b; }
 
 
-/* --- MINIMAL REVIEW MODAL STYLES --- */
+/* --- PRO ATS REVIEW MODAL STYLES --- */
 .review-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(15, 23, 42, 0.6);
+  inset: 0; /* Shorthand for top:0, left:0, right:0, bottom:0 */
+  background-color: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -435,72 +435,104 @@ img {
   background: #ffffff;
   border-radius: 12px;
   width: 100%;
-  max-width: 1000px; /* Wider to fit the PDF preview */
-  height: 85vh; /* Fixed height so the PDF viewer has space */
+  max-width: 1100px; /* Wider for laptops */
+  height: 90vh; /* Fixed height so panels can scroll inside */
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .review-modal-header {
-  padding: 20px 25px;
+  padding: 15px 25px;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #f8fafc;
+  flex-shrink: 0; /* Prevents header from squishing */
 }
 
 .review-modal-body {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow: hidden; /* Contains the scrollable children */
 }
 
+/* --- DESKTOP LAYOUT --- */
 .review-left-panel {
-  flex: 1;
+  width: 40%;
   padding: 25px;
-  overflow-y: auto;
+  overflow-y: auto; /* Independent scrolling */
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
 .review-right-panel {
-  flex: 1.2; /* Gives the PDF slightly more room */
-  background: #f1f5f9;
+  width: 60%;
+  background: #cbd5e1;
   display: flex;
   flex-direction: column;
 }
 
-.info-group h5 {
-  margin: 0 0 8px 0;
+.info-section {
+  margin-bottom: 20px;
+}
+
+.info-section h5 {
+  margin: 0 0 6px 0;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #64748b;
 }
 
-.info-group p {
-  margin: 0;
-  font-size: 14px;
-  color: #1e293b;
-  line-height: 1.5;
-}
-
 .action-buttons-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
-  margin-top: auto; /* Pushes buttons to the bottom of the left panel */
+  margin-top: auto; /* Pushes to bottom */
   padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
 }
 
-@media (max-width: 800px) {
+/* Hidden by default, shown on mobile */
+.mobile-resume-action {
+  display: none; 
+}
+
+/* --- TABLET & MOBILE RESPONSIVE --- */
+@media (max-width: 900px) {
   .review-modal-body {
     flex-direction: column;
+    overflow-y: auto; /* Allow whole modal to scroll */
   }
-  .review-left-panel { border-right: none; border-bottom: 1px solid #e2e8f0; }
+  .review-left-panel {
+    width: 100%;
+    overflow-y: visible; /* Disable inner scroll */
+    border-right: none;
+  }
+  .review-right-panel {
+    width: 100%;
+    height: 600px; /* Give the iframe a fixed height block */
+    border-top: 4px solid #e2e8f0;
+  }
+}
+
+@media (max-width: 600px) {
+  .review-modal-container {
+    height: auto;
+    max-height: 95vh;
+  }
+  .review-right-panel {
+    display: none; /* Hide buggy iframe on phones */
+  }
+  .mobile-resume-action {
+    display: block; /* Show the button instead */
+    margin-bottom: 20px;
+  }
+  .action-buttons-grid {
+    grid-template-columns: 1fr; /* Stack buttons vertically */
+  }
 }

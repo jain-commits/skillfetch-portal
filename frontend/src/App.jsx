@@ -1383,7 +1383,8 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       </div>
 
       {/* Candidate Review Modal */}
-     {/* Sleek ATS Split-Screen Review Modal */}
+
+    {/* Sleek ATS Split-Screen Review Modal */}
       {selectedApp && selectedCandidate && (
         <div className="review-modal-overlay">
           <div className="review-modal-container">
@@ -1391,14 +1392,16 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
             {/* Header */}
             <div className="review-modal-header">
               <div>
-                <h2 style={{ margin: '0 0 4px 0', fontSize: '20px' }}>{selectedCandidate.name}</h2>
+                <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: '#0f172a' }}>
+                  {selectedCandidate.name}
+                </h2>
                 <span className={`badge ${getBadgeClass(selectedApp.status)}`} style={{ fontSize: '12px' }}>
                   Status: {selectedApp.status || 'Applied'}
                 </span>
               </div>
               <button 
                 onClick={() => setActiveAppId(null)} 
-                style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'transparent', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#64748b' }}
               >
                 <FaTimes />
               </button>
@@ -1407,42 +1410,54 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
             {/* Split Body */}
             <div className="review-modal-body">
               
-              {/* Left Panel: Minimal Text Info */}
+              {/* Left Panel: Info & Actions */}
               <div className="review-left-panel">
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                  <div className="info-group">
-                    <h5>Contact</h5>
-                    <p><FaEnvelope style={{ color: '#94a3b8', marginRight: '5px' }}/> {selectedCandidate.email}</p>
-                    <p><FaPhone style={{ color: '#94a3b8', marginRight: '5px' }}/> {selectedCandidate.phone || 'N/A'}</p>
+                {/* Mobile-Only PDF Button */}
+                {(selectedCandidate.resume?.name || selectedCandidate.resumeName) && (
+                  <div className="mobile-resume-action">
+                    <a 
+                      href={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary"
+                      style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
+                    >
+                      <FaDownload /> Open Resume PDF
+                    </a>
                   </div>
-                  <div className="info-group">
-                    <h5>Location</h5>
-                    <p><FaMapMarkerAlt style={{ color: '#94a3b8', marginRight: '5px' }}/> {selectedCandidate.location || 'N/A'}</p>
-                  </div>
+                )}
+
+                <div className="info-section">
+                  <h5>Contact Details</h5>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '14px' }}><FaEnvelope style={{ color: '#94a3b8', marginRight: '6px' }}/> {selectedCandidate.email}</p>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '14px' }}><FaPhone style={{ color: '#94a3b8', marginRight: '6px' }}/> {selectedCandidate.phone || 'N/A'}</p>
+                  <p style={{ margin: 0, fontSize: '14px' }}><FaMapMarkerAlt style={{ color: '#94a3b8', marginRight: '6px' }}/> {selectedCandidate.location || 'N/A'}</p>
                 </div>
 
-                <div className="info-group">
+                <div className="info-section">
                   <h5>Professional Summary</h5>
-                  <p><strong>Skills:</strong> {selectedCandidate.skills || 'Not listed'}</p>
-                  <p><strong>Experience:</strong> {selectedCandidate.experience || 'Not listed'}</p>
-                  <p><strong>Education:</strong> {selectedCandidate.education || 'Not listed'}</p>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '14px', lineHeight: '1.5' }}><strong>Skills:</strong> {selectedCandidate.skills || 'Not listed'}</p>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '14px', lineHeight: '1.5' }}><strong>Exp:</strong> {selectedCandidate.experience || 'Not listed'}</p>
+                  <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5' }}><strong>Edu:</strong> {selectedCandidate.education || 'Not listed'}</p>
                 </div>
 
-                <div className="info-group" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <h5>Applicant Pitch (Cover Letter)</h5>
-                  <p style={{ fontStyle: 'italic', color: '#475569' }}>"{selectedApp.coverLetter}"</p>
+                <div className="info-section" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <h5>Applicant Pitch</h5>
+                  <p style={{ margin: 0, fontStyle: 'italic', color: '#475569', fontSize: '14px', lineHeight: '1.6' }}>
+                    "{selectedApp.coverLetter}"
+                  </p>
                 </div>
 
                 {/* Actions */}
                 <div className="action-buttons-grid">
-                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Shortlisted')} className="btn btn-secondary" style={{ background: '#fef08a', color: '#854d0e', border: 'none' }}>Shortlist</button>
-                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Hired')} className="btn" style={{ background: '#166534', border: 'none' }}>Hire</button>
-                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')} className="btn btn-danger" style={{ border: 'none' }}>Reject</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Shortlisted')} className="btn" style={{ background: '#fef08a', color: '#854d0e', border: '1px solid #fde047' }}>⭐ Shortlist</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Hired')} className="btn" style={{ background: '#166534', color: '#fff', border: 'none' }}>✅ Hire</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')} className="btn btn-danger">❌ Reject</button>
                 </div>
               </div>
 
-              {/* Right Panel: Live PDF Preview */}
+              {/* Right Panel: Laptop PDF Viewer */}
               <div className="review-right-panel">
                 {(selectedCandidate.resume?.name || selectedCandidate.resumeName) ? (
                   <iframe 
@@ -1453,9 +1468,9 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
                     style={{ border: 'none' }}
                   />
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
-                    <FaDownload style={{ fontSize: '40px', marginBottom: '15px', opacity: 0.5 }} />
-                    <p>No resume uploaded by candidate</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', backgroundColor: '#f1f5f9' }}>
+                    <FaDownload style={{ fontSize: '48px', marginBottom: '15px', opacity: 0.3 }} />
+                    <p style={{ margin: 0, fontWeight: '500' }}>No resume uploaded</p>
                   </div>
                 )}
               </div>
@@ -1467,7 +1482,6 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
     </div>
   );
 }
-
 
 // 9. Post a Job Page Component
 function PostJob({ jobs, setJobs, currentUser, setCurrentPage }) {
