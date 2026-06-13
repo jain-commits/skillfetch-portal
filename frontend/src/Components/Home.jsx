@@ -18,7 +18,6 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
   const uniqueTitles = useMemo(() => [...new Set(jobs.map(j => j.title))].filter(Boolean), [jobs]);
   const uniqueLocations = useMemo(() => [...new Set(jobs.map(j => j.location))].filter(Boolean), [jobs]);
 
-  // OPTIMIZATION 1: Only show suggestions if the user has typed at least 1 character
   const titleSuggestions = searchTitle.trim().length > 0 
     ? uniqueTitles.filter(t => t.toLowerCase().includes(searchTitle.toLowerCase())).slice(0, 5)
     : [];
@@ -28,7 +27,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
     : [];
 
   // --- Handlers ---
- const handleSearch = () => {
+  const handleSearch = () => {
     let results = jobs.filter(job => {
       const matchTitle = job.title.toLowerCase().includes(searchTitle.toLowerCase()) || 
                          (job.companyName && job.companyName.toLowerCase().includes(searchTitle.toLowerCase()));
@@ -42,9 +41,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
 
     setFilteredJobs(results);
     
-    // --- FIX: Ensure the selectedJob is still in the new results list ---
     if (results.length > 0) {
-      // If the currently selected job is still in the list, keep it. If not, pick the first one.
       const isStillInResults = results.find(j => j.id === selectedJob?.id);
       if (!isStillInResults) setSelectedJob(results[0]);
     } else {
@@ -72,39 +69,21 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           onBlur={() => setShowTitleSuggestions(false)} 
         />
         
-        {/* Title Suggestions Dropdown (Optimized Popup) */}
+        {/* Title Suggestions Dropdown */}
         {showTitleSuggestions && titleSuggestions.length > 0 && (
           <div style={{ 
-            position: 'absolute',
-            top: '100%', // Pushes it exactly below the input
-            left: '0',
-            width: '100%', 
-            backgroundColor: '#ffffff',
-            border: '1px solid #e4e2e0',
-            borderRadius: '8px',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.15)', // Premium float effect
-            zIndex: 9999, // Guarantees it renders over EVERYTHING
-            marginTop: '8px',
-            overflow: 'hidden' // Keeps the rounded corners clean
+            position: 'absolute', top: '100%', left: '0', width: '100%', 
+            backgroundColor: '#ffffff', border: '1px solid #e4e2e0', borderRadius: '8px',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.15)', zIndex: 9999, marginTop: '8px', overflow: 'hidden'
           }}>
             {titleSuggestions.map((sug, idx) => (
               <div 
                 key={`title-${idx}`} 
-                onMouseDown={() => { 
-                  setSearchTitle(sug); 
-                  setShowTitleSuggestions(false); 
-                }}
+                onMouseDown={() => { setSearchTitle(sug); setShowTitleSuggestions(false); }}
                 style={{
-                  padding: '12px 16px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
+                  padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
                   borderBottom: idx === titleSuggestions.length - 1 ? 'none' : '1px solid #f3f2f1',
-                  color: '#2d2d2d',
-                  fontSize: '15px',
-                  backgroundColor: 'transparent',
-                  transition: 'background-color 0.2s'
+                  color: '#2d2d2d', fontSize: '15px', transition: 'background-color 0.2s'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f2f1'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -130,38 +109,21 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           onBlur={() => setShowLocSuggestions(false)}
         />
 
-        {/* Location Suggestions Dropdown (Optimized Popup) */}
+        {/* Location Suggestions Dropdown */}
         {showLocSuggestions && locSuggestions.length > 0 && (
           <div style={{ 
-            position: 'absolute',
-            top: '100%',
-            left: '0',
-            width: '100%', 
-            backgroundColor: '#ffffff',
-            border: '1px solid #e4e2e0',
-            borderRadius: '8px',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-            marginTop: '8px',
-            overflow: 'hidden'
+            position: 'absolute', top: '100%', left: '0', width: '100%', 
+            backgroundColor: '#ffffff', border: '1px solid #e4e2e0', borderRadius: '8px',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.15)', zIndex: 9999, marginTop: '8px', overflow: 'hidden'
           }}>
             {locSuggestions.map((sug, idx) => (
               <div 
                 key={`loc-${idx}`} 
-                onMouseDown={() => { 
-                  setSearchLocation(sug); 
-                  setShowLocSuggestions(false); 
-                }}
+                onMouseDown={() => { setSearchLocation(sug); setShowLocSuggestions(false); }}
                 style={{
-                  padding: '12px 16px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
+                  padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
                   borderBottom: idx === locSuggestions.length - 1 ? 'none' : '1px solid #f3f2f1',
-                  color: '#2d2d2d',
-                  fontSize: '15px',
-                  transition: 'background-color 0.2s'
+                  color: '#2d2d2d', fontSize: '15px', transition: 'background-color 0.2s'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f2f1'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -176,15 +138,33 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
       <button className="search-btn" onClick={handleSearch}>Find jobs</button>
     </div>
   );
-}
 
-
-
+  // --- STATE 1: CLEAN LANDING PAGE ---
+  if (!hasSearched) {
+    return (
+      <div className="hero-container">
+        {renderSearchBar()}
+        
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h1 className="hero-logo-large">SkillFetch</h1>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', margin: '0 0 8px 0' }}>Your next job starts here</h2>
+          <p style={{ color: '#4b4b4b', margin: '0 0 20px 0', fontSize: '14px' }}>
+            Create an account or sign in to see your personalised job recommendations.
+          </p>
+          <button className="get-started-btn" onClick={() => setCurrentPage('login')}>
+            Get Started →
+          </button>
+          <p style={{ marginTop: '50px', fontSize: '14px', color: '#2d2d2d', cursor: 'pointer' }}>
+            What's trending on SkillFetch ⌄
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // --- STATE 2: SPLIT SCREEN RESULTS ---
   return (
     <div className="results-container">
-      
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         {renderSearchBar()}
       </div>
@@ -205,9 +185,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
       </div>
 
       <div style={{ borderBottom: '1px solid #ececec', paddingBottom: '10px', marginBottom: '20px' }}>
-        <p style={{ fontSize: '14px', color: '#767676', margin: '0' }}>
-          Upload your CV and find your next job on SkillFetch!
-        </p>
+        <p style={{ fontSize: '14px', color: '#767676', margin: '0' }}>Upload your CV and find your next job on SkillFetch!</p>
         <h3 style={{ margin: '15px 0 5px 0', color: '#2d2d2d', fontSize: '14px' }}>
           {searchTitle || 'All Jobs'} jobs in {searchLocation || 'any location'}
         </h3>
@@ -215,9 +193,6 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
       </div>
 
       <div className="split-layout">
-
-
-
         
         {/* LEFT COLUMN: Job Cards */}
         <div className="jobs-list-column">
@@ -252,7 +227,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           )}
         </div>
 
-      {/* RIGHT COLUMN: Sticky Job Details */}
+        {/* RIGHT COLUMN: Sticky Job Details */}
         {selectedJob && (
           <div className="job-detail-sticky">
             <h2 style={{ fontSize: '24px', margin: '0 0 10px 0' }}>{selectedJob.title}</h2>
@@ -261,12 +236,9 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
             </p>
             <p style={{ fontSize: '16px', color: '#4b4b4b', marginBottom: '20px' }}>{selectedJob.location}</p>
             
-            {/* The Adzuna/Local Apply Logic */}
             {selectedJob.source === 'Adzuna' ? (
               <a 
-                href={selectedJob.applyUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
+                href={selectedJob.applyUrl} target="_blank" rel="noopener noreferrer"
                 style={{ backgroundColor: '#085ff7', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: '700', cursor: 'pointer', width: '200px', marginBottom: '30px', display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}
               >
                 Apply on Adzuna ↗
@@ -298,16 +270,13 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
               </div>
 
               <h3 style={{ fontSize: '18px', marginBottom: '10px' }}>Full job description</h3>
-              <div 
-                style={{ fontSize: '14px', lineHeight: '1.6', color: '#2d2d2d' }} 
-                dangerouslySetInnerHTML={{ __html: selectedJob.description }} 
-              />
+              <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#2d2d2d' }} dangerouslySetInnerHTML={{ __html: selectedJob.description }} />
             </div>
           </div>
         )}
-        </div>
+      </div>
     </div>
-    );
-    
+  );
+}
 
 export default JobSearchEngine;
