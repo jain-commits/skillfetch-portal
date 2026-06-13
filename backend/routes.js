@@ -171,76 +171,80 @@ router.put('/users/:id/profile', async (req, res) => {
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 
-// // Get All Jobs
-// router.get('/jobs', async (req, res) => {
-//   try {
-//     const jobs = await Job.find().sort({ createdAt: -1 });
-//     res.json(jobs);
-//   } catch (error) {
-//     console.error('Get jobs error:', error);
-//     res.status(500).json({ message: 'Server error fetching jobs' });
-//   }
-// });
+// Get All Jobs
+router.get('/jobs', async (req, res) => {
+  try {
+    const jobs = await Job.find().sort({ createdAt: -1 });
+    res.json(jobs);
+  } catch (error) {
+    console.error('Get jobs error:', error);
+    res.status(500).json({ message: 'Server error fetching jobs' });
+  }
+});
 
-// // Post a Job
-// router.post('/jobs', async (req, res) => {
-//   try {
-//     const {
-//       employerId,
-//       companyName,
-//       title,
-//       category,
-//       type,
-//       location,
-//       salaryRange,
-//       experienceLevel,
-//       skillsRequired,
-//       description,
-//       qualifications
-//     } = req.body;
 
-//     const newJob = new Job({
-//       employerId,
-//       companyName,
-//       title,
-//       category,
-//       type,
-//       location,
-//       salaryRange,
-//       experienceLevel,
-//       skillsRequired,
-//       description,
-//       qualifications
-//     });
 
-//     await newJob.save();
-//     res.status(201).json(newJob);
-//   } catch (error) {
-//     console.error('Post job error:', error);
-//     res.status(500).json({ message: 'Server error posting job' });
-//   }
-// });
+// Post a Job
+router.post('/jobs', async (req, res) => {
+  try {
+    const {
+      employerId,
+      companyName,
+      title,
+      category,
+      type,
+      location,
+      salaryRange,
+      experienceLevel,
+      skillsRequired,
+      description,
+      qualifications
+    } = req.body;
 
-// // Delete a Job (Employer/Admin)
-// router.delete('/jobs/:id', async (req, res) => {
-//   try {
-//     const { id } = req.params;
+    const newJob = new Job({
+      employerId,
+      companyName,
+      title,
+      category,
+      type,
+      location,
+      salaryRange,
+      experienceLevel,
+      skillsRequired,
+      description,
+      qualifications
+    });
+
+    await newJob.save();
+    res.status(201).json(newJob);
+  } catch (error) {
+    console.error('Post job error:', error);
+    res.status(500).json({ message: 'Server error posting job' });
+  }
+});
+
+
+
+// Delete a Job (Employer/Admin)
+router.delete('/jobs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
     
-//     // Delete job
-//     const job = await Job.findByIdAndDelete(id);
-//     if (!job) {
-//       return res.status(404).json({ message: 'Job not found' });
-//     }
+    // Delete job
+    const job = await Job.findByIdAndDelete(id);
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
 
-//     // Cascade: delete applications for this job
-//     await Application.deleteMany({ jobId: id });
+    // Cascade: delete applications for this job
+    await Application.deleteMany({ jobId: id });
 
-//     res.json({ message: 'Job posting deleted and cascaded applications.' });
-//   } catch (error) {
-//     console.error('Delete job error:', error);
-//     res.status(500).json({ message: 'Server error deleting job' });
-//   }
-// });
+    res.json({ message: 'Job posting deleted and cascaded applications.' });
+  } catch (error) {
+    console.error('Delete job error:', error);
+    res.status(500).json({ message: 'Server error deleting job' });
+  }
+});
 
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
