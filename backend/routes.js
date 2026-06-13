@@ -5,6 +5,9 @@ const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require("cors");
+const axios = require('axios');
+
+
 
 // Middleware
 router.use(cors());
@@ -241,6 +244,7 @@ router.put('/users/:id/profile', async (req, res) => {
 
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
+// ==================== JOB OPPORTUNITIES ROUTES ====================
 
 // Get All Jobs (Merged Local + Adzuna)
 router.get('/jobs', async (req, res) => {
@@ -261,7 +265,7 @@ router.get('/jobs', async (req, res) => {
       source: 'SkillFetch' // Tagging to know it's local
     }));
 
-    // 2. Fetch live jobs from Adzuna API
+    // 2. Fetch live jobs from Adzuna API (YOUR NEW AXIOS CODE GOES HERE)
     const ADZUNA_APP_ID = '39d63b7b';
     const ADZUNA_APP_KEY = '8fb030194b91cf924b6e4a4c8c0e7994';
     
@@ -270,27 +274,23 @@ router.get('/jobs', async (req, res) => {
 
     let adzunaJobs = [];
     try {
-      // (Note: Requires Node.js v18+ for native fetch. If using an older version, install and use axios)
-      const adzunaResponse = await fetch(adzunaUrl);
-      const adzunaData = await adzunaResponse.json();
+      // USING AXIOS INSTEAD OF FETCH
+      const adzunaResponse = await axios.get(adzunaUrl);
+      const adzunaData = adzunaResponse.data; // Axios automatically parses JSON into .data
 
-      // Map Adzuna's weird JSON format to exactly match your SkillFetch format!
       adzunaJobs = adzunaData.results.map(job => ({
         id: String(job.id), 
         title: job.title,
         companyName: job.company.display_name,
         location: job.location.display_name,
-        // Clean up Adzuna's snake_case job types
         type: job.contract_time === 'full_time' ? 'Full-time' : (job.contract_time === 'part_time' ? 'Part-time' : 'Contract'),
         salaryRange: job.salary_min && job.salary_max ? `₹${job.salary_min} - ₹${job.salary_max}` : 'Not specified',
-        // Adzuna sends raw text descriptions
         description: job.description,
         source: 'Adzuna',
-        applyUrl: job.redirect_url // The actual link to apply on Adzuna
+        applyUrl: job.redirect_url 
       }));
     } catch (apiError) {
-      console.error("Adzuna API Error:", apiError);
-      // If Adzuna crashes, we silently catch it so the app still loads local jobs
+      console.error("Adzuna API Error Details:", apiError.message);
     }
 
     // 3. Combine both lists and send to React
