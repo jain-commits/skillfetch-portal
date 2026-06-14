@@ -528,6 +528,10 @@ function AboutUs({ setCurrentPage }) {
 //   );
 // }
 
+
+
+
+
 // 2. Login Page Component
 function Login({ setCurrentUser, setCurrentPage, currentUser }) {
   const [email, setEmail] = useState('');
@@ -555,6 +559,7 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
         </p>
         
         <button 
+          type="button"
           onClick={() => {
             if (currentUser.role === 'employer') setCurrentPage('employer-dashboard');
             else if (currentUser.role === 'admin') setCurrentPage('admin-panel');
@@ -569,6 +574,7 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
     );
   }
 
+  // --- Handlers ---
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -601,7 +607,7 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
   // Easy Login Buttons for Presentation
   const handleQuickLogin = (role) => {
     if (role === 'candidate') {
-      setEmail('fasil@jobportal.com'); // Updated to match your seeder
+      setEmail('fasil@jobportal.com'); 
       setPassword('fasil123');
     } else if (role === 'employer') {
       setEmail('employer@jobportal.com');
@@ -612,6 +618,7 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
     }
   };
 
+  // --- Main Return for the actual Login Form ---
   return (
     <div className="card" style={{ maxWidth: '400px', margin: '40px auto' }}>
       <h2>Sign In</h2>
@@ -641,48 +648,6 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
     </div>
   );
 }
-  // Easy Login Buttons for Presentation
-  const handleQuickLogin = (role) => {
-    if (role === 'candidate') {
-      setEmail('candidate@jobportal.com');
-      setPassword('candidate123');
-    } else if (role === 'employer') {
-      setEmail('employer@jobportal.com');
-      setPassword('employer123');
-    } else if (role === 'admin') {
-      setEmail('admin@jobportal.com');
-      setPassword('admin123');
-    }
-  };
-
-  return (
-    <div className="card" style={{ maxWidth: '400px', margin: '40px auto' }}>
-      <h2>Sign In</h2>
-      
-      {/* Quick prefill helpers */}
-      <div style={{ marginBottom: '15px' }}>
-        <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Quick Prefill: </span>
-        <button onClick={() => handleQuickLogin('candidate')} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '11px', marginRight: '5px' }}>Candidate</button>
-        <button onClick={() => handleQuickLogin('employer')} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '11px', marginRight: '5px' }}>Employer</button>
-        <button onClick={() => handleQuickLogin('admin')} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '11px' }}>Admin</button>
-      </div>
-
-      <form onSubmit={handleLoginSubmit}>
-        <div className="form-group">
-          <label>Email Address</label>
-          <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div className="form-group">
-          <label>Password</label>
-          <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-        <button type="submit" className="btn" style={{ width: '100%' }}>Login</button>
-      </form>
-      <p style={{ marginTop: '15px', textAlign: 'center', fontSize: '14px' }}>
-        Don't have an account? <a href="#" onClick={() => setCurrentPage('register')}>Register here</a>
-      </p>
-    </div>
-  );
 
 
 // 3. Register Page Component
