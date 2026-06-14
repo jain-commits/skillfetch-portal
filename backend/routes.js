@@ -314,7 +314,7 @@ router.get('/jobs', async (req, res) => {
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 // routes.js
-const syncJobsFromAdzuna = require('./syncJobs');
+const syncJobsFromAdzuna = require('./syncjobs');
 
 router.get('/jobs', async (req, res) => {
   try {
