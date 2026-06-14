@@ -314,19 +314,16 @@ router.get('/jobs', async (req, res) => {
 
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
-// routes.js
-const syncJobsFromAdzuna = require('./syncjobs');
 
+// GET route for jobs (Pure MongoDB, No External API)
 router.get('/jobs', async (req, res) => {
   try {
-    // Optional: Auto-sync once when someone visits the jobs page
-    await syncJobsFromAdzuna(); 
-
-    // Fetch EVERYTHING from MongoDB (both local & saved Adzuna jobs)
+    // Fetch EVERYTHING from MongoDB
     const allJobs = await Job.find().sort({ createdAt: -1 });
     res.json(allJobs);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching jobs' });
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Error fetching jobs from database' });
   }
 });
 
