@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const axios = require('axios'); // Used to fetch the images on the backend
 const { User, Job, Application } = require('./models');
 
 // ==========================================
@@ -42,14 +43,12 @@ const companyDomains = {
   'Samsung': 'samsung.com', 'Sony': 'sony.com'
 };
 
-
-// Heavily weighted towards Indian tech hubs, specifically Kerala and Bangalore
 const locations = [
   'Bangalore, Karnataka', 'Bangalore, Karnataka', 'Bangalore, Karnataka', 
   'Trivandrum, Kerala', 'Trivandrum, Kerala', 'Kochi, Kerala', 'Kochi, Kerala', 
   'Kozhikode, Kerala', 'Chennai, Tamil Nadu', 'Hyderabad, Telangana', 
   'Pune, Maharashtra', 'Mumbai, Maharashtra', 'Gurugram, Haryana', 'Noida, UP',
-  'Remote - India', 'Remote - India'
+  'Remote - India'
 ];
 
 const jobTitles = [
@@ -62,151 +61,106 @@ const jobTitles = [
   { title: 'Product Manager', category: 'Product Management', skills: 'Agile, Scrum, Roadmap Planning, Jira' },
   { title: 'Android Developer', category: 'Software Development', skills: 'Kotlin, Java, Android Studio' },
   { title: 'iOS Developer', category: 'Software Development', skills: 'Swift, Objective-C, Xcode' },
-  { title: 'Cloud Architect', category: 'DevOps & Cloud', skills: 'AWS, Azure, GCP, System Design' },
-  { title: 'QA Automation Engineer', category: 'Quality Assurance', skills: 'Selenium, Cypress, Jest, Postman' }
+  { title: 'Cloud Architect', category: 'DevOps & Cloud', skills: 'AWS, Azure, GCP, System Design' }
 ];
 
-const types = ['Full-time', 'Full-time', 'Full-time', 'Contract', 'Part-time', 'Internship'];
-const levels = ['Junior', 'Mid-Level', 'Mid-Level', 'Senior'];
+const types = ['Full-time', 'Full-time', 'Contract', 'Internship'];
+const levels = ['Junior', 'Mid-Level', 'Senior'];
 
-// Utility to pick random item from array
 const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-// Utility to generate realistic Indian Rupee salary ranges based on experience
 const generateSalary = (level) => {
-  let min, max;
-  if (level === 'Junior') {
-    min = Math.floor(Math.random() * 3) + 3; // 3 to 5 LPA
-    max = min + 2;
-  } else if (level === 'Mid-Level') {
-    min = Math.floor(Math.random() * 8) + 6; // 6 to 13 LPA
-    max = min + 5;
-  } else {
-    min = Math.floor(Math.random() * 15) + 15; // 15 to 29 LPA
-    max = min + 10;
-  }
+  let min = level === 'Junior' ? 4 : level === 'Mid-Level' ? 8 : 18;
+  let max = min + (level === 'Junior' ? 3 : level === 'Mid-Level' ? 6 : 12);
   return `₹${min},00,000 - ₹${max},00,000 INR`;
 };
+
+// HELPER FUNCTION: Downloads image on the server and converts it to a Base64 Data URI
+async function downloadLogoAsBase64(domain, companyName) {
+  try {
+    if (!domain) throw new Error("No domain");
+    const url = `https://logo.clearbit.com/${domain}`;
+    
+    // Download image as binary arraybuffer
+    const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 });
+    const base64 = Buffer.from(response.data, 'binary').toString('base64');
+    const contentType = response.headers['content-type'] || 'image/png';
+    
+    return `data:${contentType};base64,${base64}`;
+  } catch (error) {
+    // Fallback directly to a pre-rendered text avatar link if the download fails
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(companyName)}&background=0056b3&color=fff&size=128`;
+  }
+}
 
 async function seedDatabase() {
   try {
     console.log('Starting Database Seed Process...');
 
-    // ==========================================
-    // 1. SEED / ENSURE USERS EXIST (Untouched)
-    // ==========================================
+    // 1. SEED USERS (Kept completely intact)
     let adminUser = await User.findOne({ email: 'admin@jobportal.com' });
     if (!adminUser) {
-      adminUser = new User({
-        name: 'System Admin',
-        email: 'admin@jobportal.com',
-        password: 'admin123',
-        role: 'admin',
-        isSuspended: false
-      });
+      adminUser = new User({ name: 'System Admin', email: 'admin@jobportal.com', password: 'admin123', role: 'admin', isSuspended: false });
       await adminUser.save();
-      console.log('✅ Admin user seeded.');
     }
-
     let candidateUser = await User.findOne({ email: 'fasil@jobportal.com' });
     if (!candidateUser) {
-      candidateUser = new User({
-        name: 'Fasil V (Candidate)',
-        email: 'fasil@jobportal.com',
-        password: 'fasil123',
-        role: 'candidate',
-        isSuspended: false,
-        phone: '123-456-7890',
-        location: 'New York',
-        bio: 'Web developer.',
-        skills: 'React, HTML, CSS',
-        education: 'BS Computer Science',
-        experience: '1 year React Dev',
-        resumeName: 'fasil_resume.pdf'
-      });
+      candidateUser = new User({ name: 'Fasil V (Candidate)', email: 'fasil@jobportal.com', password: 'fasil123', role: 'candidate', isSuspended: false, phone: '123-456-7890', location: 'New York', bio: 'Web developer.', skills: 'React, HTML, CSS', education: 'BS Computer Science', experience: '1 year React Dev', resumeName: 'fasil_resume.pdf' });
       await candidateUser.save();
-      console.log('✅ Candidate user seeded.');
     }
-
     let employerUser = await User.findOne({ email: 'employer@jobportal.com' });
     if (!employerUser) {
-      employerUser = new User({
-        name: 'Ajay S (Employer)',
-        email: 'employer@jobportal.com',
-        password: 'employer123',
-        role: 'employer',
-        isSuspended: false,
-        companyName: 'Aura Tech Inc',
-        companyLocation: 'San Francisco',
-        companyDesc: 'Creative software agency.'
-      });
+      employerUser = new User({ name: 'Ajay S (Employer)', email: 'employer@jobportal.com', password: 'employer123', role: 'employer', isSuspended: false, companyName: 'Aura Tech Inc', companyLocation: 'San Francisco', companyDesc: 'Creative software agency.' });
       await employerUser.save();
-      console.log('✅ Employer user seeded.');
     }
 
-    // ==========================================
-    // 2. GENERATE 100 REALISTIC JOBS
-    // ==========================================
-    
-    // Clear out old jobs to avoid duplicates building up on every restart
+    // 2. PRE-DOWNLOAD UNIQUE LOGOS TO MEMORY TO SPEED UP INSERTS
+    console.log('Fetching and encoding company logos directly into server memory...');
+    const logoCache = {};
+    for (const company of companies) {
+      const domain = companyDomains[company];
+      logoCache[company] = await downloadLogoAsBase64(domain, company);
+    }
+    console.log('🎯 All logos converted to database-ready strings.');
+
+    // 3. GENERATE 100 JOBS WITH EMBEDDED LOGOS
     await Job.deleteMany({});
-    console.log('🧹 Cleared old job postings from the database.');
+    console.log('🧹 Cleared old job postings.');
 
     const jobsToInsert = [];
-    
-for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 100; i++) {
       const level = getRandom(levels);
       const roleData = getRandom(jobTitles);
       const company = getRandom(companies);
-      
-      // Get the domain from our dictionary
-      const domain = companyDomains[company];
-      
-      // If we have a domain, use Clearbit's real logo. If not, use the fallback text avatar.
-      const logoUrl = domain 
-        ? `https://logo.clearbit.com/${domain}` 
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(company)}&background=random&color=fff`;
-
-      // Prefix title with level (except for Internships)
-      let finalTitle = `${level} ${roleData.title}`;
       const type = getRandom(types);
-      if (type === 'Internship') finalTitle = `${roleData.title} Intern`;
       
+      let finalTitle = type === 'Internship' ? `${roleData.title} Intern` : `${level} ${roleData.title}`;
 
       jobsToInsert.push({
         employerId: employerUser._id,
         companyName: company,
-        companyLogo: logoUrl, // <--- THIS IS THE UPDATED LINE
+        companyLogo: logoCache[company], // <--- SAVED AS RAW IMAGE DATA IN MONGODB
         title: finalTitle,
         category: roleData.category,
-        description: `<strong>About the Role:</strong><br/>${company} is looking for a talented and passionate ${finalTitle} to join our growing team in India. You will be responsible for developing high-quality solutions, working closely with cross-functional teams, and contributing to the technical vision of our products.<br/><br/><strong>Key Responsibilities:</strong><br/>- Design, develop, and maintain efficient code.<br/>- Collaborate with PMs and designers.<br/>- Participate in code reviews and architecture discussions.`,
-        qualifications: `Bachelor's or Master's degree in Computer Science, IT, or related fields. Proven problem-solving capabilities and strong communication skills.`,
-        salaryRange: type === 'Internship' ? '₹15,000 - ₹30,000 / month' : generateSalary(level),
+        description: `<strong>About the Role:</strong><br/>${company} is looking for a talented ${finalTitle}. You will design, develop, and maintain efficient code while collaborating with global product squads.`,
+        qualifications: `Bachelor's degree in Engineering, Computer Science or equivalent technical field. Strong grasp of programming fundamentals.`,
+        salaryRange: type === 'Internship' ? '₹20,000 - ₹35,000 / month' : generateSalary(level),
         location: getRandom(locations),
         type: type,
         experienceLevel: level,
         skillsRequired: roleData.skills,
         source: 'SkillFetch'
       });
-    } 
+    }
 
-    // Insert all 100 jobs directly into MongoDB
     const insertedJobs = await Job.insertMany(jobsToInsert);
-    console.log(`✅ Successfully seeded ${insertedJobs.length} Indian IT & Tech jobs!`);
+    console.log(`✅ Successfully stored ${insertedJobs.length} jobs with built-in images inside MongoDB!`);
 
-    // ==========================================
-    // 3. SEED CANDIDATE APPLICATION
-    // ==========================================
+    // 4. SEED APPLICATION
     const appCount = await Application.countDocuments();
     if (appCount === 0 && insertedJobs.length > 0 && candidateUser) {
-      const application = new Application({
-        jobId: insertedJobs[0]._id, // Apply to the very first generated job
-        candidateId: candidateUser._id,
-        status: 'Applied',
-        coverLetter: 'I am excited to apply for this job. I have relevant technical experience and am eager to contribute to the team in India.'
-      });
+      const application = new Application({ jobId: insertedJobs[0]._id, candidateId: candidateUser._id, status: 'Applied', coverLetter: 'Applying with database-backed profile data.' });
       await application.save();
-      console.log('✅ Seeded dummy candidate application.');
     }
 
     console.log('🚀 Database seeding completed successfully!');
@@ -215,7 +169,7 @@ for (let i = 0; i < 100; i++) {
   }
 }
 
-module.exports = seedDatabase;
+module.exports = seedDatabase;;
 
 
 
