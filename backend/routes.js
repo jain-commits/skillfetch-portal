@@ -246,6 +246,71 @@ router.get('/jobs', async (req, res) => {
 //   }
 // });
 
+// 1. POST route for jobs
+// 1. POST route for jobs
+router.post('/jobs', async (req, res) => {
+  try {
+    // Extracting all fields from the request body
+    const {
+      employerId,
+      companyName,
+      title,
+      category,
+      type,
+      location,
+      salaryRange,
+      experienceLevel,
+      skillsRequired,
+      description,
+      qualifications
+    } = req.body;
+
+    // Validate that required fields exist
+    if (!employerId || !title || !location) {
+      return res.status(400).json({ message: "Employer ID, Title, and Location are required." });
+    }
+
+    // Creating the new job instance
+    const newJob = new Job({
+      employerId,
+      companyName,
+      title,
+      category,
+      type,
+      location,
+      salaryRange,
+      experienceLevel,
+      skillsRequired,
+      description,
+      qualifications,
+      createdAt: new Date() // Automatically timestamp the creation
+    });
+
+    // Save to MongoDB
+    await newJob.save();
+
+    // Respond with the created job object
+    res.status(201).json(newJob);
+    
+  } catch (error) {
+    console.error('Post job error:', error);
+    res.status(500).json({ message: 'Server error while posting job' });
+  }
+});
+
+// 2. GET route for jobs (the one that syncs)
+router.get('/jobs', async (req, res) => {
+  try {
+    await syncJobsFromAdzuna(); 
+    const allJobs = await Job.find().sort({ createdAt: -1 });
+    res.json(allJobs);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching jobs' });
+  }
+});
+
+
+
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 // routes.js

@@ -35,7 +35,7 @@ const upload = multer({ storage: storage });
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 2. The API endpoint to save the file into MongoDB
-app.post('/api/upload-resume', upload.single('resume'), async (req, res) => {
+app.post('/upload-resume', upload.single('resume'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
