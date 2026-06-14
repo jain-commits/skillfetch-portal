@@ -170,8 +170,8 @@ export default function App() {
         {/* ----------------------- */}
 
         {currentPage === 'login' && (
-          <Login setCurrentUser={setCurrentUser} setCurrentPage={setCurrentPage} />
-        )}
+  <Login setCurrentUser={setCurrentUser} setCurrentPage={setCurrentPage} currentUser={currentUser} />
+)}
 
         {currentPage === 'register' && (
           <Register setCurrentPage={setCurrentPage} />
@@ -533,6 +533,7 @@ function AboutUs({ setCurrentPage }) {
 
 
 // 2. Login Page Component
+
 function Login({ setCurrentUser, setCurrentPage, currentUser }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -604,10 +605,9 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
     }
   };
 
-  // Easy Login Buttons for Presentation
   const handleQuickLogin = (role) => {
     if (role === 'candidate') {
-      setEmail('fasil@jobportal.com'); 
+      setEmail('fasil@jobportal.com');
       setPassword('fasil123');
     } else if (role === 'employer') {
       setEmail('employer@jobportal.com');
@@ -648,7 +648,6 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
     </div>
   );
 }
-
 
 // 3. Register Page Component
 function Register({ setCurrentPage }) {
@@ -842,12 +841,18 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
                 </div>
               </div>
             </div>
-            <button 
-              onClick={() => { setSelectedJobId(job.id); setCurrentPage('job-detail'); }} 
-              className="btn"
-            >
-              Apply / Details
-            </button>
+            
+
+<button 
+  onClick={() => { 
+    setSelectedJobId(job._id || job.id); 
+    setCurrentPage('job-detail'); 
+  }} 
+  className="btn"
+>
+  Apply / Details
+</button>
+
           </div>
         ))
       )}
@@ -860,15 +865,16 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
 
 
 // 5. Job Detail & Apply Page Component
+// 5. Job Detail & Apply Page Component
 function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplications, setCurrentPage }) {
   const [coverLetter, setCoverLetter] = useState('');
   
-  // FIX 1: Check for both MongoDB's _id and standard id
+  // FIX: Check for both MongoDB's _id and standard id
   const job = jobs.find(j => (j._id === selectedJobId || j.id === selectedJobId));
   
   if (!job) return <p>Job not found!</p>;
 
-  // FIX 2: Ensure we match the application to the correct database ID
+  // FIX: Ensure we match the application to the correct database ID
   const currentJobId = job._id || job.id;
   const hasApplied = currentUser && applications.some(app => app.jobId === currentJobId && app.candidateId === currentUser.id);
 
@@ -885,7 +891,7 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          jobId: currentJobId, // FIX 3: Sending the correct DB ID
+          jobId: currentJobId,
           candidateId: currentUser.id,
           coverLetter
         })
@@ -909,7 +915,7 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
       <button onClick={() => setCurrentPage('job-listings')} className="btn btn-secondary" style={{ marginBottom: '15px' }}>Back to Jobs</button>
       
       <div className="card">
-        {/* FIX 4: Added the company logo to the detail view layout */}
+        {/* FIX: Added the company logo to the detail view layout */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
           <img 
             src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`} 
