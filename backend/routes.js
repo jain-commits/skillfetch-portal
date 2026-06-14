@@ -185,66 +185,66 @@ router.get('/jobs', async (req, res) => {
 
 
 // Post a Job
-router.post('/jobs', async (req, res) => {
-  try {
-    const {
-      employerId,
-      companyName,
-      title,
-      category,
-      type,
-      location,
-      salaryRange,
-      experienceLevel,
-      skillsRequired,
-      description,
-      qualifications
-    } = req.body;
+// router.post('/jobs', async (req, res) => {
+//   try {
+//     const {
+//       employerId,
+//       companyName,
+//       title,
+//       category,
+//       type,
+//       location,
+//       salaryRange,
+//       experienceLevel,
+//       skillsRequired,
+//       description,
+//       qualifications
+//     } = req.body;
 
-    const newJob = new Job({
-      employerId,
-      companyName,
-      title,
-      category,
-      type,
-      location,
-      salaryRange,
-      experienceLevel,
-      skillsRequired,
-      description,
-      qualifications
-    });
+//     const newJob = new Job({
+//       employerId,
+//       companyName,
+//       title,
+//       category,
+//       type,
+//       location,
+//       salaryRange,
+//       experienceLevel,
+//       skillsRequired,
+//       description,
+//       qualifications
+//     });
 
-    await newJob.save();
-    res.status(201).json(newJob);
-  } catch (error) {
-    console.error('Post job error:', error);
-    res.status(500).json({ message: 'Server error posting job' });
-  }
-});
+//     await newJob.save();
+//     res.status(201).json(newJob);
+//   } catch (error) {
+//     console.error('Post job error:', error);
+//     res.status(500).json({ message: 'Server error posting job' });
+//   }
+// });
 
 
 
-// Delete a Job (Employer/Admin)
-router.delete('/jobs/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
+// // Delete a Job (Employer/Admin)
+// router.delete('/jobs/:id', async (req, res) => {
+//   try {
+//     const { id } = req.params;
     
-    // Delete job
-    const job = await Job.findByIdAndDelete(id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
+//     // Delete job
+//     const job = await Job.findByIdAndDelete(id);
+//     if (!job) {
+//       return res.status(404).json({ message: 'Job not found' });
+//     }
 
-    // Cascade: delete applications for this job
-    await Application.deleteMany({ jobId: id });
+//     // Cascade: delete applications for this job
+//     await Application.deleteMany({ jobId: id });
 
-    res.json({ message: 'Job posting deleted and cascaded applications.' });
-  } catch (error) {
-    console.error('Delete job error:', error);
-    res.status(500).json({ message: 'Server error deleting job' });
-  }
-});
+//     res.json({ message: 'Job posting deleted and cascaded applications.' });
+//   } catch (error) {
+//     console.error('Delete job error:', error);
+//     res.status(500).json({ message: 'Server error deleting job' });
+//   }
+// });
 
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
