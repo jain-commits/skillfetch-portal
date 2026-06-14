@@ -93,6 +93,81 @@ async function downloadLogoAsBase64(domain, companyName) {
   }
 }
 
+// ==========================================
+// NEW HAND-CRAFTED IT/SOFTWARE JOBS
+// ==========================================
+const additionalJobsToSeed = [
+  // --- WEB DESIGN & UI/UX ---
+  { title: "Senior Web Designer", companyName: "CreativePulse Agency", category: "Design & Creative", type: "Full-time", location: "New York, NY", salaryRange: "$80,000 - $110,000", experienceLevel: "Senior", skillsRequired: "Figma, Adobe XD, HTML, CSS", description: "<p>We are seeking a visionary Web Designer to craft stunning, user-centric interfaces for our global clients.</p><ul><li>Design responsive web layouts</li><li>Collaborate with frontend teams</li><li>Conduct UX research</li></ul>", qualifications: "BFA in Design or equivalent, 5+ years of agency experience." },
+  { title: "UI/UX Product Designer", companyName: "FinTech Innovators", category: "Design & Creative", type: "Remote", location: "Remote", salaryRange: "$90,000 - $125,000", experienceLevel: "Mid-Level", skillsRequired: "Sketch, InVision, Wireframing, Prototyping", description: "<p>Join our core product team to improve the usability and aesthetic of our financial dashboard.</p>", qualifications: "3+ years designing complex SaaS products. Strong portfolio required." },
+  { title: "Junior Web/Graphic Designer", companyName: "LocalEats App", category: "Design & Creative", type: "Part-time", location: "Austin, TX", salaryRange: "$40,000 - $55,000", experienceLevel: "Junior", skillsRequired: "Photoshop, Illustrator, Webflow", description: "<p>Help us create engaging marketing websites and app assets for local restaurants.</p>", qualifications: "Degree in Graphic Design, strong understanding of typography and color theory." },
+  { title: "Interaction Designer", companyName: "NextGen Gaming", category: "Design & Creative", type: "Full-time", location: "Seattle, WA", salaryRange: "$100,000 - $140,000", experienceLevel: "Mid-Level", skillsRequired: "Figma, Principle, After Effects", description: "<p>Create fluid micro-interactions and animations for our gaming community web portal.</p>", qualifications: "Experience with motion design and interactive web elements." },
+  { title: "Accessibility Specialist (UX)", companyName: "GovTech Solutions", category: "Design & Creative", type: "Contract", location: "Washington, D.C.", salaryRange: "$70,000 - $90,000", experienceLevel: "Mid-Level", skillsRequired: "WCAG 2.1, ARIA, Screen Readers, HTML", description: "<p>Audit and redesign public-facing websites to ensure 100% ADA compliance and usability for all.</p>", qualifications: "Deep knowledge of web accessibility standards." },
+
+  // --- ANDROID DEVELOPMENT ---
+  { title: "Android Mobile Engineer", companyName: "HealthTrack", category: "Mobile Development", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $140,000", experienceLevel: "Mid-Level", skillsRequired: "Kotlin, Android SDK, MVVM, Coroutines", description: "<p>Build life-saving features for our health tracking Android application used by millions.</p>", qualifications: "3+ years in native Android development. Published apps in the Play Store." },
+  { title: "Senior Android Developer", companyName: "RideShare Co.", category: "Mobile Development", type: "Full-time", location: "San Francisco, CA", salaryRange: "$150,000 - $190,000", experienceLevel: "Senior", skillsRequired: "Kotlin, Java, Jetpack Compose, Dagger/Hilt", description: "<p>Lead a squad of mobile engineers optimizing our driver-facing Android app for real-time geolocation.</p>", qualifications: "6+ years Android experience, strong background in app architecture." },
+  { title: "Android Developer Intern", companyName: "EdTech World", category: "Mobile Development", type: "Internship", location: "Boston, MA", salaryRange: "$20/hr", experienceLevel: "Junior", skillsRequired: "Java, Kotlin basics, Android Studio", description: "<p>Learn and contribute to our language-learning app alongside senior mobile engineers.</p>", qualifications: "Currently pursuing a BS in Computer Science." },
+  { title: "Android UI/App Developer", companyName: "StreamFlix", category: "Mobile Development", type: "Full-time", location: "Los Angeles, CA", salaryRange: "$120,000 - $150,000", experienceLevel: "Mid-Level", skillsRequired: "Kotlin, ExoPlayer, Android TV", description: "<p>Focus on delivering a seamless, high-performance video streaming experience on Android mobile and TV.</p>", qualifications: "Experience with media playback and complex UI on Android." },
+  { title: "React Native Developer (Android Focus)", companyName: "E-Shop Global", category: "Mobile Development", type: "Contract", location: "Remote", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "React Native, Redux, Android Native Modules", description: "<p>Bridge the gap between our React Native codebase and native Android OS features.</p>", qualifications: "Strong JavaScript skills and experience linking native Android libraries." },
+
+  // --- iOS DEVELOPMENT ---
+  { title: "iOS App Developer", companyName: "FitLife Apps", category: "Mobile Development", type: "Full-time", location: "Denver, CO", salaryRange: "$105,000 - $135,000", experienceLevel: "Mid-Level", skillsRequired: "Swift, UIKit, CoreBluetooth", description: "<p>Develop features to sync our iOS app with external Bluetooth fitness hardware.</p>", qualifications: "3+ years of iOS development. Experience with hardware integration is a plus." },
+  { title: "Lead iOS Engineer", companyName: "SecureBank", category: "Mobile Development", type: "Full-time", location: "New York, NY", salaryRange: "$160,000 - $200,000", experienceLevel: "Senior", skillsRequired: "Swift, SwiftUI, Combine, Security", description: "<p>Architect the next generation of our mobile banking app using SwiftUI and Combine.</p>", qualifications: "7+ years in iOS. Deep understanding of mobile security protocols." },
+  { title: "Junior iOS Developer", companyName: "TravelBuddy", category: "Mobile Development", type: "Full-time", location: "Miami, FL", salaryRange: "$70,000 - $90,000", experienceLevel: "Junior", skillsRequired: "Swift, MapKit, CoreLocation", description: "<p>Help build interactive maps and routing features for our travel companion application.</p>", qualifications: "Bootcamp graduate or BS in CS. 1 published iOS app (can be a personal project)." },
+  { title: "iOS UI Engineer", companyName: "PhotoMagic App", category: "Mobile Development", type: "Contract", location: "Remote", salaryRange: "$60 - $80/hr", experienceLevel: "Mid-Level", skillsRequired: "SwiftUI, CoreGraphics, CoreImage", description: "<p>Create highly custom, buttery-smooth photo editing interfaces using SwiftUI.</p>", qualifications: "Strong eye for design and deep knowledge of Apple's rendering frameworks." },
+  { title: "Flutter Developer (iOS/Android)", companyName: "Startup Launchpad", category: "Mobile Development", type: "Full-time", location: "Chicago, IL", salaryRange: "$95,000 - $125,000", experienceLevel: "Mid-Level", skillsRequired: "Dart, Flutter, iOS Deployment", description: "<p>Build cross-platform MVPs for early-stage startups with a focus on native-like iOS performance.</p>", qualifications: "2+ years of Flutter experience and knowledge of App Store Connect." },
+
+  // --- FRONTEND DEVELOPMENT ---
+  { title: "Frontend React Developer", companyName: "CloudCRM", category: "Frontend Development", type: "Full-time", location: "Remote", salaryRange: "$100,000 - $130,000", experienceLevel: "Mid-Level", skillsRequired: "React, Redux Toolkit, Tailwind CSS, TypeScript", description: "<p>Develop complex single-page applications for our flagship CRM software.</p>", qualifications: "3+ years working with React and modern frontend build tools." },
+  { title: "Senior Vue.js Engineer", companyName: "DataDash", category: "Frontend Development", type: "Full-time", location: "Toronto, ON", salaryRange: "$120,000 - $150,000", experienceLevel: "Senior", skillsRequired: "Vue 3, Pinia, Vite, Chart.js", description: "<p>Architect our high-performance data visualization dashboards using Vue 3 and Composition API.</p>", qualifications: "5+ years frontend experience, mastery of Vue ecosystem." },
+  { title: "Web Accessibility Engineer", companyName: "Inclusive Web", category: "Frontend Development", type: "Contract", location: "Remote", salaryRange: "$80,000 - $110,000", experienceLevel: "Mid-Level", skillsRequired: "HTML5, ARIA, JavaScript, Jest", description: "<p>Refactor existing React components to meet strict WCAG 2.1 AA compliance.</p>", qualifications: "Experience with screen readers and keyboard navigation testing." },
+  { title: "Angular Developer", companyName: "Enterprise Solutions Tech", category: "Frontend Development", type: "Full-time", location: "Dallas, TX", salaryRange: "$105,000 - $135,000", experienceLevel: "Mid-Level", skillsRequired: "Angular 14+, RxJS, TypeScript, SCSS", description: "<p>Maintain and expand our large-scale internal ERP systems using modern Angular practices.</p>", qualifications: "Strong OOP concepts and extensive experience with RxJS streams." },
+  { title: "Junior Frontend Developer", companyName: "Digital Marketing Pro", category: "Frontend Development", type: "Part-time", location: "Remote", salaryRange: "$45,000 - $60,000", experienceLevel: "Junior", skillsRequired: "HTML, CSS, JavaScript, WordPress", description: "<p>Build pixel-perfect landing pages and email templates for our marketing campaigns.</p>", qualifications: "Basic understanding of DOM manipulation and CSS Flexbox/Grid." },
+
+  // --- BACKEND DEVELOPMENT ---
+  { title: "Node.js Backend Engineer", companyName: "API Forge", category: "Backend Development", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $145,000", experienceLevel: "Mid-Level", skillsRequired: "Node.js, Express, MongoDB, Redis", description: "<p>Design and build scalable RESTful APIs handling millions of requests per day.</p>", qualifications: "3+ years of backend Node.js experience. Knowledge of caching strategies." },
+  { title: "Senior Python/Django Developer", companyName: "NewsCorp Digital", category: "Backend Development", type: "Full-time", location: "New York, NY", salaryRange: "$140,000 - $180,000", experienceLevel: "Senior", skillsRequired: "Python, Django, PostgreSQL, Celery", description: "<p>Lead the backend infrastructure for our high-traffic content delivery and syndication platform.</p>", qualifications: "6+ years Python experience. Expertise in database query optimization." },
+  { title: "Java Spring Boot Engineer", companyName: "Global Logistics", category: "Backend Development", type: "Full-time", location: "Atlanta, GA", salaryRange: "$115,000 - $150,000", experienceLevel: "Mid-Level", skillsRequired: "Java, Spring Boot, Microservices, Kafka", description: "<p>Develop microservices for our real-time supply chain tracking system.</p>", qualifications: "Solid understanding of Java 11+, Spring framework, and event-driven architecture." },
+  { title: "Go (Golang) Developer", companyName: "CloudScale Systems", category: "Backend Development", type: "Remote", location: "Remote", salaryRange: "$130,000 - $165,000", experienceLevel: "Senior", skillsRequired: "Golang, gRPC, Docker, Kubernetes", description: "<p>Rewrite legacy Ruby services into highly concurrent and efficient Go microservices.</p>", qualifications: "Experience in building distributed systems using Go." },
+  { title: "Junior PHP/Laravel Developer", companyName: "WebShop Creatives", category: "Backend Development", type: "Full-time", location: "Orlando, FL", salaryRange: "$60,000 - $80,000", experienceLevel: "Junior", skillsRequired: "PHP, Laravel, MySQL, Git", description: "<p>Assist in building custom e-commerce backend plugins and integrating third-party payment gateways.</p>", qualifications: "Understanding of MVC architecture and basic relational databases." },
+
+  // --- FULL STACK DEVELOPMENT ---
+  { title: "Full Stack Developer (MERN)", companyName: "Startup Hub", category: "Full Stack Development", type: "Full-time", location: "Austin, TX", salaryRange: "$100,000 - $130,000", experienceLevel: "Mid-Level", skillsRequired: "MongoDB, Express, React, Node.js", description: "<p>Own features end-to-end, from crafting the React UI to defining the MongoDB schemas.</p>", qualifications: "Proven experience building full-stack applications with the MERN stack." },
+  { title: "Senior Full Stack Engineer (Next.js)", companyName: "E-Commerce Plus", category: "Full Stack Development", type: "Remote", location: "Remote", salaryRange: "$130,000 - $160,000", experienceLevel: "Senior", skillsRequired: "Next.js, TypeScript, Prisma, PostgreSQL", description: "<p>Lead the transition of our storefront to a headless Next.js architecture with SSR/SSG.</p>", qualifications: "5+ years experience. Strong understanding of server-side rendering and API routes." },
+  { title: "Full Stack Python Developer", companyName: "HealthAI", category: "Full Stack Development", type: "Full-time", location: "Boston, MA", salaryRange: "$110,000 - $140,000", experienceLevel: "Mid-Level", skillsRequired: "Python, FastAPI, React, Docker", description: "<p>Build internal tools and dashboards that interface directly with our machine learning models.</p>", qualifications: "Experience connecting React frontends to Python/FastAPI backends." },
+  { title: "C# / .NET Full Stack Developer", companyName: "Enterprise Finance Hub", category: "Full Stack Development", type: "Full-time", location: "Charlotte, NC", salaryRange: "$115,000 - $145,000", experienceLevel: "Mid-Level", skillsRequired: "C#, .NET Core, Angular, SQL Server", description: "<p>Develop secure, robust internal banking applications using the Microsoft technology stack.</p>", qualifications: "4+ years working in corporate environments with .NET and Angular." },
+  { title: "Junior Full Stack Dev", companyName: "TechForGood Non-Profit", category: "Full Stack Development", type: "Contract", location: "Remote", salaryRange: "$55,000 - $75,000", experienceLevel: "Junior", skillsRequired: "JavaScript, React, Firebase", description: "<p>Help build scalable web platforms to coordinate volunteer efforts globally using Firebase.</p>", qualifications: "Personal projects demonstrating full-stack capability using serverless/BaaS." },
+
+  // --- CLOUD / DEVOPS ---
+  { title: "Cloud Infrastructure Engineer", companyName: "NetOps Global", category: "Cloud & DevOps", type: "Full-time", location: "Remote", salaryRange: "$130,000 - $170,000", experienceLevel: "Senior", skillsRequired: "AWS, Terraform, CI/CD, Linux", description: "<p>Design and deploy infrastructure as code (IaC) to support highly available microservices.</p>", qualifications: "AWS Certified Solutions Architect. 4+ years of DevOps experience." },
+  { title: "DevOps Engineer", companyName: "SaaS Builders", category: "Cloud & DevOps", type: "Full-time", location: "Seattle, WA", salaryRange: "$120,000 - $150,000", experienceLevel: "Mid-Level", skillsRequired: "Docker, Kubernetes, GitHub Actions, Python", description: "<p>Streamline our developer experience by optimizing deployment pipelines and container orchestration.</p>", qualifications: "Hands-on experience managing Kubernetes clusters in production." },
+  { title: "Site Reliability Engineer (SRE)", companyName: "FinTech Innovators", category: "Cloud & DevOps", type: "Full-time", location: "New York, NY", salaryRange: "$140,000 - $180,000", experienceLevel: "Senior", skillsRequired: "Prometheus, Grafana, AWS, Go/Python", description: "<p>Ensure 99.99% uptime for our core transaction systems. Lead incident response and post-mortems.</p>", qualifications: "Deep understanding of observability, networking, and system performance tuning." },
+  { title: "Azure Cloud Architect", companyName: "CorpSolutions", category: "Cloud & DevOps", type: "Contract", location: "Dallas, TX", salaryRange: "$80 - $110/hr", experienceLevel: "Senior", skillsRequired: "Azure, ARM Templates, Azure DevOps", description: "<p>Migrate legacy on-premise Windows applications into a modern Azure cloud environment.</p>", qualifications: "10+ years IT experience, recent focus on Microsoft Azure migrations." },
+  { title: "Junior Cloud Administrator", companyName: "HostWeb Inc", category: "Cloud & DevOps", type: "Full-time", location: "Remote", salaryRange: "$65,000 - $85,000", experienceLevel: "Junior", skillsRequired: "Linux Admin, Bash scripting, AWS EC2", description: "<p>Monitor server health, manage backups, and handle level 2 support escalations for cloud servers.</p>", qualifications: "CompTIA Linux+ or AWS Cloud Practitioner certification." },
+
+  // --- DATA / AI / ML ---
+  { title: "Data Scientist", companyName: "Retail Analytics", category: "Data Science & AI", type: "Full-time", location: "Chicago, IL", salaryRange: "$110,000 - $145,000", experienceLevel: "Mid-Level", skillsRequired: "Python, Pandas, Scikit-Learn, SQL", description: "<p>Analyze consumer purchasing behavior to build predictive models for inventory management.</p>", qualifications: "MS in Statistics, Computer Science, or Data Science." },
+  { title: "Machine Learning Engineer", companyName: "Visionary AI", category: "Data Science & AI", type: "Full-time", location: "San Jose, CA", salaryRange: "$150,000 - $190,000", experienceLevel: "Senior", skillsRequired: "PyTorch, TensorFlow, Computer Vision", description: "<p>Develop and deploy state-of-the-art computer vision models for autonomous drone navigation.</p>", qualifications: "Ph.D. or MS with 4+ years industry experience in Deep Learning." },
+  { title: "Data Analyst", companyName: "Media Streamers", category: "Data Science & AI", type: "Full-time", location: "Remote", salaryRange: "$75,000 - $95,000", experienceLevel: "Junior", skillsRequired: "SQL, Tableau, Excel, Basic Python", description: "<p>Create visual dashboards and daily reports tracking user engagement and retention metrics.</p>", qualifications: "Strong analytical skills and proficiency in data visualization tools." },
+  { title: "Data Engineer", companyName: "BigData Corp", category: "Data Science & AI", type: "Full-time", location: "Austin, TX", salaryRange: "$125,000 - $160,000", experienceLevel: "Mid-Level", skillsRequired: "Apache Spark, Airflow, Snowflake, Python", description: "<p>Build scalable ETL pipelines to ingest terabytes of raw data into our Snowflake data warehouse.</p>", qualifications: "Experience with distributed data processing and cloud data warehouses." },
+  { title: "AI Prompt Engineer / NLP Specialist", companyName: "ChatBot Solutions", category: "Data Science & AI", type: "Contract", location: "Remote", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "OpenAI API, Prompting, Python, LangChain", description: "<p>Optimize LLM prompts and integrate LangChain to build intelligent customer support agents.</p>", qualifications: "Experience working with GPT-based models and natural language processing." },
+
+  // --- QA / TESTING ---
+  { title: "QA Automation Engineer", companyName: "QualityFirst Soft", category: "QA & Testing", type: "Full-time", location: "Remote", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "Selenium, Cypress, JavaScript, CI/CD", description: "<p>Build end-to-end automated testing suites for our primary web application using Cypress.</p>", qualifications: "3+ years writing automated test scripts in JavaScript/TypeScript." },
+  { title: "Software Test Engineer (Manual)", companyName: "GameStudios", category: "QA & Testing", type: "Contract", location: "Los Angeles, CA", salaryRange: "$50,000 - $70,000", experienceLevel: "Junior", skillsRequired: "Jira, Bug Tracking, Test Cases", description: "<p>Playtest unreleased game builds, identify bugs, and write detailed reproduction steps in Jira.</p>", qualifications: "High attention to detail and passion for gaming software." },
+  { title: "SDET (Software Dev Engineer in Test)", companyName: "SecureBank", category: "QA & Testing", type: "Full-time", location: "New York, NY", salaryRange: "$130,000 - $160,000", experienceLevel: "Senior", skillsRequired: "Java, Appium, Selenium, RestAssured", description: "<p>Architect the testing framework for both our mobile and backend API banking services.</p>", qualifications: "Ability to write production-level code to test production code." },
+  { title: "Performance / Load Tester", companyName: "EventTix", category: "QA & Testing", type: "Full-time", location: "Remote", salaryRange: "$100,000 - $130,000", experienceLevel: "Mid-Level", skillsRequired: "JMeter, Gatling, AWS, Datadog", description: "<p>Simulate high-traffic events to ensure our ticketing system can handle massive traffic spikes.</p>", qualifications: "Experience designing load/stress tests and analyzing server bottlenecks." },
+  { title: "Mobile QA Tester", companyName: "AppMakers", category: "QA & Testing", type: "Part-time", location: "Denver, CO", salaryRange: "$30/hr", experienceLevel: "Junior", skillsRequired: "iOS/Android testing, TestFlight, ADB", description: "<p>Test daily beta builds of native apps on physical iOS and Android devices.</p>", qualifications: "Familiarity with mobile operating systems and mobile debugging tools." },
+
+  // --- CYBERSECURITY / IT SUPPORT ---
+  { title: "Cybersecurity Analyst", companyName: "DefendTech", category: "IT & Security", type: "Full-time", location: "Washington, D.C.", salaryRange: "$95,000 - $125,000", experienceLevel: "Mid-Level", skillsRequired: "SIEM, Network Security, Incident Response", description: "<p>Monitor network traffic for anomalies, investigate security breaches, and fortify defenses.</p>", qualifications: "Security+, CEH, or CISSP certification preferred." },
+  { title: "Penetration Tester (Ethical Hacker)", companyName: "RedTeam Consulting", category: "IT & Security", type: "Contract", location: "Remote", salaryRange: "$120,000 - $160,000", experienceLevel: "Senior", skillsRequired: "Kali Linux, Metasploit, Burp Suite, WebSec", description: "<p>Conduct authorized simulated cyberattacks on client infrastructure to identify vulnerabilities.</p>", qualifications: "OSCP certification and 5+ years of proven pentesting experience." },
+  { title: "IT Support Specialist", companyName: "Corporate Office Co.", category: "IT & Security", type: "Full-time", location: "Chicago, IL", salaryRange: "$55,000 - $75,000", experienceLevel: "Junior", skillsRequired: "Windows OS, Active Directory, Office 365, Troubleshooting", description: "<p>Provide tier 1 and 2 helpdesk support to internal employees for hardware and software issues.</p>", qualifications: "Excellent communication skills and A+ certification." },
+  { title: "Network Engineer", companyName: "Telecom Next", category: "IT & Security", type: "Full-time", location: "Atlanta, GA", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "Cisco, Routing, Switching, Firewalls", description: "<p>Design, implement, and maintain enterprise local and wide area networks.</p>", qualifications: "CCNA or CCNP certification required. Experience with enterprise routers/switches." },
+  { title: "Identity & Access Management (IAM) Engineer", companyName: "Global FinServ", category: "IT & Security", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $140,000", experienceLevel: "Senior", skillsRequired: "Okta, Active Directory, SAML, OAuth", description: "<p>Manage SSO and RBAC solutions to ensure secure access to enterprise applications.</p>", qualifications: "Experience deploying and managing enterprise IAM solutions like Okta or Ping." }
+];
+
 async function seedDatabase() {
   try {
     console.log('Starting Database Seed Process...');
@@ -139,7 +214,7 @@ async function seedDatabase() {
       jobsToInsert.push({
         employerId: employerUser._id,
         companyName: company,
-        companyLogo: logoCache[company], // <--- SAVED AS RAW IMAGE DATA IN MONGODB
+        companyLogo: logoCache[company], 
         title: finalTitle,
         category: roleData.category,
         description: `<strong>About the Role:</strong><br/>${company} is looking for a talented ${finalTitle}. You will design, develop, and maintain efficient code while collaborating with global product squads.`,
@@ -153,10 +228,21 @@ async function seedDatabase() {
       });
     }
 
+    // 4. APPEND THE 50 CUSTOM IT JOBS
+    for (const customJob of additionalJobsToSeed) {
+      jobsToInsert.push({
+        ...customJob,
+        employerId: employerUser._id,
+        source: 'SkillFetch',
+        // Fallback UI Avatar for custom companies
+        companyLogo: `https://ui-avatars.com/api/?name=${encodeURIComponent(customJob.companyName)}&background=0056b3&color=fff&size=128`
+      });
+    }
+
     const insertedJobs = await Job.insertMany(jobsToInsert);
     console.log(`✅ Successfully stored ${insertedJobs.length} jobs with built-in images inside MongoDB!`);
 
-    // 4. SEED APPLICATION
+    // 5. SEED APPLICATION
     const appCount = await Application.countDocuments();
     if (appCount === 0 && insertedJobs.length > 0 && candidateUser) {
       const application = new Application({ jobId: insertedJobs[0]._id, candidateId: candidateUser._id, status: 'Applied', coverLetter: 'Applying with database-backed profile data.' });
@@ -169,248 +255,4 @@ async function seedDatabase() {
   }
 }
 
-module.exports = seedDatabase;;
-
-
-
-
-
-
-
-
-
-// OLD SEEDING LOGIC (RETAINED FOR REFERENCE, NOT USED IN CURRENT VERSION)
-// const https = require('https');
-// const { User, Job, Application } = require('./models');
-
-// // Helper to fetch JSON using Node's native HTTPS module (compatible with all Node.js versions)
-// function fetchJson(url) {
-//   return new Promise((resolve, reject) => {
-//     https.get(url, { headers: { 'User-Agent': 'NodeJS/Skillfetch' } }, (res) => {
-//       if (res.statusCode !== 200) {
-//         reject(new Error(`Failed to fetch: Status Code ${res.statusCode}`));
-//         return;
-//       }
-//       let data = '';
-//       res.on('data', (chunk) => { data += chunk; });
-//       res.on('end', () => {
-//         try {
-//           resolve(JSON.parse(data));
-//         } catch (e) {
-//           reject(e);
-//         }
-//       });
-//     }).on('error', (err) => {
-//       reject(err);
-//     });
-//   });
-// }
-
-
-
-// // Normalize job type to match enum: ['Full-time', 'Part-time', 'Contract', 'Internship']
-// function normalizeJobType(jobType) {
-//   if (!jobType) return 'Full-time';
-//   let typeStr = '';
-//   if (Array.isArray(jobType)) {
-//     typeStr = jobType.join(' ');
-//   } else if (typeof jobType === 'string') {
-//     typeStr = jobType;
-//   } else {
-//     typeStr = String(jobType);
-//   }
-//   const lt = typeStr.toLowerCase();
-//   if (lt.includes('full')) return 'Full-time';
-//   if (lt.includes('part')) return 'Part-time';
-//   if (lt.includes('contract')) return 'Contract';
-//   if (lt.includes('intern')) return 'Internship';
-//   return 'Full-time';
-// }
-
-// // Parse experience level from title: ['Junior', 'Mid-Level', 'Senior']
-// function parseExperienceLevel(title) {
-//   if (!title) return 'Mid-Level';
-//   const lt = title.toLowerCase();
-//   if (lt.includes('senior') || lt.includes('lead') || lt.includes('sr') || lt.includes('principal') || lt.includes('architect')) {
-//     return 'Senior';
-//   }
-//   if (lt.includes('junior') || lt.includes('jr') || lt.includes('intern') || lt.includes('entry') || lt.includes('associate')) {
-//     return 'Junior';
-//   }
-//   return 'Mid-Level';
-// }
-
-// async function seedDatabase() {
-//   try {
-//     console.log('Seeding database users check...');
-
-
-    
-//     // 1. Seed/Ensure Users Exist
-//     let adminUser = await User.findOne({ email: 'admin@jobportal.com' });
-//     if (!adminUser) {
-//       adminUser = new User({
-//         name: 'System Admin',
-//         email: 'admin@jobportal.com',
-//         password: 'admin123',
-//         role: 'admin',
-//         isSuspended: false
-//       });
-//       await adminUser.save();
-//       console.log('Admin user seeded.');
-//     }
-
-//     let candidateUser = await User.findOne({ email: 'fasil@jobportal.com' });
-//     if (!candidateUser) {
-//       candidateUser = new User({
-//         name: 'Fasil V (Candidate)',
-//         email: 'fasil@jobportal.com',
-//         password: 'fasil123',
-//         role: 'candidate',
-//         isSuspended: false,
-//         phone: '123-456-7890',
-//         location: 'New York',
-//         bio: 'Web developer.',
-//         skills: 'React, HTML, CSS',
-//         education: 'BS Computer Science',
-//         experience: '1 year React Dev',
-//         resumeName: 'fasil_resume.pdf'
-//       });
-//       await candidateUser.save();
-//       console.log('Candidate user seeded.');
-//     }
-
-//     let employerUser = await User.findOne({ email: 'employer@jobportal.com' });
-//     if (!employerUser) {
-//       employerUser = new User({
-//         name: 'Ajay S (Employer)',
-//         email: 'employer@jobportal.com',
-//         password: 'employer123',
-//         role: 'employer',
-//         isSuspended: false,
-//         companyName: 'Aura Tech Inc',
-//         companyLocation: 'San Francisco',
-//         companyDesc: 'Creative software agency.'
-//       });
-//       await employerUser.save();
-//       console.log('Employer user seeded.');
-//     }
-
-//     // 2. Fetch and Seed Jobs
-//     let jobListings = [];
-//     try {
-//       console.log('Fetching live jobs from Jobicy API...');
-//       const response = await fetchJson('https://jobicy.com/api/v2/remote-jobs');
-//       if (response && Array.isArray(response.jobs)) {
-//         jobListings = response.jobs.slice(0, 15); // Sync top 15 real jobs
-//         console.log(`Fetched ${jobListings.length} jobs successfully.`);
-//       } else {
-//         console.warn('Failed to parse jobs array from Jobicy. Using fallback.');
-//       }
-//     } catch (err) {
-//       console.error('Error fetching jobs from API, falling back to static jobs:', err.message);
-//     }
-
-//     let jobIds = [];
-
-//     if (jobListings.length > 0) {
-//       // Upsert real fetched jobs
-//       for (const apiJob of jobListings) {
-//         // Map fields
-//         const title = apiJob.jobTitle || 'Software Engineer';
-//         const companyName = apiJob.companyName || 'Unknown Company';
-        
-//         let existingJob = await Job.findOne({ title, companyName });
-//         if (!existingJob) {
-//           // Parse salary range
-//           let salaryRange = '$80,000 - $110,000';
-//           if (apiJob.annualSalaryMin && apiJob.annualSalaryMax) {
-//             salaryRange = `$${Number(apiJob.annualSalaryMin).toLocaleString()} - $${Number(apiJob.annualSalaryMax).toLocaleString()}`;
-//           } else if (apiJob.annualSalaryMin) {
-//             salaryRange = `$${Number(apiJob.annualSalaryMin).toLocaleString()}+`;
-//           }
-
-//           existingJob = new Job({
-//             employerId: employerUser._id,
-//             companyName: companyName,
-//             companyLogo: apiJob.companyLogo || '',
-//             title: title,
-//             category: apiJob.jobCategory || 'Software Development',
-//             description: apiJob.jobDescription || 'Detailed job description is not provided.',
-//             qualifications: 'Relevant technical experience and skills as specified in the description.',
-//             salaryRange: salaryRange,
-//             location: apiJob.jobGeo || 'Remote',
-//             type: normalizeJobType(apiJob.jobType),
-//             experienceLevel: parseExperienceLevel(title),
-//             skillsRequired: apiJob.jobCategory || 'Software'
-//           });
-//           await existingJob.save();
-//           console.log(`Synced job: ${title} @ ${companyName}`);
-//         }
-//         jobIds.push(existingJob._id);
-//       }
-//     } else {
-
-//       // Offline fallback: static jobs
-//       const fallbackJobs = [
-//         {
-//           employerId: employerUser._id,
-//           companyName: 'Aura Tech Inc',
-//           companyLogo: 'https://images.unsplash.com/photo-1549923746-c502d488b3ea?auto=format&fit=crop&w=100&h=100&q=80',
-//           title: 'React Frontend Developer',
-//           category: 'Frontend Development',
-//           description: 'Build simple and clean user interfaces. Focus on HTML, CSS and React state management.',
-//           qualifications: 'Basic React knowledge.',
-//           salaryRange: '$80,000 - $90,000',
-//           location: 'San Francisco (Hybrid)',
-//           type: 'Full-time',
-//           experienceLevel: 'Junior',
-//           skillsRequired: 'React, HTML, CSS'
-//         },
-//         {
-//           employerId: employerUser._id,
-//           companyName: 'Aura Tech Inc',
-//           companyLogo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=100&h=100&q=80',
-//           title: 'Web Designer',
-//           category: 'Design & Creative',
-//           description: 'Create simple page layouts in Figma and convert them to basic HTML templates.',
-//           qualifications: 'Good design eye.',
-//           salaryRange: '$60,000 - $70,000',
-//           location: 'Remote',
-//           type: 'Full-time',
-//           experienceLevel: 'Junior',
-//           skillsRequired: 'Figma, HTML, CSS'
-//         }
-//       ];
-
-//       for (const fallback of fallbackJobs) {
-//         let existingJob = await Job.findOne({ title: fallback.title, companyName: fallback.companyName });
-//         if (!existingJob) {
-//           existingJob = new Job(fallback);
-//           await existingJob.save();
-//           console.log(`Seeded fallback job: ${fallback.title}`);
-//         }
-//         jobIds.push(existingJob._id);
-//       }
-//     }
-
-//     // 3. Seed application if none exists
-//     const appCount = await Application.countDocuments();
-//     if (appCount === 0 && jobIds.length > 0 && candidateUser) {
-//       const application = new Application({
-//         jobId: jobIds[0],
-//         candidateId: candidateUser._id,
-//         status: 'Applied',
-//         coverLetter: 'I am excited to apply for this job. I have 1 year of basic React experience.'
-//       });
-//       await application.save();
-//       console.log('Seeded candidate application.');
-//     }
-
-//     console.log('Seeding/Sync check completed successfully.');
-//   } catch (error) {
-//     console.error('Error during database seeding:', error);
-//   }
-// }
-
-// module.exports = seedDatabase;
+module.exports = seedDatabase;
