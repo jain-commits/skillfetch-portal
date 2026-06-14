@@ -1,7 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FaSearch, FaMapMarkerAlt, FaRegBookmark } from 'react-icons/fa';
+import { toast } from 'react-hot-toast'; // Added toast for notifications
 
-function JobSearchEngine({ jobs = [], setCurrentPage }) {
+const API_BASE_URL = "https://skillfetch-portal.onrender.com";
+
+// FIX 1: Added currentUser, applications, and setApplications to props
+function JobSearchEngine({ jobs = [], setCurrentPage, currentUser, applications = [], setApplications }) {
   // --- States ---
   const [hasSearched, setHasSearched] = useState(false);
   const [searchTitle, setSearchTitle] = useState('');
@@ -10,6 +14,10 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
   const [selectedJob, setSelectedJob] = useState(null);
   const [activeFilter, setActiveFilter] = useState('');
   
+  // Application specific states
+  const [showApplyForm, setShowApplyForm] = useState(false);
+  const [coverLetter, setCoverLetter] = useState('');
+
   // Dropdown visibility states
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const [showLocSuggestions, setShowLocSuggestions] = useState(false);
@@ -25,6 +33,12 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
   const locSuggestions = searchLocation.trim().length > 0 
     ? uniqueLocations.filter(l => l.toLowerCase().includes(searchLocation.toLowerCase())).slice(0, 5)
     : [];
+
+  // Reset apply form when selecting a new job
+  useEffect(() => {
+    setShowApplyForm(false);
+    setCoverLetter('');
+  }, [selectedJob]);
 
   // --- Handlers ---
   const handleSearch = () => {
@@ -42,7 +56,7 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
     setFilteredJobs(results);
     
     if (results.length > 0) {
-      const isStillInResults = results.find(j => j.id === selectedJob?.id);
+      const isStillInResults = results.find(j => (j._id || j.id) === (selectedJob?._id || selectedJob?.id));
       if (!isStillInResults) setSelectedJob(results[0]);
     } else {
       setSelectedJob(null);
@@ -52,6 +66,33 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
     setShowTitleSuggestions(false);
     setShowLocSuggestions(false);
   };
+
+  // FIX 3: Actual Application Logic
+  const handleApplySubmit = async () => {
+    try {
+      const currentJobId = selectedJob._id || selectedJob.id;
+      const response = await fetch(`${API_BASE_URL}/api/applications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: currentJobId, candidateId: currentUser.id, coverLetter })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.message || 'Application failed!');
+        return;
+      }
+      setApplications([data, ...applications]);
+      toast.success('Applied successfully!');
+      setShowApplyForm(false);
+    } catch (err) {
+      console.error(err);
+      toast.error('Network error during application submission.');
+    }
+  };
+
+  // Check if current user applied to the selected job
+  const currentJobId = selectedJob?._id || selectedJob?.id;
+  const hasApplied = currentUser && applications?.some(app => app.jobId === currentJobId && app.candidateId === (currentUser?._id || currentUser?.id));
 
   // --- Reusable Search Bar UI (Optimized) ---
   const renderSearchBar = () => (
@@ -151,9 +192,21 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           <p style={{ color: '#4b4b4b', margin: '0 0 20px 0', fontSize: '14px' }}>
             Create an account or sign in to see your personalised job recommendations.
           </p>
-          <button className="get-started-btn" onClick={() => setCurrentPage('login')}>
-            Get Started →
-          </button>
+
+          {/* FIX 2: Proper routing for the Get Started button */}
+          <button 
+            className="btn"
+            onClick={() => {
+              if (!currentUser) {
+                setCurrentPage('register');
+              } else {
+                handleSearch(); // If logged in, instantly switch to the split-screen view
+              }
+            }}
+          >
+            {currentUser ? 'Browse Jobs Now' : 'Get Started'}
+          </button>   
+
           <p style={{ marginTop: '50px', fontSize: '14px', color: '#2d2d2d', cursor: 'pointer' }}>
             What's trending on SkillFetch ⌄
           </p>
@@ -201,8 +254,8 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
           ) : (
             filteredJobs.map(job => (
               <div 
-                key={job.id} 
-                className={`indeed-job-card ${selectedJob?.id === job.id ? 'active-card' : ''}`}
+                key={job._id || job.id} 
+                className={`indeed-job-card ${(selectedJob?._id || selectedJob?.id) === (job._id || job.id) ? 'active-card' : ''}`}
                 onClick={() => setSelectedJob(job)}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -243,12 +296,45 @@ function JobSearchEngine({ jobs = [], setCurrentPage }) {
               >
                 Apply on Adzuna ↗
               </a>
+            ) : hasApplied ? (
+              <div style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '12px 16px', borderRadius: '8px', marginBottom: '30px', display: 'inline-block', fontWeight: 'bold' }}>
+                ✓ You applied for this job
+              </div>
+            ) : showApplyForm ? (
+              <div style={{ marginBottom: '30px', backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <h4 style={{ margin: '0 0 10px 0' }}>Submit your application</h4>
+                <textarea 
+                  className="form-control" 
+                  rows={3} 
+                  placeholder="Optional: Write a short pitch or cover letter..."
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
+                  style={{ marginBottom: '10px' }}
+                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={handleApplySubmit} className="btn" style={{ padding: '8px 16px' }}>Confirm Apply</button>
+                  <button onClick={() => setShowApplyForm(false)} className="btn btn-secondary" style={{ padding: '8px 16px' }}>Cancel</button>
+                </div>
+              </div>
             ) : (
               <button 
-                onClick={() => setCurrentPage('login')}
-                style={{ backgroundColor: '#085ff7', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: '700', cursor: 'pointer', width: '200px', marginBottom: '30px' }}
+                className="btn"
+                style={{ padding: '12px 30px', fontSize: '16px', fontWeight: 'bold', marginBottom: '30px' }}
+                onClick={() => {
+                  if (!currentUser) {
+                    toast.error('You must log in to apply for jobs!');
+                    setCurrentPage('login');
+                    return;
+                  }
+                  if (currentUser.role !== 'candidate') {
+                    toast.error('Only candidates can apply for jobs.');
+                    return;
+                  }
+                  // Open the inline apply form
+                  setShowApplyForm(true);
+                }}
               >
-                Apply now
+                Apply Now
               </button>
             )}
 

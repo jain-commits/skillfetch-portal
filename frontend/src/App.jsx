@@ -151,14 +151,16 @@ export default function App() {
           </div>
         )}
 
-        {/* NEW HOME PAGE */}
-        {currentPage === 'home' && (
-          <JobSearchEngine 
-            jobs={jobs} 
-            setCurrentPage={setCurrentPage} 
-          />
-        )}
-
+ {/* NEW HOME PAGE */}
+{currentPage === 'home' && (
+  <JobSearchEngine 
+    jobs={jobs} 
+    setCurrentPage={setCurrentPage} 
+    currentUser={currentUser} 
+    applications={applications}
+    setApplications={setApplications}
+  />
+)}
         {/* --- THE NEW PAGES --- */}
         {currentPage === 'reviews' && (
           <CompanyReviews setCurrentPage={setCurrentPage} />
@@ -192,12 +194,15 @@ export default function App() {
           />
         )}
 
-        {currentPage === 'profile' && (
-          <CandidateProfile currentUser={currentUser} setCurrentUser={setCurrentUser} />
-        )}
+        {/* Replaced  old profile and tracker routes with this single route */}
 
-        {currentPage === 'tracker' && (
-          <ApplicationTracking applications={applications} jobs={jobs} currentUser={currentUser} />
+        {currentPage === 'candidate-dashboard' && (
+          <CandidateDashboard 
+            currentUser={currentUser} 
+            setCurrentUser={setCurrentUser} 
+            applications={applications} 
+            jobs={jobs} 
+          />
         )}
 
         {currentPage === 'employer-dashboard' && (
@@ -532,53 +537,15 @@ function AboutUs({ setCurrentPage }) {
 
 
 
-// 2. Login Page Component
-
-function Login({ setCurrentUser, setCurrentPage, currentUser }) {
+// 2. Login Page Component (UPDATED: Straight to jobs!)
+function Login({ setCurrentUser, setCurrentPage }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // --- NEW: Intercept logged-in users with a Welcome Card ---
-  if (currentUser) {
-    return (
-      <div className="card" style={{ maxWidth: '400px', margin: '40px auto', textAlign: 'center', padding: '40px 20px' }}>
-        <h2 style={{ marginBottom: '5px' }}>Hi, {currentUser.name.split(' ')[0]}! 👋</h2>
-        
-        <p style={{ 
-          fontSize: '11px', 
-          color: '#6b7280', 
-          textTransform: 'uppercase', 
-          letterSpacing: '1px', 
-          margin: '0 0 20px 0',
-          fontWeight: 'bold'
-        }}>
-          Logged in as: <span style={{ color: '#0056b3' }}>{currentUser.role}</span>
-        </p>
-        
-        <p style={{ marginBottom: '25px', color: '#444' }}>
-          You are already securely signed in to your account.
-        </p>
-        
-        <button 
-          type="button"
-          onClick={() => {
-            if (currentUser.role === 'employer') setCurrentPage('employer-dashboard');
-            else if (currentUser.role === 'admin') setCurrentPage('admin-panel');
-            else setCurrentPage('job-listings');
-          }} 
-          className="btn" 
-          style={{ width: '100%' }}
-        >
-          Go to my Dashboard
-        </button>
-      </div>
-    );
-  }
-
-  // --- Handlers ---
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
+      // NOTE: Ensure API_BASE_URL is accessible in this scope
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -592,12 +559,14 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
       setCurrentUser(data);
       localStorage.setItem('currentUser', JSON.stringify(data));
       toast.success("Logged in successfully!");
+      
+      // NEW ROUTING LOGIC: Candidates go straight to the split-screen home!
       if (data.role === 'admin') {
         setCurrentPage('admin-panel');
       } else if (data.role === 'employer') {
         setCurrentPage('employer-dashboard');
       } else {
-        setCurrentPage('job-listings');
+        setCurrentPage('home'); 
       }
     } catch (err) {
       console.error(err);
@@ -618,12 +587,9 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
     }
   };
 
-  // --- Main Return for the actual Login Form ---
   return (
     <div className="card" style={{ maxWidth: '400px', margin: '40px auto' }}>
       <h2>Sign In</h2>
-      
-      {/* Quick prefill helpers */}
       <div style={{ marginBottom: '15px' }}>
         <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Quick Prefill: </span>
         <button type="button" onClick={() => handleQuickLogin('candidate')} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '11px', marginRight: '5px' }}>Candidate</button>
@@ -648,6 +614,328 @@ function Login({ setCurrentUser, setCurrentPage, currentUser }) {
     </div>
   );
 }
+
+// 5. Job Detail Component (UPDATED: No redirect on apply)
+function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplications, setCurrentPage }) {
+  const [coverLetter, setCoverLetter] = useState('');
+  
+  const job = jobs.find(j => (j._id === selectedJobId || j.id === selectedJobId));
+  if (!job) return <p>Job not found!</p>;
+
+  const currentJobId = job._id || job.id;
+  const hasApplied = currentUser && applications.some(app => app.jobId === currentJobId && app.candidateId === currentUser.id);
+
+  const handleApplySubmit = async (e) => {
+    e.preventDefault();
+    if (!currentUser || currentUser.role !== 'candidate') {
+      toast.error('You must log in as a Candidate to apply!');
+      setCurrentPage('login');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/applications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: currentJobId, candidateId: currentUser.id, coverLetter })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.message || 'Application failed!');
+        return;
+      }
+      setApplications([data, ...applications]);
+      toast.success('Applied successfully!');
+      // DELETED: setCurrentPage('tracker') -> This keeps them right on the job page!
+    } catch (err) {
+      console.error(err);
+      toast.error('Network error during application submission.');
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={() => setCurrentPage('job-listings')} className="btn btn-secondary" style={{ marginBottom: '15px' }}>Back to Jobs</button>
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
+          <img 
+            src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`} 
+            alt={`${job.companyName} logo`} 
+            style={{ width: "80px", height: "80px", borderRadius: "12px", objectFit: 'contain', border: '1px solid #eee' }}
+            onError={(e) => {
+              e.target.onerror = null; 
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`;
+            }}
+          />
+          <div>
+            <h2 style={{ margin: '0 0 5px 0' }}>{job.title}</h2>
+            <p style={{ margin: 0, fontSize: '16px', color: '#555' }}><strong>Company:</strong> {job.companyName}</p>
+          </div>
+        </div>
+
+        <p><strong>Location:</strong> {job.location} | <strong>Salary Range:</strong> {job.salaryRange} | <strong>Type:</strong> {job.type}</p>
+        <hr style={{ borderColor: '#eeeeee', margin: '15px 0' }} />
+        <h3>Job Description</h3>
+        <div style={{ lineHeight: '1.6', whiteSpace: 'normal', marginBottom: '20px' }} dangerouslySetInnerHTML={{ __html: job.description }} />
+        <h3>Job Qualifications</h3>
+        <p>{job.qualifications}</p>
+        <h3>Skills Required</h3>
+        <p><code>{job.skillsRequired}</code></p>
+      </div>
+
+      <div className="card">
+        <h3>Application Portal</h3>
+        {!currentUser ? (
+          <p>Please <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('login'); }}>Login as a Candidate</a> to apply for this job posting.</p>
+        ) : currentUser.role !== 'candidate' ? (
+          <p>You are logged in as an <strong>{currentUser.role}</strong>. Only candidates can apply for jobs.</p>
+        ) : hasApplied ? (
+          <p style={{ color: '#166534', fontWeight: 'bold', padding: '10px', backgroundColor: '#dcfce7', borderRadius: '8px' }}>
+            ✓ You have successfully applied for this role. You can track its status in your Dashboard.
+          </p>
+        ) : (
+          <form onSubmit={handleApplySubmit}>
+            <div className="form-group">
+              <label>Cover Letter / Pitch</label>
+              <textarea className="form-control" placeholder="Write a short statement about why you fit this role..." value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} required />
+            </div>
+            <button type="submit" className="btn">Submit Application</button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// 6. NEW: Unified Candidate Dashboard Component
+function CandidateDashboard({ currentUser, setCurrentUser, applications, jobs }) {
+  const [activeTab, setActiveTab] = useState('tracker'); // 'tracker', 'profile', 'resume'
+  
+  // Profile State
+  const [name, setName] = useState(currentUser?.name || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [location, setLocation] = useState(currentUser?.location || '');
+  const [bio, setBio] = useState(currentUser?.bio || '');
+  const [skills, setSkills] = useState(currentUser?.skills || '');
+  const [education, setEducation] = useState(currentUser?.education || '');
+  const [experience, setExperience] = useState(currentUser?.experience || '');
+  
+  // Resume State
+  const [resumeFile, setResumeFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  // Derived Tracker State
+  const myApps = applications.filter(app => app.candidateId === currentUser.id);
+
+  const getJobTitle = (jobId) => {
+    const job = jobs.find(j => (j._id === jobId || j.id === jobId));
+    return job ? `${job.title} (${job.companyName})` : 'Unknown Job';
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/${currentUser.id}/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, location, bio, skills, education, experience })
+      });
+      const data = await response.json();
+      if (!response.ok) return toast.error(data.message || 'Profile update failed!');
+      setCurrentUser(data);
+      localStorage.setItem('currentUser', JSON.stringify(data));
+      toast.success('Profile updated successfully!');
+    } catch (err) {
+      toast.error('Network error during profile update.');
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!resumeFile) return setUploadStatus('⚠️ Please select a file first.');
+    setUploadStatus('⏳ Uploading...');
+    const formData = new FormData();
+    formData.append('resume', resumeFile);
+    formData.append('userId', currentUser.id); 
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/upload-resume`, { method: 'POST', body: formData });
+      if (response.ok) {
+        const data = await response.json();
+        setUploadStatus('✅ Resume uploaded successfully!');
+        const updatedUser = { ...currentUser, resumeName: data.resumeName, resume: { name: data.resumeName } };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        setResumeFile(null); 
+      } else {
+        setUploadStatus('❌ Upload failed.');
+      }
+    } catch (error) {
+      setUploadStatus('❌ Connection error.');
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      
+      {/* Dashboard Header */}
+      <div style={{ marginBottom: '30px', borderBottom: '1px solid #e5e7eb', paddingBottom: '20px' }}>
+        <h1 style={{ fontSize: '28px', color: '#111827', margin: '0 0 10px 0' }}>Candidate Dashboard</h1>
+        <p style={{ color: '#6b7280', margin: 0 }}>Manage your job applications, resume, and profile settings.</p>
+      </div>
+
+      {/* Sleek Tab Navigation */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', overflowX: 'auto', paddingBottom: '5px' }}>
+        <button 
+          onClick={() => setActiveTab('tracker')} 
+          className={`btn ${activeTab === 'tracker' ? '' : 'btn-secondary'}`}
+          style={{ borderRadius: '30px', padding: '8px 20px', border: activeTab === 'tracker' ? 'none' : '1px solid #d1d5db' }}
+        >
+          💼 My Applications
+        </button>
+        <button 
+          onClick={() => setActiveTab('resume')} 
+          className={`btn ${activeTab === 'resume' ? '' : 'btn-secondary'}`}
+          style={{ borderRadius: '30px', padding: '8px 20px', border: activeTab === 'resume' ? 'none' : '1px solid #d1d5db' }}
+        >
+          📄 Manage Resume
+        </button>
+        <button 
+          onClick={() => setActiveTab('profile')} 
+          className={`btn ${activeTab === 'profile' ? '' : 'btn-secondary'}`}
+          style={{ borderRadius: '30px', padding: '8px 20px', border: activeTab === 'profile' ? 'none' : '1px solid #d1d5db' }}
+        >
+          ⚙️ Profile Settings
+        </button>
+      </div>
+
+      {/* Tab Content: Tracker */}
+      {activeTab === 'tracker' && (
+        <div className="card">
+          <h2 style={{ marginBottom: '20px' }}>Application Tracker</h2>
+          {myApps.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+              <p>You haven't applied to any jobs yet.</p>
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #eee' }}>
+                  <th style={{ padding: '12px' }}>Role / Company</th>
+                  <th style={{ padding: '12px' }}>Date Applied</th>
+                  <th style={{ padding: '12px' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myApps.map((app) => (
+                  <tr key={app._id || app.id} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '12px', fontWeight: 'bold', color: '#1f2937' }}>{getJobTitle(app.jobId)}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{(app.appliedAt || app.createdAt) ? (app.appliedAt || app.createdAt).split('T')[0] : 'N/A'}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span className={`badge`} style={{ 
+                        backgroundColor: app.status === 'Hired' ? '#dcfce7' : app.status === 'Rejected' ? '#fee2e2' : app.status === 'Shortlisted' ? '#fef08a' : '#e0e7ff',
+                        color: app.status === 'Hired' ? '#166534' : app.status === 'Rejected' ? '#991b1b' : app.status === 'Shortlisted' ? '#854d0e' : '#3730a3'
+                      }}>
+                        {app.status || 'Applied'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* Tab Content: Resume Management */}
+      {activeTab === 'resume' && (
+        <div className="card" style={{ padding: '30px' }}>
+          <h2 style={{ marginBottom: '10px' }}>Resume & Documents</h2>
+          <p style={{ color: '#666', fontSize: '14px', marginBottom: '25px' }}>
+            Employers will see the resume uploaded here when you apply to jobs. Keep it up to date!
+          </p>
+
+          <div style={{ border: '2px dashed #d1d5db', borderRadius: '8px', padding: '40px 20px', textAlign: 'center', backgroundColor: '#f9fafb', marginBottom: '20px' }}>
+            <input 
+              type="file" 
+              id="resume-upload"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file && file.size <= 5 * 1024 * 1024) {
+                  setResumeFile(file); setUploadStatus('');
+                } else {
+                  setUploadStatus('❌ File too large (Max 5MB) or invalid format.');
+                }
+              }}
+              style={{ display: 'none' }} 
+            />
+            <label htmlFor="resume-upload" className="btn btn-secondary" style={{ cursor: 'pointer', marginBottom: '15px' }}>
+              Choose File
+            </label>
+            <div style={{ fontSize: '14px', color: '#111827', fontWeight: '500' }}>
+              {resumeFile ? `Selected: ${resumeFile.name}` : (currentUser?.resume?.name || currentUser?.resumeName) ? `Current Resume: ${currentUser.resumeName || currentUser.resume.name}` : 'No resume uploaded yet'}
+            </div>
+          </div>
+
+          {uploadStatus && (
+            <div style={{ marginBottom: '20px', padding: '12px', borderRadius: '6px', backgroundColor: uploadStatus.includes('✅') ? '#dcfce7' : '#fee2e2', color: uploadStatus.includes('✅') ? '#166534' : '#991b1b', fontWeight: '500' }}>
+              {uploadStatus}
+            </div>
+          )}
+
+          <button onClick={handleUpload} className="btn" disabled={!resumeFile || uploadStatus.includes('⏳')} style={{ width: '100%', opacity: !resumeFile ? 0.5 : 1 }}>
+            {uploadStatus.includes('⏳') ? 'Uploading...' : 'Save & Upload Resume'}
+          </button>
+        </div>
+      )}
+
+      {/* Tab Content: Profile Settings */}
+      {activeTab === 'profile' && (
+        <div className="card">
+          <h2>Profile Settings</h2>
+          <form onSubmit={handleProfileSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div className="form-group">
+                <label>Full Name</label>
+                <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label>Phone Number</label>
+                <input type="text" className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Location / City</label>
+              <input type="text" className="form-control" value={location} onChange={(e) => setLocation(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label>About Me</label>
+              <textarea className="form-control" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label>Technical Skills</label>
+              <input type="text" className="form-control" placeholder="e.g. HTML, CSS, JavaScript" value={skills} onChange={(e) => setSkills(e.target.value)} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div className="form-group">
+                <label>Highest Education</label>
+                <input type="text" className="form-control" placeholder="e.g. BS Computer Science" value={education} onChange={(e) => setEducation(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label>Work Experience</label>
+                <input type="text" className="form-control" placeholder="e.g. 2 years Frontend Dev" value={experience} onChange={(e) => setExperience(e.target.value)} />
+              </div>
+            </div>
+            <button type="submit" className="btn" style={{ marginTop: '10px' }}>Save Profile Changes</button>
+          </form>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 
 // 3. Register Page Component
 function Register({ setCurrentPage }) {
@@ -861,162 +1149,6 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
 }
 
 
-
-
-
-// 5. Job Detail & Apply Page Component
-// 5. Job Detail & Apply Page Component
-function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplications, setCurrentPage }) {
-  const [coverLetter, setCoverLetter] = useState('');
-  
-  // FIX: Check for both MongoDB's _id and standard id
-  const job = jobs.find(j => (j._id === selectedJobId || j.id === selectedJobId));
-  
-  if (!job) return <p>Job not found!</p>;
-
-  // FIX: Ensure we match the application to the correct database ID
-  const currentJobId = job._id || job.id;
-  const hasApplied = currentUser && applications.some(app => app.jobId === currentJobId && app.candidateId === currentUser.id);
-
-  const handleApplySubmit = async (e) => {
-    e.preventDefault();
-    if (!currentUser || currentUser.role !== 'candidate') {
-      toast.error('You must log in as a Candidate to apply!');
-      setCurrentPage('login');
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/applications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jobId: currentJobId,
-          candidateId: currentUser.id,
-          coverLetter
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        toast.error(data.message || 'Application failed!');
-        return;
-      }
-      setApplications([data, ...applications]);
-      toast.success('Applied successfully!');
-      setCurrentPage('tracker');
-    } catch (err) {
-      console.error(err);
-      toast.error('Network error during application submission.');
-    }
-  };
-
-  return (
-    <div>
-      <button onClick={() => setCurrentPage('job-listings')} className="btn btn-secondary" style={{ marginBottom: '15px' }}>Back to Jobs</button>
-      
-      <div className="card">
-        {/* FIX: Added the company logo to the detail view layout */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
-          <img 
-            src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`} 
-            alt={`${job.companyName} logo`} 
-            style={{ width: "80px", height: "80px", borderRadius: "12px", objectFit: 'contain', border: '1px solid #eee' }}
-            onError={(e) => {
-              e.target.onerror = null; 
-              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`;
-            }}
-          />
-          <div>
-            <h2 style={{ margin: '0 0 5px 0' }}>{job.title}</h2>
-            <p style={{ margin: 0, fontSize: '16px', color: '#555' }}><strong>Company:</strong> {job.companyName}</p>
-          </div>
-        </div>
-
-        <p><strong>Location:</strong> {job.location} | <strong>Salary Range:</strong> {job.salaryRange} | <strong>Type:</strong> {job.type}</p>
-        
-        <hr style={{ borderColor: '#eeeeee', margin: '15px 0' }} />
-        <h3>Job Description</h3>
-        <div style={{ lineHeight: '1.6', whiteSpace: 'normal', marginBottom: '20px' }} dangerouslySetInnerHTML={{ __html: job.description }} />
-        
-        <h3>Job Qualifications</h3>
-        <p>{job.qualifications}</p>
-        
-        <h3>Skills Required</h3>
-        <p><code>{job.skillsRequired}</code></p>
-      </div>
-
-      {/* Simple Apply Box */}
-      <div className="card">
-        <h3>Application Portal</h3>
-        {!currentUser ? (
-          <p>Please <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('login'); }}>Login as a Candidate</a> to apply for this job posting.</p>
-        ) : currentUser.role !== 'candidate' ? (
-          <p>You are logged in as an <strong>{currentUser.role}</strong>. Only candidates can apply for jobs.</p>
-        ) : hasApplied ? (
-          <p style={{ color: 'green', fontWeight: 'bold' }}>You have already applied for this job listing. Check your Tracker tab.</p>
-        ) : (
-          <form onSubmit={handleApplySubmit}>
-            <div className="form-group">
-              <label>Cover Letter / Pitch</label>
-              <textarea 
-                className="form-control" 
-                placeholder="Write a short statement about why you fit this role..." 
-                value={coverLetter} 
-                onChange={(e) => setCoverLetter(e.target.value)} 
-                required 
-              />
-            </div>
-            <button type="submit" className="btn">Submit Application</button>
-          </form>
-        )}
-      </div>
-    </div>
-  );
-}
-
-
-
-
-// 6. Candidate Profile Page Component
-function CandidateProfile({ currentUser, setCurrentUser }) {
-  const [name, setName] = useState(currentUser?.name || '');
-  const [phone, setPhone] = useState(currentUser?.phone || '');
-  const [location, setLocation] = useState(currentUser?.location || '');
-  const [bio, setBio] = useState(currentUser?.bio || '');
-  const [skills, setSkills] = useState(currentUser?.skills || '');
-  const [education, setEducation] = useState(currentUser?.education || '');
-  const [experience, setExperience] = useState(currentUser?.experience || '');
-  const [resumeName, setResumeName] = useState(currentUser?.resumeName || '');
-
-
-// State to hold the actual file and upload status messages
-  const [resumeFile, setResumeFile] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState('');
-
-  const handleProfileSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/users/${currentUser.id}/profile`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name, phone, location, bio, skills, education, experience, resumeName
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        toast.error(data.message || 'Profile update failed!');
-        return;
-      }
-      setCurrentUser(data);
-      localStorage.setItem('currentUser', JSON.stringify(data));
-      toast.success('Profile updated successfully!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Network error during profile update.');
-    }
-  };
-
   // 1. Handle File Selection & Validation
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -1087,8 +1219,7 @@ function CandidateProfile({ currentUser, setCurrentUser }) {
       console.error(error);
       setUploadStatus('❌ An error occurred connecting to the server.');
     }
-  };
-
+  ;
 
 
   return (
@@ -1316,6 +1447,8 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       toast.error('Network error during status update.');
     }
   };
+
+
 
   // FIX: Look up selected app and user with _id
   const selectedApp = applications.find(app => (app._id === activeAppId || app.id === activeAppId));
