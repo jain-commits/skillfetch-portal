@@ -411,6 +411,9 @@ function AboutUs({ setCurrentPage }) {
     </div>
   );
 }
+
+
+
 // 1. Home Page Component
 // function Home({ jobs, setCurrentPage, setSelectedJobId, loadingJobs, jobsError }) {
 //   // Get 3 most recent jobs
@@ -762,16 +765,51 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               {/* Logo display with fallback */}
               {job.companyLogo ? (
-                <img 
-                  src={job.companyLogo} 
-                  alt={`${job.companyName} logo`} 
-                  style={{ width: "50px", height: "50px", borderRadius: "8px", objectFit: 'contain', border: '1px solid #eee' }} 
-                />
-              ) : (
-                <div style={{ width: "50px", height: "50px", borderRadius: "8px", backgroundColor: "#0056b3", color: "#fff", display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>
-                  {job.companyName ? job.companyName.charAt(0).toUpperCase() : 'J'}
-                </div>
-              )}
+  <img 
+    src={job.companyLogo} 
+    alt={`${job.companyName} logo`} 
+    style={{ 
+      width: "50px", 
+      height: "50px", 
+      borderRadius: "8px", 
+      objectFit: 'contain', 
+      border: '1px solid #eee' 
+    }} 
+    onError={(e) => {
+      // 1. Prevent infinite error loops if the fallback itself fails
+      e.target.onerror = null; 
+      
+      // 2. Dynamically hide the broken img element
+      e.target.style.display = 'none'; 
+      
+      // 3. Find or target the parent wrapper to inject a clean text avatar fallback
+      const parent = e.target.parentElement;
+      if (parent && !parent.querySelector('.avatar-fallback')) {
+        const fallback = document.createElement('div');
+        fallback.className = 'avatar-fallback';
+        fallback.style.width = '50px';
+        fallback.style.height = '50px';
+        fallback.style.borderRadius = '8px';
+        fallback.style.backgroundColor = '#0056b3';
+        fallback.style.color = '#fff';
+        fallback.style.display = 'flex';
+        fallback.style.alignItems = 'center';
+        fallback.style.justifyContent = 'center';
+        fallback.style.fontWeight = 'bold';
+        fallback.style.fontSize = '20px';
+        fallback.innerText = job.companyName ? job.companyName.charAt(0).toUpperCase() : 'J';
+        
+        parent.appendChild(fallback);
+      }
+    }}
+  />
+) : (
+  /* Your existing fallback element when no logo URL is provided at all */
+  <div style={{ width: "50px", height: "50px", borderRadius: "8px", backgroundColor: "#0056b3", color: "#fff", display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>
+    {job.companyName ? job.companyName.charAt(0).toUpperCase() : 'J'}
+  </div>
+)}
+
               <div>
                 <h3 style={{ margin: '0 0 5px 0' }}>{job.title}</h3>
                 <p style={{ margin: 0, fontSize: '14px', color: '#555' }}>
