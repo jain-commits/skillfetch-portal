@@ -289,17 +289,14 @@ function JobSearchEngine({ jobs = [], setCurrentPage, currentUser, applications 
             </p>
             <p style={{ fontSize: '16px', color: '#4b4b4b', marginBottom: '20px' }}>{selectedJob.location}</p>
             
-            {selectedJob.source === 'Adzuna' ? (
-              <a 
-                href={selectedJob.applyUrl} target="_blank" rel="noopener noreferrer"
-                style={{ backgroundColor: '#085ff7', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: '700', cursor: 'pointer', width: '200px', marginBottom: '30px', display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}
-              >
-                Apply on Adzuna ↗
-              </a>
-            ) : hasApplied ? (
+            
+           {hasApplied ? (
               <div style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '12px 16px', borderRadius: '8px', marginBottom: '30px', display: 'inline-block', fontWeight: 'bold' }}>
                 ✓ You applied for this job
               </div>
+
+
+
             ) : showApplyForm ? (
               <div style={{ marginBottom: '30px', backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                 <h4 style={{ margin: '0 0 10px 0' }}>Submit your application</h4>
