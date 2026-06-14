@@ -126,7 +126,9 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(mongoUri)
   .then(async () => {
     console.log('Connected to MongoDB Atlas!');
-    // await seedDatabase(); // Uncomment if you need to run your seeder again
+
+    
+    await seedDatabase(); // Uncomment if you need to run your seeder again
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

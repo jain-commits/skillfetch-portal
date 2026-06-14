@@ -171,14 +171,15 @@ router.put('/users/:id/profile', async (req, res) => {
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 
-// Get All Jobs
+// GET route for jobs (Pure MongoDB, No External API)
 router.get('/jobs', async (req, res) => {
   try {
-    const jobs = await Job.find().sort({ createdAt: -1 });
-    res.json(jobs);
+    // Fetch all jobs directly from your database
+    const allJobs = await Job.find().sort({ createdAt: -1 });
+    res.json(allJobs);
   } catch (error) {
-    console.error('Get jobs error:', error);
-    res.status(500).json({ message: 'Server error fetching jobs' });
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Error fetching jobs from database' });
   }
 });
 
