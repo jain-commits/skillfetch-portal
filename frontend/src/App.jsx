@@ -1247,9 +1247,13 @@ function ApplicationTracking({ applications, jobs, currentUser }) {
 function EmployerDashboard({ jobs, setJobs, applications, setApplications, users, currentUser, setCurrentPage, setSelectedJobId }) {
   const [activeAppId, setActiveAppId] = useState(null);
 
+  // FIX: Get the reliable database ID for the current employer
+  const currentUserId = currentUser._id || currentUser.id;
+
   // --- Derived Data (Optimized Filtering) ---
-  const myJobs = jobs.filter(j => j.employerId === currentUser.id);
-  const myJobIds = myJobs.map(j => j.id);
+  const myJobs = jobs.filter(j => j.employerId === currentUserId);
+  // FIX: Map using MongoDB _id
+  const myJobIds = myJobs.map(j => j._id || j.id);
   const receivedApps = applications.filter(app => myJobIds.includes(app.jobId));
   
   // Stats Calculations
@@ -1258,12 +1262,14 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
   // --- Helpers ---
   const getJobTitle = (jobId) => {
-    const job = jobs.find(j => j.id === jobId);
+    // FIX: Check against _id
+    const job = jobs.find(j => (j._id === jobId || j.id === jobId));
     return job ? job.title : 'Unknown Job';
   };
 
   const getCandidateName = (candidateId) => {
-    const user = users.find(u => u.id === candidateId);
+    // FIX: Check against _id
+    const user = users.find(u => (u._id === candidateId || u.id === candidateId));
     return user ? user.name : 'Unknown Candidate';
   };
 
@@ -1283,7 +1289,8 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete job.');
       
-      setJobs(jobs.filter(j => j.id !== jobId));
+      // FIX: Filter out using _id
+      setJobs(jobs.filter(j => (j._id !== jobId && j.id !== jobId)));
       setApplications(applications.filter(app => app.jobId !== jobId));
       toast.success('Listing removed successfully.');
     } catch (err) {
@@ -1301,7 +1308,8 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       if (!response.ok) throw new Error('Failed to update status.');
       
       const data = await response.json();
-      setApplications(applications.map(app => app.id === appId ? data : app));
+      // FIX: Match map update using _id
+      setApplications(applications.map(app => (app._id === appId || app.id === appId) ? data : app));
       toast.success(`Candidate marked as ${newStatus}!`);
       setActiveAppId(null); // Close modal automatically
     } catch (err) {
@@ -1309,8 +1317,9 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
     }
   };
 
-  const selectedApp = applications.find(app => app.id === activeAppId);
-  const selectedCandidate = selectedApp ? users.find(u => u.id === selectedApp.candidateId) : null;
+  // FIX: Look up selected app and user with _id
+  const selectedApp = applications.find(app => (app._id === activeAppId || app.id === activeAppId));
+  const selectedCandidate = selectedApp ? users.find(u => (u._id === selectedApp.candidateId || u.id === selectedApp.candidateId)) : null;
 
   return (
     <div>
@@ -1361,7 +1370,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
             </div>
           ) : (
             myJobs.map((job) => (
-              <div key={job.id} className="list-item-card">
+              <div key={job._id || job.id} className="list-item-card">
                 <div>
                   <strong style={{ fontSize: '16px', color: '#111827' }}>{job.title}</strong>
                   <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1371,8 +1380,8 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => { setSelectedJobId(job.id); setCurrentPage('job-detail'); }} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>View</button>
-                  <button onClick={() => handleDeleteJob(job.id)} className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}>Delete</button>
+                  <button onClick={() => { setSelectedJobId(job._id || job.id); setCurrentPage('job-detail'); }} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>View</button>
+                  <button onClick={() => handleDeleteJob(job._id || job.id)} className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}>Delete</button>
                 </div>
               </div>
             ))
@@ -1391,7 +1400,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
             </div>
           ) : (
             receivedApps.map((app) => (
-              <div key={app.id} className="list-item-card">
+              <div key={app._id || app.id} className="list-item-card">
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                     <strong style={{ fontSize: '16px', color: '#111827' }}>{getCandidateName(app.candidateId)}</strong>
@@ -1403,7 +1412,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
                     Applying for: <strong>{getJobTitle(app.jobId)}</strong>
                   </p>
                 </div>
-                <button onClick={() => setActiveAppId(app.id)} className="btn" style={{ padding: '6px 14px', fontSize: '13px' }}>
+                <button onClick={() => setActiveAppId(app._id || app.id)} className="btn" style={{ padding: '6px 14px', fontSize: '13px' }}>
                   Review
                 </button>
               </div>
@@ -1413,9 +1422,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
       </div>
 
-      {/* Candidate Review Modal */}
-
-    {/* Sleek ATS Split-Screen Review Modal */}
+      {/* Sleek ATS Split-Screen Review Modal */}
       {selectedApp && selectedCandidate && (
         <div className="review-modal-overlay">
           <div className="review-modal-container">
@@ -1448,7 +1455,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
                 {(selectedCandidate.resume?.name || selectedCandidate.resumeName) && (
                   <div className="mobile-resume-action">
                     <a 
-                      href={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
+                      href={`${API_BASE_URL}/api/users/${selectedCandidate._id || selectedCandidate.id}/resume`} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="btn btn-secondary"
@@ -1482,9 +1489,9 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
                 {/* Actions */}
                 <div className="action-buttons-grid">
-                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Shortlisted')} className="btn" style={{ background: '#fef08a', color: '#854d0e', border: '1px solid #fde047' }}>⭐ Shortlist</button>
-                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Hired')} className="btn" style={{ background: '#166534', color: '#fff', border: 'none' }}>✅ Hire</button>
-                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')} className="btn btn-danger">❌ Reject</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp._id || selectedApp.id, 'Shortlisted')} className="btn" style={{ background: '#fef08a', color: '#854d0e', border: '1px solid #fde047' }}>⭐ Shortlist</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp._id || selectedApp.id, 'Hired')} className="btn" style={{ background: '#166534', color: '#fff', border: 'none' }}>✅ Hire</button>
+                  <button onClick={() => handleUpdateStatus(selectedApp._id || selectedApp.id, 'Rejected')} className="btn btn-danger">❌ Reject</button>
                 </div>
               </div>
 
@@ -1492,7 +1499,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
               <div className="review-right-panel">
                 {(selectedCandidate.resume?.name || selectedCandidate.resumeName) ? (
                   <iframe 
-                    src={`${API_BASE_URL}/api/users/${selectedCandidate.id}/resume`} 
+                    src={`${API_BASE_URL}/api/users/${selectedCandidate._id || selectedCandidate.id}/resume`} 
                     title="Resume Preview"
                     width="100%" 
                     height="100%" 
