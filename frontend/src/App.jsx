@@ -529,9 +529,45 @@ function AboutUs({ setCurrentPage }) {
 // }
 
 // 2. Login Page Component
-function Login({ setCurrentUser, setCurrentPage }) {
+function Login({ setCurrentUser, setCurrentPage, currentUser }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // --- NEW: Intercept logged-in users with a Welcome Card ---
+  if (currentUser) {
+    return (
+      <div className="card" style={{ maxWidth: '400px', margin: '40px auto', textAlign: 'center', padding: '40px 20px' }}>
+        <h2 style={{ marginBottom: '5px' }}>Hi, {currentUser.name.split(' ')[0]}! 👋</h2>
+        
+        <p style={{ 
+          fontSize: '11px', 
+          color: '#6b7280', 
+          textTransform: 'uppercase', 
+          letterSpacing: '1px', 
+          margin: '0 0 20px 0',
+          fontWeight: 'bold'
+        }}>
+          Logged in as: <span style={{ color: '#0056b3' }}>{currentUser.role}</span>
+        </p>
+        
+        <p style={{ marginBottom: '25px', color: '#444' }}>
+          You are already securely signed in to your account.
+        </p>
+        
+        <button 
+          onClick={() => {
+            if (currentUser.role === 'employer') setCurrentPage('employer-dashboard');
+            else if (currentUser.role === 'admin') setCurrentPage('admin-panel');
+            else setCurrentPage('job-listings');
+          }} 
+          className="btn" 
+          style={{ width: '100%' }}
+        >
+          Go to my Dashboard
+        </button>
+      </div>
+    );
+  }
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -562,6 +598,49 @@ function Login({ setCurrentUser, setCurrentPage }) {
     }
   };
 
+  // Easy Login Buttons for Presentation
+  const handleQuickLogin = (role) => {
+    if (role === 'candidate') {
+      setEmail('fasil@jobportal.com'); // Updated to match your seeder
+      setPassword('fasil123');
+    } else if (role === 'employer') {
+      setEmail('employer@jobportal.com');
+      setPassword('employer123');
+    } else if (role === 'admin') {
+      setEmail('admin@jobportal.com');
+      setPassword('admin123');
+    }
+  };
+
+  return (
+    <div className="card" style={{ maxWidth: '400px', margin: '40px auto' }}>
+      <h2>Sign In</h2>
+      
+      {/* Quick prefill helpers */}
+      <div style={{ marginBottom: '15px' }}>
+        <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Quick Prefill: </span>
+        <button type="button" onClick={() => handleQuickLogin('candidate')} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '11px', marginRight: '5px' }}>Candidate</button>
+        <button type="button" onClick={() => handleQuickLogin('employer')} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '11px', marginRight: '5px' }}>Employer</button>
+        <button type="button" onClick={() => handleQuickLogin('admin')} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '11px' }}>Admin</button>
+      </div>
+
+      <form onSubmit={handleLoginSubmit}>
+        <div className="form-group">
+          <label>Email Address</label>
+          <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </div>
+        <div className="form-group">
+          <label>Password</label>
+          <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        </div>
+        <button type="submit" className="btn" style={{ width: '100%' }}>Login</button>
+      </form>
+      <p style={{ marginTop: '15px', textAlign: 'center', fontSize: '14px' }}>
+        Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('register'); }}>Register here</a>
+      </p>
+    </div>
+  );
+}
   // Easy Login Buttons for Presentation
   const handleQuickLogin = (role) => {
     if (role === 'candidate') {
@@ -604,7 +683,7 @@ function Login({ setCurrentUser, setCurrentPage }) {
       </p>
     </div>
   );
-}
+
 
 // 3. Register Page Component
 function Register({ setCurrentPage }) {
@@ -765,44 +844,20 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               {/* Logo display with fallback */}
               {job.companyLogo ? (
-  <img 
-    src={job.companyLogo} 
-    alt={`${job.companyName} logo`} 
-    style={{ 
-      width: "50px", 
-      height: "50px", 
-      borderRadius: "8px", 
-      objectFit: 'contain', 
-      border: '1px solid #eee' 
-    }} 
-    onError={(e) => {
-      // 1. Prevent infinite error loops if the fallback itself fails
-      e.target.onerror = null; 
-      
-      // 2. Dynamically hide the broken img element
-      e.target.style.display = 'none'; 
-      
-      // 3. Find or target the parent wrapper to inject a clean text avatar fallback
-      const parent = e.target.parentElement;
-      if (parent && !parent.querySelector('.avatar-fallback')) {
-        const fallback = document.createElement('div');
-        fallback.className = 'avatar-fallback';
-        fallback.style.width = '50px';
-        fallback.style.height = '50px';
-        fallback.style.borderRadius = '8px';
-        fallback.style.backgroundColor = '#0056b3';
-        fallback.style.color = '#fff';
-        fallback.style.display = 'flex';
-        fallback.style.alignItems = 'center';
-        fallback.style.justifyContent = 'center';
-        fallback.style.fontWeight = 'bold';
-        fallback.style.fontSize = '20px';
-        fallback.innerText = job.companyName ? job.companyName.charAt(0).toUpperCase() : 'J';
-        
-        parent.appendChild(fallback);
-      }
-    }}
-  />
+ 
+
+<img 
+  src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`} 
+  alt={`${job.companyName} logo`} 
+  style={{ width: "50px", height: "50px", borderRadius: "8px", objectFit: 'contain', border: '1px solid #eee' }}
+  onError={(e) => {
+    e.target.onerror = null; 
+    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`;
+  }}
+
+/>
+
+
 ) : (
   /* Your existing fallback element when no logo URL is provided at all */
   <div style={{ width: "50px", height: "50px", borderRadius: "8px", backgroundColor: "#0056b3", color: "#fff", display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>
@@ -835,15 +890,22 @@ function JobListings({ jobs, setCurrentPage, setSelectedJobId, currentUser }) {
   );
 }
 
+
+
+
+
 // 5. Job Detail & Apply Page Component
 function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplications, setCurrentPage }) {
   const [coverLetter, setCoverLetter] = useState('');
   
-  const job = jobs.find(j => j.id === selectedJobId);
+  // FIX 1: Check for both MongoDB's _id and standard id
+  const job = jobs.find(j => (j._id === selectedJobId || j.id === selectedJobId));
+  
   if (!job) return <p>Job not found!</p>;
 
-  // Check if candidate has already applied to this specific job
-  const hasApplied = currentUser && applications.some(app => app.jobId === job.id && app.candidateId === currentUser.id);
+  // FIX 2: Ensure we match the application to the correct database ID
+  const currentJobId = job._id || job.id;
+  const hasApplied = currentUser && applications.some(app => app.jobId === currentJobId && app.candidateId === currentUser.id);
 
   const handleApplySubmit = async (e) => {
     e.preventDefault();
@@ -858,7 +920,7 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          jobId: job.id,
+          jobId: currentJobId, // FIX 3: Sending the correct DB ID
           candidateId: currentUser.id,
           coverLetter
         })
@@ -882,9 +944,24 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
       <button onClick={() => setCurrentPage('job-listings')} className="btn btn-secondary" style={{ marginBottom: '15px' }}>Back to Jobs</button>
       
       <div className="card">
-        <h2>{job.title}</h2>
-        <p><strong>Company:</strong> {job.companyName} | <strong>Location:</strong> {job.location}</p>
-        <p><strong>Salary Range:</strong> {job.salaryRange} | <strong>Type:</strong> {job.type}</p>
+        {/* FIX 4: Added the company logo to the detail view layout */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
+          <img 
+            src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`} 
+            alt={`${job.companyName} logo`} 
+            style={{ width: "80px", height: "80px", borderRadius: "12px", objectFit: 'contain', border: '1px solid #eee' }}
+            onError={(e) => {
+              e.target.onerror = null; 
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0056b3&color=fff`;
+            }}
+          />
+          <div>
+            <h2 style={{ margin: '0 0 5px 0' }}>{job.title}</h2>
+            <p style={{ margin: 0, fontSize: '16px', color: '#555' }}><strong>Company:</strong> {job.companyName}</p>
+          </div>
+        </div>
+
+        <p><strong>Location:</strong> {job.location} | <strong>Salary Range:</strong> {job.salaryRange} | <strong>Type:</strong> {job.type}</p>
         
         <hr style={{ borderColor: '#eeeeee', margin: '15px 0' }} />
         <h3>Job Description</h3>
@@ -901,7 +978,7 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
       <div className="card">
         <h3>Application Portal</h3>
         {!currentUser ? (
-          <p>Please <a href="#" onClick={() => setCurrentPage('login')}>Login as a Candidate</a> to apply for this job posting.</p>
+          <p>Please <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('login'); }}>Login as a Candidate</a> to apply for this job posting.</p>
         ) : currentUser.role !== 'candidate' ? (
           <p>You are logged in as an <strong>{currentUser.role}</strong>. Only candidates can apply for jobs.</p>
         ) : hasApplied ? (
@@ -925,6 +1002,9 @@ function JobDetail({ jobs, selectedJobId, currentUser, applications, setApplicat
     </div>
   );
 }
+
+
+
 
 // 6. Candidate Profile Page Component
 function CandidateProfile({ currentUser, setCurrentUser }) {
