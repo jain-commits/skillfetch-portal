@@ -337,6 +337,20 @@ router.get('/users', async (req, res) => {
   }
 });
 
+// Get Single User Profile
+router.get('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Get single user error:', error);
+    res.status(500).json({ message: 'Server error fetching user details' });
+  }
+});
+
 // Suspend/Unsuspend User
 router.put('/users/:id/suspend', async (req, res) => {
   try {

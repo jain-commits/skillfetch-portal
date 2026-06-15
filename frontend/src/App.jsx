@@ -23,7 +23,9 @@ import AboutUs from './Pages/AboutUs';
 import './Components/Loader2.css';
 import './index.css';
 
-const API_BASE_URL = "https://skillfetch-portal.onrender.com";
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000'
+  : 'https://skillfetch-portal.onrender.com';
 
 export default function App() {
   const [users, setUsers] = useState([]);
@@ -64,11 +66,11 @@ export default function App() {
   // Fetch updated info when user profile refreshes
   const refreshUserProfile = async () => {
     if (!currentUser) return;
+    const userId = currentUser.id || currentUser._id;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users`);
+      const res = await fetch(`${API_BASE_URL}/api/users/${userId}?_t=${Date.now()}`);
       if (res.ok) {
-        const allUsers = await res.json();
-        const updatedMe = allUsers.find(u => u.id === currentUser.id || u._id === currentUser.id);
+        const updatedMe = await res.json();
         if (updatedMe) {
           setCurrentUser(updatedMe);
           localStorage.setItem('currentUser', JSON.stringify(updatedMe));
@@ -108,9 +110,9 @@ export default function App() {
       try {
         let appUrl = `${API_BASE_URL}/api/applications`;
         if (currentUser.role === 'candidate') {
-          appUrl += `?candidateId=${currentUser.id}`;
+          appUrl += `?candidateId=${currentUser.id || currentUser._id}`;
         }
-        const appRes = await fetch(appUrl);
+        const appRes = await fetch(`${appUrl}${appUrl.includes('?') ? '&' : '?'}_t=${Date.now()}`);
         const appData = await appRes.json();
         if (appRes.ok) {
           setApplications(appData);
@@ -122,7 +124,7 @@ export default function App() {
       // 2. Fetch users list (required for Employer reviews, and Admin panel)
       if (currentUser.role === 'admin' || currentUser.role === 'employer') {
         try {
-          const userRes = await fetch(`${API_BASE_URL}/api/users`);
+          const userRes = await fetch(`${API_BASE_URL}/api/users?_t=${Date.now()}`);
           const userData = await userRes.json();
           if (userRes.ok) {
             setUsers(userData);
@@ -134,7 +136,7 @@ export default function App() {
     };
   
     fetchUserData();
-  }, [currentUser]);
+  }, [currentUser, currentPage]);
 
   // Authentication Helpers
   const handleLogout = () => {

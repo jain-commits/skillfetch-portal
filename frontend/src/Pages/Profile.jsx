@@ -31,6 +31,7 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
   const [resumeFile, setResumeFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
   const [resumeName, setResumeName] = useState(currentUser?.resumeName || currentUser?.resume?.name || '');
+  const [showPreview, setShowPreview] = useState(false);
 
   // Handle avatar changes
   const handleAvatarSelect = (avatarId) => {
@@ -83,7 +84,8 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/${currentUser.id}/profile`, {
+      const userId = currentUser.id || currentUser._id;
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -111,9 +113,10 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
     }
 
     setUploadStatus('⏳ Uploading resume...');
+    const userId = currentUser.id || currentUser._id;
     const formData = new FormData();
     formData.append('resume', file);
-    formData.append('userId', currentUser.id);
+    formData.append('userId', userId);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/upload-resume`, {
@@ -338,7 +341,7 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
                   </div>
                   <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                     <a 
-                      href={`${API_BASE_URL}/api/users/${currentUser.id}/resume`} 
+                      href={`${API_BASE_URL}/api/users/${currentUser.id || currentUser._id}/resume`} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="btn btn-secondary"
@@ -364,18 +367,30 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
               {/* Embedded Resume Preview */}
               {resumeName && (
                 <div style={{ marginTop: '20px', borderTop: '1px solid #f3f4f6', paddingTop: '15px' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px' }}>
-                    <FaEye /> Live PDF Preview
-                  </h4>
-                  <div className="resume-preview-container">
-                    <iframe 
-                      src={`${API_BASE_URL}/api/users/${currentUser.id}/resume`} 
-                      title="Resume Preview"
-                      width="100%" 
-                      height="250px" 
-                      style={{ border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                    />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h4 style={{ fontSize: '13px', fontWeight: '700', margin: 0 }}>
+                      <FaEye /> Live PDF Preview
+                    </h4>
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary" 
+                      style={{ fontSize: '11px', padding: '4px 8px' }}
+                      onClick={() => setShowPreview(!showPreview)}
+                    >
+                      {showPreview ? 'Hide Preview' : 'Show Preview'}
+                    </button>
                   </div>
+                  {showPreview && (
+                    <div className="resume-preview-container">
+                      <iframe 
+                        src={`${API_BASE_URL}/api/users/${currentUser.id || currentUser._id}/resume`} 
+                        title="Resume Preview"
+                        width="100%" 
+                        height="350px" 
+                        style={{ border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

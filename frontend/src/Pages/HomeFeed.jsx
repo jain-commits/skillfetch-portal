@@ -3,6 +3,59 @@ import { FaSearch, FaMapMarkerAlt, FaRegBookmark, FaBookmark, FaRegClock, FaTime
 import { toast } from 'react-hot-toast';
 import { getAvatarUrl } from '../utils/avatars';
 
+const FALLBACK_STORIES = [
+  {
+    id: "story_fb1",
+    _id: "story_fb1",
+    title: "Bangalore GCCs Dominate Tech Hiring Trends",
+    content: "Global Capability Centers (GCCs) in Bangalore and Hyderabad are expanding their high-tech footprints. Recent reports indicate GCCs will contribute over 55% of new technology hires in India in 2026, shifting focus towards AI engineering, cloud architects, and cybersecurity specialists.",
+    summary: "GCCs in Bangalore and Hyderabad to drive tech hiring growth in India.",
+    author: "Amit Sharma",
+    readTime: "3 min read",
+    publishedAt: new Date().toISOString()
+  },
+  {
+    id: "story_fb2",
+    _id: "story_fb2",
+    title: "The Rise of EV and Green Tech Careers in India",
+    content: "India's electric vehicle (EV) sector is seeing a massive surge in job creation. From battery design engineering to power electronics, major automotive companies are building large-scale R&D hubs in Chennai and Pune, driving a 30% YoY increase in green technology positions.",
+    summary: "EV sector R&D hubs in Chennai and Pune drive 30% YoY increase in jobs.",
+    author: "Priya Nair",
+    readTime: "4 min read",
+    publishedAt: new Date().toISOString()
+  },
+  {
+    id: "story_fb3",
+    _id: "story_fb3",
+    title: "ATS Optimizers: How to Pass India's Top Recruiters",
+    content: "With over 1,000 applications per job listing, major Indian tech firms are relying heavily on Application Tracking Systems (ATS). To beat the filter, candidates should use plain-text PDF resumes, standard section headers, and align their skills section with exact keywords from the job description.",
+    summary: "How candidates can optimize resumes to pass ATS algorithms.",
+    author: "Rajesh Patel",
+    readTime: "2 min read",
+    publishedAt: new Date().toISOString()
+  },
+  {
+    id: "story_fb4",
+    _id: "story_fb4",
+    title: "Non-Metro Cities Emerge as New IT Hubs",
+    content: "Cities like Kochi, Indore, Coimbatore, and Jaipur are witnessing significant infrastructure expansions as IT companies choose decentralized offices. Lower operational costs and talent retention are driving companies to establish secondary hubs, creating high-paying jobs locally.",
+    summary: "Kochi, Indore, and Jaipur see tech job surge as companies expand.",
+    author: "Sneha Iyer",
+    readTime: "3 min read",
+    publishedAt: new Date().toISOString()
+  },
+  {
+    id: "story_fb5",
+    _id: "story_fb5",
+    title: "Upskilling in Generative AI Pays Off",
+    content: "Indian professionals who certified in Generative AI and Large Language Model fine-tuning saw an average salary bump of 25% when changing jobs this year. Industry experts recommend building hands-on projects rather than just collecting theory certificates.",
+    summary: "GenAI certifications and hands-on projects lead to higher salaries.",
+    author: "Vikram Sen",
+    readTime: "3 min read",
+    publishedAt: new Date().toISOString()
+  }
+];
+
 function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, applications = [], setApplications, API_BASE_URL }) {
   const [searchTitle, setSearchTitle] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
@@ -19,7 +72,7 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
   const [showLocSuggestions, setShowLocSuggestions] = useState(false);
 
   // Stories States
-  const [stories, setStories] = useState([]);
+  const [stories, setStories] = useState(FALLBACK_STORIES);
   const [activeStory, setActiveStory] = useState(null);
   const [loadingStories, setLoadingStories] = useState(false);
 
@@ -42,10 +95,18 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
       const res = await fetch(`${API_BASE_URL}/api/stories`);
       if (res.ok) {
         const data = await res.json();
-        setStories(data.slice(0, 6)); // Display first 6 stories
+        if (Array.isArray(data) && data.length > 0) {
+          setStories(data.slice(0, 6)); // Display first 6 stories
+        } else {
+          // Shuffle fallbacks client-side if DB is empty
+          setStories([...FALLBACK_STORIES].sort(() => 0.5 - Math.random()).slice(0, 6));
+        }
+      } else {
+        setStories([...FALLBACK_STORIES].sort(() => 0.5 - Math.random()).slice(0, 6));
       }
     } catch (error) {
       console.error("Error fetching stories:", error);
+      setStories([...FALLBACK_STORIES].sort(() => 0.5 - Math.random()).slice(0, 6));
     } finally {
       setLoadingStories(false);
     }
@@ -309,7 +370,7 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
                 filteredJobs.map(job => (
                   <div 
                     key={job._id || job.id} 
-                    className={`indeed-job-card ${(selectedJob?._id || selectedJob?.id) === (job._id || job.id) ? 'active-card' : ''}`}
+                    className={`linkedin-job-card ${(selectedJob?._id || selectedJob?.id) === (job._id || job.id) ? 'active-card' : ''}`}
                     onClick={() => setSelectedJob(job)}
                   >
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
@@ -516,11 +577,11 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
             <div style={{ padding: '25px', overflowY: 'auto', maxHeight: 'calc(90vh - 120px)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '13px', color: '#6b7280' }}>
                 <div className="story-author-avatar">
-                  {activeStory.author.charAt(0)}
+                  {activeStory.author ? activeStory.author.charAt(0) : 'S'}
                 </div>
                 <div>
-                  <div style={{ fontWeight: '600', color: '#374151' }}>{activeStory.author}</div>
-                  <div>Published recently • {activeStory.readTime}</div>
+                  <div style={{ fontWeight: '600', color: '#374151' }}>{activeStory.author || 'SkillFetch Team'}</div>
+                  <div>Published recently • {activeStory.readTime || '3 min read'}</div>
                 </div>
               </div>
 
