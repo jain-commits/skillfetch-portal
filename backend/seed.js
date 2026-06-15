@@ -169,7 +169,17 @@ const careerStories = [
 // Seed process
 async function seedDatabase() {
   try {
-    console.log('Starting Database Seed Process...');
+    console.log('Checking database state...');
+    const userCount = await User.countDocuments();
+    const jobCount = await Job.countDocuments();
+    const storyCount = await Story.countDocuments();
+
+    if (userCount > 0 || jobCount > 0 || storyCount > 0) {
+      console.log(`📊 DB already contains data (${userCount} users, ${jobCount} jobs, ${storyCount} stories). Skipping seeding to preserve all data.`);
+      return;
+    }
+
+    console.log('Database is empty. Starting Database Seed Process...');
 
     // 1. SEED USERS (with default avatars & headlines)
     console.log('🧹 Clearing old users...');
@@ -208,7 +218,7 @@ async function seedDatabase() {
         password: 'fasil123',
         role: 'candidate',
         phone: '987-654-3210',
-        location: 'Bangalore, Karnataka',
+        location: 'Old Lakkidi, Ottappalam, Kerala',
         bio: 'Passionate Frontend Developer focused on React, UI/UX, and animations. Open to full-stack roles.',
         skills: 'React, Angular, HTML, CSS, JavaScript, TailwindCSS',
         education: 'B.Tech in Computer Science',
@@ -225,10 +235,10 @@ async function seedDatabase() {
       {
         name: 'Dixon Anto',
         email: 'dixon@jobportal.com',
-        password: 'fasil123',
+        password: 'dixon123',
         role: 'candidate',
         phone: '994-654-3211',
-        location: 'Trivandrum, Kerala',
+        location: 'Palakkad, Kerala',
         bio: 'Backend enthusiast specializing in scalable Node.js microservices and database clustering.',
         skills: 'Node.js, Express, MongoDB, Redis, Docker, Go',
         education: 'MCA, Kerala University',
@@ -245,10 +255,10 @@ async function seedDatabase() {
       {
         name: 'Karthi S',
         email: 'karthi@jobportal.com',
-        password: 'fasil123',
+        password: 'karthi123',
         role: 'candidate',
         phone: '988-654-3212',
-        location: 'Chennai, Tamil Nadu',
+        location: 'Ottapalam, Kerala',
         bio: 'Data Engineer focused on big data ETL pipelines and Snowflake warehousing. Passionate about machine learning.',
         skills: 'Python, Spark, Airflow, Snowflake, SQL, Pandas',
         education: 'MS in Data Science',
@@ -263,12 +273,12 @@ async function seedDatabase() {
         }
       },
       {
-        name: 'Jain Jose',
+        name: 'Jain ',
         email: 'jain@jobportal.com',
-        password: 'fasil123',
+        password: 'jain123',
         role: 'candidate',
         phone: '989-654-3213',
-        location: 'Kochi, Kerala',
+        location: 'Pattambi, Kerala',
         bio: 'Full Stack Developer with a knack for systems design and fast prototype releases.',
         skills: 'MongoDB, Express, React, Node.js, Next.js, AWS',
         education: 'B.Sc. in Computer Science',
@@ -285,7 +295,7 @@ async function seedDatabase() {
       {
         name: 'Deepa Nair',
         email: 'deepa@jobportal.com',
-        password: 'fasil123',
+        password: 'deepa123',
         role: 'candidate',
         phone: '977-654-3214',
         location: 'Mumbai, Maharashtra',
