@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Job, Application } = require('./models');
+const { User, Job, Application, Connection, Story } = require('./models');
 const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -144,21 +144,42 @@ router.post('/auth/login', async (req, res) => {
 router.put('/users/:id/profile', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, phone, location, bio, skills, education, experience, resumeName } = req.body;
+    const { 
+      name, phone, location, bio, skills, education, experience, resumeName,
+      avatar, headline, companyName, companyLocation, companyDesc, companyLogo
+    } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    user.name = name;
-    user.phone = phone;
-    user.location = location;
-    user.bio = bio;
-    user.skills = skills;
-    user.education = education;
-    user.experience = experience;
-    user.resumeName = resumeName;
+    user.name = name !== undefined ? name : user.name;
+    user.phone = phone !== undefined ? phone : user.phone;
+    user.location = location !== undefined ? location : user.location;
+    user.bio = bio !== undefined ? bio : user.bio;
+    user.skills = skills !== undefined ? skills : user.skills;
+    user.education = education !== undefined ? education : user.education;
+    user.experience = experience !== undefined ? experience : user.experience;
+    user.resumeName = resumeName !== undefined ? resumeName : user.resumeName;
+    user.avatar = avatar !== undefined ? avatar : user.avatar;
+    user.headline = headline !== undefined ? headline : user.headline;
+
+    if (user.role === 'employer') {
+      user.companyName = companyName !== undefined ? companyName : user.companyName;
+      user.companyLocation = companyLocation !== undefined ? companyLocation : user.companyLocation;
+      user.companyDesc = companyDesc !== undefined ? companyDesc : user.companyDesc;
+      user.companyLogo = companyLogo !== undefined ? companyLogo : user.companyLogo;
+
+      // CASCADE UPDATE: Update all jobs posted by this employer
+      await Job.updateMany(
+        { employerId: id },
+        { 
+          companyName: user.companyName, 
+          companyLogo: user.companyLogo 
+        }
+      );
+    }
 
     await user.save();
     res.json(user);
@@ -171,10 +192,9 @@ router.put('/users/:id/profile', async (req, res) => {
 
 // ==================== JOB OPPORTUNITIES ROUTES ====================
 
-// GET route for jobs (Pure MongoDB, No External API)
+// GET route for jobs (Consolidated Pure MongoDB, No External API)
 router.get('/jobs', async (req, res) => {
   try {
-    // Fetch all jobs directly from your database
     const allJobs = await Job.find().sort({ createdAt: -1 });
     res.json(allJobs);
   } catch (error) {
@@ -183,78 +203,13 @@ router.get('/jobs', async (req, res) => {
   }
 });
 
-
-
-// Post a Job
-// router.post('/jobs', async (req, res) => {
-//   try {
-//     const {
-//       employerId,
-//       companyName,
-//       title,
-//       category,
-//       type,
-//       location,
-//       salaryRange,
-//       experienceLevel,
-//       skillsRequired,
-//       description,
-//       qualifications
-//     } = req.body;
-
-//     const newJob = new Job({
-//       employerId,
-//       companyName,
-//       title,
-//       category,
-//       type,
-//       location,
-//       salaryRange,
-//       experienceLevel,
-//       skillsRequired,
-//       description,
-//       qualifications
-//     });
-
-//     await newJob.save();
-//     res.status(201).json(newJob);
-//   } catch (error) {
-//     console.error('Post job error:', error);
-//     res.status(500).json({ message: 'Server error posting job' });
-//   }
-// });
-
-
-
-// // Delete a Job (Employer/Admin)
-// router.delete('/jobs/:id', async (req, res) => {
-//   try {
-//     const { id } = req.params;
-    
-//     // Delete job
-//     const job = await Job.findByIdAndDelete(id);
-//     if (!job) {
-//       return res.status(404).json({ message: 'Job not found' });
-//     }
-
-//     // Cascade: delete applications for this job
-//     await Application.deleteMany({ jobId: id });
-
-//     res.json({ message: 'Job posting deleted and cascaded applications.' });
-//   } catch (error) {
-//     console.error('Delete job error:', error);
-//     res.status(500).json({ message: 'Server error deleting job' });
-//   }
-// });
-
-
-// 1. POST route for jobs
+// POST route for jobs
 router.post('/jobs', async (req, res) => {
   try {
-    // Extracting all fields from the request body
     const {
       employerId,
       companyName,
+      companyLogo,
       title,
       category,
       type,
@@ -266,15 +221,14 @@ router.post('/jobs', async (req, res) => {
       qualifications
     } = req.body;
 
-    // Validate that required fields exist
     if (!employerId || !title || !location) {
       return res.status(400).json({ message: "Employer ID, Title, and Location are required." });
     }
 
-    // Creating the new job instance
     const newJob = new Job({
       employerId,
       companyName,
+      companyLogo,
       title,
       category,
       type,
@@ -284,46 +238,15 @@ router.post('/jobs', async (req, res) => {
       skillsRequired,
       description,
       qualifications,
-      createdAt: new Date() // Automatically timestamp the creation
+      createdAt: new Date()
     });
 
-    // Save to MongoDB
     await newJob.save();
-
-    // Respond with the created job object
     res.status(201).json(newJob);
     
   } catch (error) {
     console.error('Post job error:', error);
     res.status(500).json({ message: 'Server error while posting job' });
-  }
-});
-
-// 2. GET route for jobs (the one that syncs)
-router.get('/jobs', async (req, res) => {
-  try {
-    await syncJobsFromAdzuna(); 
-    const allJobs = await Job.find().sort({ createdAt: -1 });
-    res.json(allJobs);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching jobs' });
-  }
-});
-
-
-
-
-// ==================== JOB OPPORTUNITIES ROUTES ====================
-
-// GET route for jobs (Pure MongoDB, No External API)
-router.get('/jobs', async (req, res) => {
-  try {
-    // Fetch EVERYTHING from MongoDB
-    const allJobs = await Job.find().sort({ createdAt: -1 });
-    res.json(allJobs);
-  } catch (error) {
-    console.error('Error fetching jobs:', error);
-    res.status(500).json({ message: 'Error fetching jobs from database' });
   }
 });
 
@@ -465,6 +388,132 @@ router.delete('/users/:id', async (req, res) => {
   } catch (error) {
     console.error('Delete user error:', error);
     res.status(500).json({ message: 'Server error deleting user' });
+  }
+});
+
+// ==================== NETWORKING (CONNECTION) ROUTES ====================
+
+// Get Connections for a User
+router.get('/connections', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ message: 'userId is required' });
+    
+    const conns = await Connection.find({
+      $or: [{ senderId: userId }, { receiverId: userId }]
+    }).populate('senderId receiverId', 'name email avatar headline role location');
+    
+    res.json(conns);
+  } catch (err) {
+    console.error('Error fetching connections:', err);
+    res.status(500).json({ message: 'Error fetching connections' });
+  }
+});
+
+// Send Connection Request
+router.post('/connections/request', async (req, res) => {
+  try {
+    const { senderId, receiverId } = req.body;
+    if (!senderId || !receiverId) {
+      return res.status(400).json({ message: 'senderId and receiverId are required' });
+    }
+    
+    // Check if connection already exists
+    const existing = await Connection.findOne({
+      $or: [
+        { senderId, receiverId },
+        { senderId: receiverId, receiverId: senderId }
+      ]
+    });
+    if (existing) return res.status(400).json({ message: 'Connection or request already exists' });
+    
+    const conn = new Connection({ senderId, receiverId, status: 'pending' });
+    await conn.save();
+    
+    const populated = await Connection.findById(conn._id).populate('senderId receiverId', 'name email avatar headline role location');
+    res.status(201).json(populated);
+  } catch (err) {
+    console.error('Error sending connection request:', err);
+    res.status(500).json({ message: 'Error sending connection request' });
+  }
+});
+
+// Accept or Reject Request
+router.put('/connections/respond', async (req, res) => {
+  try {
+    const { connectionId, status } = req.body;
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    
+    if (status === 'rejected') {
+      await Connection.findByIdAndDelete(connectionId);
+      return res.json({ id: connectionId, status: 'rejected', message: 'Connection request rejected and deleted' });
+    }
+    
+    const conn = await Connection.findByIdAndUpdate(connectionId, { status }, { new: true })
+      .populate('senderId receiverId', 'name email avatar headline role location');
+    if (!conn) return res.status(404).json({ message: 'Connection not found' });
+    
+    res.json(conn);
+  } catch (err) {
+    console.error('Error responding to request:', err);
+    res.status(500).json({ message: 'Error responding to request' });
+  }
+});
+
+// Remove connection or cancel request
+router.delete('/connections/:id', async (req, res) => {
+  try {
+    await Connection.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Connection removed successfully', id: req.params.id });
+  } catch (err) {
+    console.error('Error deleting connection:', err);
+    res.status(500).json({ message: 'Error deleting connection' });
+  }
+});
+
+// Network Recommendations ("People You May Know")
+router.get('/users/network-recommendations', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ message: 'userId is required' });
+    
+    // Find all connections for the user
+    const conns = await Connection.find({
+      $or: [{ senderId: userId }, { receiverId: userId }]
+    });
+    
+    const connectedUserIds = conns.map(c => 
+      c.senderId.toString() === userId ? c.receiverId.toString() : c.senderId.toString()
+    );
+    connectedUserIds.push(userId); // Exclude self
+    
+    // Recommend candidates who are not connected
+    const recommendations = await User.find({
+      role: 'candidate',
+      _id: { $nin: connectedUserIds },
+      isSuspended: false
+    }).select('name email avatar headline location bio skills education experience');
+    
+    res.json(recommendations);
+  } catch (err) {
+    console.error('Error fetching recommendations:', err);
+    res.status(500).json({ message: 'Error fetching network recommendations' });
+  }
+});
+
+// ==================== CAREER STORIES / NEWS ROUTES ====================
+
+// Get shuffled career stories
+router.get('/stories', async (req, res) => {
+  try {
+    const stories = await Story.find();
+    const shuffled = stories.sort(() => 0.5 - Math.random());
+    res.json(shuffled);
+  } catch (err) {
+    console.error('Error fetching stories:', err);
+    res.status(500).json({ message: 'Error fetching stories' });
   }
 });
 

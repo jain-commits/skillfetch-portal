@@ -1,6 +1,29 @@
 const mongoose = require('mongoose');
-const axios = require('axios'); // Used to fetch the images on the backend
-const { User, Job, Application } = require('./models');
+const axios = require('axios'); 
+const { User, Job, Application, Connection, Story } = require('./models');
+
+const dummyPdfBuffer = Buffer.from(
+  '%PDF-1.4\n' +
+  '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n' +
+  '2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj\n' +
+  '3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj\n' +
+  '4 0 obj<</Length 50>>stream\n' +
+  'BT /F1 12 Tf 72 712 Td (SkillFetch Resume - Sample PDF) Tj ET\n' +
+  'endstream\n' +
+  'endobj\n' +
+  'xref\n' +
+  '0 5\n' +
+  '0000000000 65535 f\n' +
+  '0000000009 00000 n\n' +
+  '0000000052 00000 n\n' +
+  '0000000096 00000 n\n' +
+  '0000000192 00000 n\n' +
+  'trailer\n' +
+  '<</Size 5/Root 1 0 R>>\n' +
+  'startxref\n' +
+  '291\n' +
+  '%%EOF'
+);
 
 // ==========================================
 // DUMMY DATA POOLS FOR GENERATION
@@ -80,113 +103,213 @@ async function downloadLogoAsBase64(domain, companyName) {
   try {
     if (!domain) throw new Error("No domain");
     const url = `https://logo.clearbit.com/${domain}`;
-    
-    // Download image as binary arraybuffer
-    const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 });
+    const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 3000 });
     const base64 = Buffer.from(response.data, 'binary').toString('base64');
     const contentType = response.headers['content-type'] || 'image/png';
-    
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
-    // Fallback directly to a pre-rendered text avatar link if the download fails
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(companyName)}&background=0056b3&color=fff&size=128`;
   }
 }
 
-// ==========================================
-// NEW HAND-CRAFTED IT/SOFTWARE JOBS
-// ==========================================
-const additionalJobsToSeed = [
-  // --- WEB DESIGN & UI/UX ---
-  { title: "Senior Web Designer", companyName: "CreativePulse Agency", category: "Design & Creative", type: "Full-time", location: "New York, NY", salaryRange: "$80,000 - $110,000", experienceLevel: "Senior", skillsRequired: "Figma, Adobe XD, HTML, CSS", description: "<p>We are seeking a visionary Web Designer to craft stunning, user-centric interfaces for our global clients.</p><ul><li>Design responsive web layouts</li><li>Collaborate with frontend teams</li><li>Conduct UX research</li></ul>", qualifications: "BFA in Design or equivalent, 5+ years of agency experience." },
-  { title: "UI/UX Product Designer", companyName: "FinTech Innovators", category: "Design & Creative", type: "Remote", location: "Remote", salaryRange: "$90,000 - $125,000", experienceLevel: "Mid-Level", skillsRequired: "Sketch, InVision, Wireframing, Prototyping", description: "<p>Join our core product team to improve the usability and aesthetic of our financial dashboard.</p>", qualifications: "3+ years designing complex SaaS products. Strong portfolio required." },
-  { title: "Junior Web/Graphic Designer", companyName: "LocalEats App", category: "Design & Creative", type: "Part-time", location: "Austin, TX", salaryRange: "$40,000 - $55,000", experienceLevel: "Junior", skillsRequired: "Photoshop, Illustrator, Webflow", description: "<p>Help us create engaging marketing websites and app assets for local restaurants.</p>", qualifications: "Degree in Graphic Design, strong understanding of typography and color theory." },
-  { title: "Interaction Designer", companyName: "NextGen Gaming", category: "Design & Creative", type: "Full-time", location: "Seattle, WA", salaryRange: "$100,000 - $140,000", experienceLevel: "Mid-Level", skillsRequired: "Figma, Principle, After Effects", description: "<p>Create fluid micro-interactions and animations for our gaming community web portal.</p>", qualifications: "Experience with motion design and interactive web elements." },
-  { title: "Accessibility Specialist (UX)", companyName: "GovTech Solutions", category: "Design & Creative", type: "Contract", location: "Washington, D.C.", salaryRange: "$70,000 - $90,000", experienceLevel: "Mid-Level", skillsRequired: "WCAG 2.1, ARIA, Screen Readers, HTML", description: "<p>Audit and redesign public-facing websites to ensure 100% ADA compliance and usability for all.</p>", qualifications: "Deep knowledge of web accessibility standards." },
-
-  // --- ANDROID DEVELOPMENT ---
-  { title: "Android Mobile Engineer", companyName: "HealthTrack", category: "Mobile Development", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $140,000", experienceLevel: "Mid-Level", skillsRequired: "Kotlin, Android SDK, MVVM, Coroutines", description: "<p>Build life-saving features for our health tracking Android application used by millions.</p>", qualifications: "3+ years in native Android development. Published apps in the Play Store." },
-  { title: "Senior Android Developer", companyName: "RideShare Co.", category: "Mobile Development", type: "Full-time", location: "San Francisco, CA", salaryRange: "$150,000 - $190,000", experienceLevel: "Senior", skillsRequired: "Kotlin, Java, Jetpack Compose, Dagger/Hilt", description: "<p>Lead a squad of mobile engineers optimizing our driver-facing Android app for real-time geolocation.</p>", qualifications: "6+ years Android experience, strong background in app architecture." },
-  { title: "Android Developer Intern", companyName: "EdTech World", category: "Mobile Development", type: "Internship", location: "Boston, MA", salaryRange: "$20/hr", experienceLevel: "Junior", skillsRequired: "Java, Kotlin basics, Android Studio", description: "<p>Learn and contribute to our language-learning app alongside senior mobile engineers.</p>", qualifications: "Currently pursuing a BS in Computer Science." },
-  { title: "Android UI/App Developer", companyName: "StreamFlix", category: "Mobile Development", type: "Full-time", location: "Los Angeles, CA", salaryRange: "$120,000 - $150,000", experienceLevel: "Mid-Level", skillsRequired: "Kotlin, ExoPlayer, Android TV", description: "<p>Focus on delivering a seamless, high-performance video streaming experience on Android mobile and TV.</p>", qualifications: "Experience with media playback and complex UI on Android." },
-  { title: "React Native Developer (Android Focus)", companyName: "E-Shop Global", category: "Mobile Development", type: "Contract", location: "Remote", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "React Native, Redux, Android Native Modules", description: "<p>Bridge the gap between our React Native codebase and native Android OS features.</p>", qualifications: "Strong JavaScript skills and experience linking native Android libraries." },
-
-  // --- iOS DEVELOPMENT ---
-  { title: "iOS App Developer", companyName: "FitLife Apps", category: "Mobile Development", type: "Full-time", location: "Denver, CO", salaryRange: "$105,000 - $135,000", experienceLevel: "Mid-Level", skillsRequired: "Swift, UIKit, CoreBluetooth", description: "<p>Develop features to sync our iOS app with external Bluetooth fitness hardware.</p>", qualifications: "3+ years of iOS development. Experience with hardware integration is a plus." },
-  { title: "Lead iOS Engineer", companyName: "SecureBank", category: "Mobile Development", type: "Full-time", location: "New York, NY", salaryRange: "$160,000 - $200,000", experienceLevel: "Senior", skillsRequired: "Swift, SwiftUI, Combine, Security", description: "<p>Architect the next generation of our mobile banking app using SwiftUI and Combine.</p>", qualifications: "7+ years in iOS. Deep understanding of mobile security protocols." },
-  { title: "Junior iOS Developer", companyName: "TravelBuddy", category: "Mobile Development", type: "Full-time", location: "Miami, FL", salaryRange: "$70,000 - $90,000", experienceLevel: "Junior", skillsRequired: "Swift, MapKit, CoreLocation", description: "<p>Help build interactive maps and routing features for our travel companion application.</p>", qualifications: "Bootcamp graduate or BS in CS. 1 published iOS app (can be a personal project)." },
-  { title: "iOS UI Engineer", companyName: "PhotoMagic App", category: "Mobile Development", type: "Contract", location: "Remote", salaryRange: "$60 - $80/hr", experienceLevel: "Mid-Level", skillsRequired: "SwiftUI, CoreGraphics, CoreImage", description: "<p>Create highly custom, buttery-smooth photo editing interfaces using SwiftUI.</p>", qualifications: "Strong eye for design and deep knowledge of Apple's rendering frameworks." },
-  { title: "Flutter Developer (iOS/Android)", companyName: "Startup Launchpad", category: "Mobile Development", type: "Full-time", location: "Chicago, IL", salaryRange: "$95,000 - $125,000", experienceLevel: "Mid-Level", skillsRequired: "Dart, Flutter, iOS Deployment", description: "<p>Build cross-platform MVPs for early-stage startups with a focus on native-like iOS performance.</p>", qualifications: "2+ years of Flutter experience and knowledge of App Store Connect." },
-
-  // --- FRONTEND DEVELOPMENT ---
-  { title: "Frontend React Developer", companyName: "CloudCRM", category: "Frontend Development", type: "Full-time", location: "Remote", salaryRange: "$100,000 - $130,000", experienceLevel: "Mid-Level", skillsRequired: "React, Redux Toolkit, Tailwind CSS, TypeScript", description: "<p>Develop complex single-page applications for our flagship CRM software.</p>", qualifications: "3+ years working with React and modern frontend build tools." },
-  { title: "Senior Vue.js Engineer", companyName: "DataDash", category: "Frontend Development", type: "Full-time", location: "Toronto, ON", salaryRange: "$120,000 - $150,000", experienceLevel: "Senior", skillsRequired: "Vue 3, Pinia, Vite, Chart.js", description: "<p>Architect our high-performance data visualization dashboards using Vue 3 and Composition API.</p>", qualifications: "5+ years frontend experience, mastery of Vue ecosystem." },
-  { title: "Web Accessibility Engineer", companyName: "Inclusive Web", category: "Frontend Development", type: "Contract", location: "Remote", salaryRange: "$80,000 - $110,000", experienceLevel: "Mid-Level", skillsRequired: "HTML5, ARIA, JavaScript, Jest", description: "<p>Refactor existing React components to meet strict WCAG 2.1 AA compliance.</p>", qualifications: "Experience with screen readers and keyboard navigation testing." },
-  { title: "Angular Developer", companyName: "Enterprise Solutions Tech", category: "Frontend Development", type: "Full-time", location: "Dallas, TX", salaryRange: "$105,000 - $135,000", experienceLevel: "Mid-Level", skillsRequired: "Angular 14+, RxJS, TypeScript, SCSS", description: "<p>Maintain and expand our large-scale internal ERP systems using modern Angular practices.</p>", qualifications: "Strong OOP concepts and extensive experience with RxJS streams." },
-  { title: "Junior Frontend Developer", companyName: "Digital Marketing Pro", category: "Frontend Development", type: "Part-time", location: "Remote", salaryRange: "$45,000 - $60,000", experienceLevel: "Junior", skillsRequired: "HTML, CSS, JavaScript, WordPress", description: "<p>Build pixel-perfect landing pages and email templates for our marketing campaigns.</p>", qualifications: "Basic understanding of DOM manipulation and CSS Flexbox/Grid." },
-
-  // --- BACKEND DEVELOPMENT ---
-  { title: "Node.js Backend Engineer", companyName: "API Forge", category: "Backend Development", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $145,000", experienceLevel: "Mid-Level", skillsRequired: "Node.js, Express, MongoDB, Redis", description: "<p>Design and build scalable RESTful APIs handling millions of requests per day.</p>", qualifications: "3+ years of backend Node.js experience. Knowledge of caching strategies." },
-  { title: "Senior Python/Django Developer", companyName: "NewsCorp Digital", category: "Backend Development", type: "Full-time", location: "New York, NY", salaryRange: "$140,000 - $180,000", experienceLevel: "Senior", skillsRequired: "Python, Django, PostgreSQL, Celery", description: "<p>Lead the backend infrastructure for our high-traffic content delivery and syndication platform.</p>", qualifications: "6+ years Python experience. Expertise in database query optimization." },
-  { title: "Java Spring Boot Engineer", companyName: "Global Logistics", category: "Backend Development", type: "Full-time", location: "Atlanta, GA", salaryRange: "$115,000 - $150,000", experienceLevel: "Mid-Level", skillsRequired: "Java, Spring Boot, Microservices, Kafka", description: "<p>Develop microservices for our real-time supply chain tracking system.</p>", qualifications: "Solid understanding of Java 11+, Spring framework, and event-driven architecture." },
-  { title: "Go (Golang) Developer", companyName: "CloudScale Systems", category: "Backend Development", type: "Remote", location: "Remote", salaryRange: "$130,000 - $165,000", experienceLevel: "Senior", skillsRequired: "Golang, gRPC, Docker, Kubernetes", description: "<p>Rewrite legacy Ruby services into highly concurrent and efficient Go microservices.</p>", qualifications: "Experience in building distributed systems using Go." },
-  { title: "Junior PHP/Laravel Developer", companyName: "WebShop Creatives", category: "Backend Development", type: "Full-time", location: "Orlando, FL", salaryRange: "$60,000 - $80,000", experienceLevel: "Junior", skillsRequired: "PHP, Laravel, MySQL, Git", description: "<p>Assist in building custom e-commerce backend plugins and integrating third-party payment gateways.</p>", qualifications: "Understanding of MVC architecture and basic relational databases." },
-
-  // --- FULL STACK DEVELOPMENT ---
-  { title: "Full Stack Developer (MERN)", companyName: "Startup Hub", category: "Full Stack Development", type: "Full-time", location: "Austin, TX", salaryRange: "$100,000 - $130,000", experienceLevel: "Mid-Level", skillsRequired: "MongoDB, Express, React, Node.js", description: "<p>Own features end-to-end, from crafting the React UI to defining the MongoDB schemas.</p>", qualifications: "Proven experience building full-stack applications with the MERN stack." },
-  { title: "Senior Full Stack Engineer (Next.js)", companyName: "E-Commerce Plus", category: "Full Stack Development", type: "Remote", location: "Remote", salaryRange: "$130,000 - $160,000", experienceLevel: "Senior", skillsRequired: "Next.js, TypeScript, Prisma, PostgreSQL", description: "<p>Lead the transition of our storefront to a headless Next.js architecture with SSR/SSG.</p>", qualifications: "5+ years experience. Strong understanding of server-side rendering and API routes." },
-  { title: "Full Stack Python Developer", companyName: "HealthAI", category: "Full Stack Development", type: "Full-time", location: "Boston, MA", salaryRange: "$110,000 - $140,000", experienceLevel: "Mid-Level", skillsRequired: "Python, FastAPI, React, Docker", description: "<p>Build internal tools and dashboards that interface directly with our machine learning models.</p>", qualifications: "Experience connecting React frontends to Python/FastAPI backends." },
-  { title: "C# / .NET Full Stack Developer", companyName: "Enterprise Finance Hub", category: "Full Stack Development", type: "Full-time", location: "Charlotte, NC", salaryRange: "$115,000 - $145,000", experienceLevel: "Mid-Level", skillsRequired: "C#, .NET Core, Angular, SQL Server", description: "<p>Develop secure, robust internal banking applications using the Microsoft technology stack.</p>", qualifications: "4+ years working in corporate environments with .NET and Angular." },
-  { title: "Junior Full Stack Dev", companyName: "TechForGood Non-Profit", category: "Full Stack Development", type: "Contract", location: "Remote", salaryRange: "$55,000 - $75,000", experienceLevel: "Junior", skillsRequired: "JavaScript, React, Firebase", description: "<p>Help build scalable web platforms to coordinate volunteer efforts globally using Firebase.</p>", qualifications: "Personal projects demonstrating full-stack capability using serverless/BaaS." },
-
-  // --- CLOUD / DEVOPS ---
-  { title: "Cloud Infrastructure Engineer", companyName: "NetOps Global", category: "Cloud & DevOps", type: "Full-time", location: "Remote", salaryRange: "$130,000 - $170,000", experienceLevel: "Senior", skillsRequired: "AWS, Terraform, CI/CD, Linux", description: "<p>Design and deploy infrastructure as code (IaC) to support highly available microservices.</p>", qualifications: "AWS Certified Solutions Architect. 4+ years of DevOps experience." },
-  { title: "DevOps Engineer", companyName: "SaaS Builders", category: "Cloud & DevOps", type: "Full-time", location: "Seattle, WA", salaryRange: "$120,000 - $150,000", experienceLevel: "Mid-Level", skillsRequired: "Docker, Kubernetes, GitHub Actions, Python", description: "<p>Streamline our developer experience by optimizing deployment pipelines and container orchestration.</p>", qualifications: "Hands-on experience managing Kubernetes clusters in production." },
-  { title: "Site Reliability Engineer (SRE)", companyName: "FinTech Innovators", category: "Cloud & DevOps", type: "Full-time", location: "New York, NY", salaryRange: "$140,000 - $180,000", experienceLevel: "Senior", skillsRequired: "Prometheus, Grafana, AWS, Go/Python", description: "<p>Ensure 99.99% uptime for our core transaction systems. Lead incident response and post-mortems.</p>", qualifications: "Deep understanding of observability, networking, and system performance tuning." },
-  { title: "Azure Cloud Architect", companyName: "CorpSolutions", category: "Cloud & DevOps", type: "Contract", location: "Dallas, TX", salaryRange: "$80 - $110/hr", experienceLevel: "Senior", skillsRequired: "Azure, ARM Templates, Azure DevOps", description: "<p>Migrate legacy on-premise Windows applications into a modern Azure cloud environment.</p>", qualifications: "10+ years IT experience, recent focus on Microsoft Azure migrations." },
-  { title: "Junior Cloud Administrator", companyName: "HostWeb Inc", category: "Cloud & DevOps", type: "Full-time", location: "Remote", salaryRange: "$65,000 - $85,000", experienceLevel: "Junior", skillsRequired: "Linux Admin, Bash scripting, AWS EC2", description: "<p>Monitor server health, manage backups, and handle level 2 support escalations for cloud servers.</p>", qualifications: "CompTIA Linux+ or AWS Cloud Practitioner certification." },
-
-  // --- DATA / AI / ML ---
-  { title: "Data Scientist", companyName: "Retail Analytics", category: "Data Science & AI", type: "Full-time", location: "Chicago, IL", salaryRange: "$110,000 - $145,000", experienceLevel: "Mid-Level", skillsRequired: "Python, Pandas, Scikit-Learn, SQL", description: "<p>Analyze consumer purchasing behavior to build predictive models for inventory management.</p>", qualifications: "MS in Statistics, Computer Science, or Data Science." },
-  { title: "Machine Learning Engineer", companyName: "Visionary AI", category: "Data Science & AI", type: "Full-time", location: "San Jose, CA", salaryRange: "$150,000 - $190,000", experienceLevel: "Senior", skillsRequired: "PyTorch, TensorFlow, Computer Vision", description: "<p>Develop and deploy state-of-the-art computer vision models for autonomous drone navigation.</p>", qualifications: "Ph.D. or MS with 4+ years industry experience in Deep Learning." },
-  { title: "Data Analyst", companyName: "Media Streamers", category: "Data Science & AI", type: "Full-time", location: "Remote", salaryRange: "$75,000 - $95,000", experienceLevel: "Junior", skillsRequired: "SQL, Tableau, Excel, Basic Python", description: "<p>Create visual dashboards and daily reports tracking user engagement and retention metrics.</p>", qualifications: "Strong analytical skills and proficiency in data visualization tools." },
-  { title: "Data Engineer", companyName: "BigData Corp", category: "Data Science & AI", type: "Full-time", location: "Austin, TX", salaryRange: "$125,000 - $160,000", experienceLevel: "Mid-Level", skillsRequired: "Apache Spark, Airflow, Snowflake, Python", description: "<p>Build scalable ETL pipelines to ingest terabytes of raw data into our Snowflake data warehouse.</p>", qualifications: "Experience with distributed data processing and cloud data warehouses." },
-  { title: "AI Prompt Engineer / NLP Specialist", companyName: "ChatBot Solutions", category: "Data Science & AI", type: "Contract", location: "Remote", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "OpenAI API, Prompting, Python, LangChain", description: "<p>Optimize LLM prompts and integrate LangChain to build intelligent customer support agents.</p>", qualifications: "Experience working with GPT-based models and natural language processing." },
-
-  // --- QA / TESTING ---
-  { title: "QA Automation Engineer", companyName: "QualityFirst Soft", category: "QA & Testing", type: "Full-time", location: "Remote", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "Selenium, Cypress, JavaScript, CI/CD", description: "<p>Build end-to-end automated testing suites for our primary web application using Cypress.</p>", qualifications: "3+ years writing automated test scripts in JavaScript/TypeScript." },
-  { title: "Software Test Engineer (Manual)", companyName: "GameStudios", category: "QA & Testing", type: "Contract", location: "Los Angeles, CA", salaryRange: "$50,000 - $70,000", experienceLevel: "Junior", skillsRequired: "Jira, Bug Tracking, Test Cases", description: "<p>Playtest unreleased game builds, identify bugs, and write detailed reproduction steps in Jira.</p>", qualifications: "High attention to detail and passion for gaming software." },
-  { title: "SDET (Software Dev Engineer in Test)", companyName: "SecureBank", category: "QA & Testing", type: "Full-time", location: "New York, NY", salaryRange: "$130,000 - $160,000", experienceLevel: "Senior", skillsRequired: "Java, Appium, Selenium, RestAssured", description: "<p>Architect the testing framework for both our mobile and backend API banking services.</p>", qualifications: "Ability to write production-level code to test production code." },
-  { title: "Performance / Load Tester", companyName: "EventTix", category: "QA & Testing", type: "Full-time", location: "Remote", salaryRange: "$100,000 - $130,000", experienceLevel: "Mid-Level", skillsRequired: "JMeter, Gatling, AWS, Datadog", description: "<p>Simulate high-traffic events to ensure our ticketing system can handle massive traffic spikes.</p>", qualifications: "Experience designing load/stress tests and analyzing server bottlenecks." },
-  { title: "Mobile QA Tester", companyName: "AppMakers", category: "QA & Testing", type: "Part-time", location: "Denver, CO", salaryRange: "$30/hr", experienceLevel: "Junior", skillsRequired: "iOS/Android testing, TestFlight, ADB", description: "<p>Test daily beta builds of native apps on physical iOS and Android devices.</p>", qualifications: "Familiarity with mobile operating systems and mobile debugging tools." },
-
-  // --- CYBERSECURITY / IT SUPPORT ---
-  { title: "Cybersecurity Analyst", companyName: "DefendTech", category: "IT & Security", type: "Full-time", location: "Washington, D.C.", salaryRange: "$95,000 - $125,000", experienceLevel: "Mid-Level", skillsRequired: "SIEM, Network Security, Incident Response", description: "<p>Monitor network traffic for anomalies, investigate security breaches, and fortify defenses.</p>", qualifications: "Security+, CEH, or CISSP certification preferred." },
-  { title: "Penetration Tester (Ethical Hacker)", companyName: "RedTeam Consulting", category: "IT & Security", type: "Contract", location: "Remote", salaryRange: "$120,000 - $160,000", experienceLevel: "Senior", skillsRequired: "Kali Linux, Metasploit, Burp Suite, WebSec", description: "<p>Conduct authorized simulated cyberattacks on client infrastructure to identify vulnerabilities.</p>", qualifications: "OSCP certification and 5+ years of proven pentesting experience." },
-  { title: "IT Support Specialist", companyName: "Corporate Office Co.", category: "IT & Security", type: "Full-time", location: "Chicago, IL", salaryRange: "$55,000 - $75,000", experienceLevel: "Junior", skillsRequired: "Windows OS, Active Directory, Office 365, Troubleshooting", description: "<p>Provide tier 1 and 2 helpdesk support to internal employees for hardware and software issues.</p>", qualifications: "Excellent communication skills and A+ certification." },
-  { title: "Network Engineer", companyName: "Telecom Next", category: "IT & Security", type: "Full-time", location: "Atlanta, GA", salaryRange: "$90,000 - $120,000", experienceLevel: "Mid-Level", skillsRequired: "Cisco, Routing, Switching, Firewalls", description: "<p>Design, implement, and maintain enterprise local and wide area networks.</p>", qualifications: "CCNA or CCNP certification required. Experience with enterprise routers/switches." },
-  { title: "Identity & Access Management (IAM) Engineer", companyName: "Global FinServ", category: "IT & Security", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $140,000", experienceLevel: "Senior", skillsRequired: "Okta, Active Directory, SAML, OAuth", description: "<p>Manage SSO and RBAC solutions to ensure secure access to enterprise applications.</p>", qualifications: "Experience deploying and managing enterprise IAM solutions like Okta or Ping." }
+// 50 India-focused career stories
+const careerStories = [
+  { title: "The Rise of GCCs in India: A Hub for High-Paying Tech Jobs", summary: "Global Capability Centers are expanding rapidly in Bangalore and Hyderabad, offering premium compensation packages.", content: "Global Capability Centers (GCCs) have transformed from cost centers to innovation cores for multinational corporations. India now hosts over 1,600 GCCs employing more than 1.6 million professionals. Cities like Bangalore, Hyderabad, Pune, and Chennai are seeing a surge in recruitment for advanced roles in AI, cloud architecture, and cybersecurity. GCCs offer competitive packages, often outperforming local service providers by 30-40%.", author: "Rohan Sen", readTime: "4 min read" },
+  { title: "Why Bangalore Remains India's Premier Tech Launchpad", summary: "Despite infrastructure challenges, Bangalore's unparalleled talent density and startup ecosystem keep it at the top.", content: "Known as the Silicon Valley of India, Bangalore continues to attract the country's best engineers and venture capital. With thousands of startups, unicorns, and multinational research labs, the city remains the top hub for software engineers. While cities like Kochi, Trivandrum, and Pune are catching up, Bangalore's networking opportunities and tech events are unmatched.", author: "Ananya Iyer", readTime: "5 min read" },
+  { title: "The Emergence of Pune and Hyderabad as Cyber Security Hubs", summary: "National security needs and enterprise cloud shifts have led to massive hiring in cybersecurity across these cities.", content: "Pune and Hyderabad are experiencing a massive hiring boom in cyber forensics, security operations centers (SOC), and cloud security. Many defense contractors and fintech firms have opened centers here, boosting the average starting salary for certified cybersecurity specialists to ₹8-12 LPA for fresh graduates.", author: "Amit Verma", readTime: "3 min read" },
+  { title: "How to Negotiate Your CTC: A Guide for Indian IT Professionals", summary: "Understanding basic salary components like basic, HRA, special allowances, and variable pay can help you negotiate better.", content: "Negotiating your CTC (Cost to Company) requires a thorough understanding of the salary slip. Make sure to distinguish between fixed base pay, variables, performance bonuses, and long-term benefits like ESOPs and gratuity. Industry experts suggest highlighting your key skills, certs, and project results during HR rounds rather than just asking for a percentage raise.", author: "Priya Sharma", readTime: "5 min read" },
+  { title: "Kochi and Trivandrum: Kerala's Tech Corridors See Double-Digit Growth", summary: "Lower cost of living and high quality of life are attracting remote workers and top tech firms to Kerala's IT parks.", content: "Infopark Kochi and Technopark Trivandrum are recording record growth rates. A shift toward hybrid work and government support has led to major tech brands establishing operations in Kerala. Professionals enjoy a balanced lifestyle, scenic settings, and lower rents compared to traditional tier-1 metros.", author: "Jithin Mathew", readTime: "4 min read" },
+  { title: "The Growing Demand for AI and Prompt Engineers in Mumbai's Finance Sector", summary: "Investment banks and fintech institutions in India's financial capital are actively recruiting AI prompt engineers.", content: "Mumbai's financial services industry is integrating Generative AI into fraud detection, risk management, and customer advisory. There is an increasing demand for developers who can bridge the gap between financial models and Large Language Models, leading to a new breed of AI prompt engineers in the financial capital.", author: "Sneha Patil", readTime: "4 min read" },
+  { title: "How the New Tax Regime Impacts Tech Salaries in India", summary: "A breakdown of tax slab updates and their direct impact on the take-home pay of tech professionals.", content: "The Indian Union Budget's modifications to the New Tax Regime aim to put more disposable income in the hands of taxpayers. For mid-level techies earning between ₹7 Lakh and ₹15 Lakh, the changes offer considerable savings, reducing tax burdens and increasing monthly take-home salary, which in turn boosts local tech sector spend.", author: "Vikram Mehta", readTime: "3 min read" },
+  { title: "Top 10 Technical Skills Indian Startups are Looking for in 2026", summary: "From React and Next.js to Rust, Docker, and Kubernetes, these are the technologies driving startup job descriptions.", content: "The job market has matured, and startups are seeking highly modular skills. Key tech stacks include the MERN stack, Next.js, FastAPI, Rust for high-performance systems, Go for microservices, and DevOps skills like Docker, Terraform, and Kubernetes. Soft skills, especially remote coordination, are equally valued.", author: "Rishabh Das", readTime: "6 min read" },
+  { title: "Work From Home vs. Hybrid: What Indian Tech Companies are Deciding", summary: "Major tech giants are calling employees back 3 days a week, but startups continue to offer flexible hybrid schedules.", content: "While IT service firms are mandating physical office presence to foster collaboration and IP security, product startups and GCCs are adopting structured hybrid schedules (2-3 days in office). Employee surveys indicate that flexibility remains a top priority when choosing a new employer.", author: "Kavita Rao", readTime: "4 min read" },
+  { title: "Why Green Jobs are the Next Big Thing in India's Renewable Shift", summary: "Solar developers, EV grid engineers, and ESG auditors are seeing unprecedented demand for their expertise.", content: "India's target of reaching net-zero carbon emissions is accelerating the green economy. High-growth roles include Battery Management System (BMS) engineers, solar installation planners, and corporate ESG (Environmental, Social, and Governance) compliance auditors. Salaries in this sector have grown by 25% year-on-year.", author: "Rajesh Nair", readTime: "4 min read" },
+  { title: "Transitioning from Service-Based to Product-Based Companies", summary: "A step-by-step roadmap to cross the bridge and land roles at product companies.", content: "Moving from a service-oriented company to a product-oriented one requires a shift in mindset. Product firms focus heavily on deep problem-solving, System Design, and Data Structures. Candidates should build strong portfolios, contribute to open-source, and focus on coding platforms like LeetCode and HackerRank.", author: "Fasil V", readTime: "5 min read" },
+  { title: "Electric Vehicle Sector to Create Over 10 Lakh Jobs in India by 2030", summary: "The EV boom is creating jobs not just in manufacturing, but also in software, battery tech, and charging networks.", content: "The shift toward clean transport is driving hiring across the EV value chain. India's EV companies are hiring thermal engineers, embedded software developers, and charging network operations managers. Traditional auto hubs like Chennai and Pune are pivoting rapidly to support this growth.", author: "Ajay S", readTime: "4 min read" },
+  { title: "The Gig Economy: Freelance Software Development Trends in India", summary: "Freelancing is no longer just a side hustle; many Indian developers are building successful full-time careers.", content: "With platforms like Upwork and Toptal, Indian developers are working for international clients. High demand exists for full-stack developers, mobile app experts, and cloud architects. Successful freelancers highlight the importance of communication, time management, and direct contract agreements.", author: "Jain Jose", readTime: "4 min read" },
+  { title: "Why Python Remains the King of Data Science and Machine Learning", summary: "Python's rich library ecosystem keeps it at the core of all AI developments in Indian technology centers.", content: "From Pandas and NumPy to PyTorch and TensorFlow, Python is the foundation of data engineering and machine learning. Recruiters in Bangalore and Hyderabad suggest that while SQL is essential, a deep understanding of Python and mathematical statistics is what sets candidates apart.", author: "Karthi S", readTime: "3 min read" },
+  { title: "How to Build a Portfolio that Grabs the Attention of Tech Recruiters", summary: "Create real-world, working applications instead of generic todo list apps to showcase your capabilities.", content: "A recruiter spends less than 30 seconds on a resume. To stand out, candidates must link to deployed, functional projects. Describe the problem solved, architectural decisions, and include clear documentation on GitHub. A portfolio with 2 unique projects is better than 10 generic ones.", author: "Dixon Anto", readTime: "4 min read" },
+  { title: "The Role of System Design in Senior Tech Interviews", summary: "Why understanding load balancing, caching, and database sharding is critical for senior engineering roles.", content: "For developers with 5+ years of experience, interviews shift from coding syntax to system architecture. Candidates must explain how to build scalable, fault-tolerant systems. Focus on message queues like Kafka, memory caches like Redis, and SQL vs. NoSQL choices.", author: "Rohan Sen", readTime: "5 min read" },
+  { title: "Understanding ESOPs: How Equity Compensation Works in Indian Startups", summary: "ESOPs can be highly lucrative, but you must understand vesting schedules, strike prices, and tax implications.", content: "Employee Stock Ownership Plans (ESOPs) are a key tool to attract top talent. However, many candidates don't read the fine print. Ensure you understand the vesting cliff, the exercise period, and how tax is calculated upon exercise to maximize your equity earnings.", author: "Neha Gupta", readTime: "5 min read" },
+  { title: "Why Cloud Certifications (AWS, Azure, GCP) are Highly Valued", summary: "Get certified to validate your cloud computing skills and boost your job search prospects.", content: "Cloud migrations are at an all-time high. Having certifications like AWS Solutions Architect or Azure Administrator proves your knowledge. Recruiters use these certifications to filter candidates, particularly for DevOps, SRE, and cloud migration roles.", author: "Suresh Kumar", readTime: "4 min read" },
+  { title: "How to Master Technical Communication for Remote Global Teams", summary: "Writing clear pull request descriptions, documentation, and asynchronous updates is vital in remote setups.", content: "As more Indian engineers work for global remote companies, written communication has become a core technical skill. Be concise, document assumptions, and use diagrams to explain complex ideas. Good communication reduces bugs and builds trust in remote environments.", author: "Deepa Nair", readTime: "4 min read" },
+  { title: "Data Science vs. Data Engineering: Which Path is Right for You?", summary: "Data Science builds models, while Data Engineering builds the pipelines. Understand the key differences.", content: "Many fresh graduates confuse the two fields. Data Engineering is software engineering focused on data pipelines, ETL, and warehousing (Spark, Snowflake). Data Science focuses on modeling, statistics, and machine learning (Python, R). Choose based on your interest in software design vs. math.", author: "Arun Paul", readTime: "4 min read" },
+  { title: "Why Rust is Gaining Traction in Indian FinTech Companies", summary: "Rust's memory safety and performance make it the preferred language for high-speed transaction engines.", content: "High-frequency trading firms and payment gateways are adopting Rust to replace legacy C++ systems. The language provides unmatched performance with zero memory leaks, reducing server infrastructure costs and latency for critical financial systems.", author: "Vijay K", readTime: "4 min read" },
+  { title: "Gig Workers Rights and Policy Changes in India's Tech Space", summary: "An analysis of how upcoming regulations aim to protect and provide social security to gig workers.", content: "The Indian government is implementing new labor codes to provide social security, health benefits, and insurance to gig workers and freelancers. Tech companies are adjusting their contractor models to comply with these worker-centric regulations.", author: "Maya Devi", readTime: "5 min read" },
+  { title: "Why Product Management has Become a Highly Coveted Job in India", summary: "Bridging business, technology, and user experience, PMs are the mini-CEOs of tech products.", content: "With the boom in consumer internet apps, PMs are critical to coordinate engineering and design. The role requires strong analytical skills, empathy, and strategic thinking. Transitioning from engineering to product management is a common and lucrative path.", author: "Siddharth Roy", readTime: "4 min read" },
+  { title: "Women in Tech: Mentorship and Leadership Programs in Indian Metros", summary: "Highlighting initiatives and groups designed to support female tech professionals in their career growth.", content: "Organizations like Women Who Code and Lean In are active in major tech hubs, providing mentorship, coding bootcamps, and leadership training. Many corporations are setting diversity hiring targets, making it a great time for women to step into leadership roles.", author: "Rani Joseph", readTime: "4 min read" },
+  { title: "How to Prepare for the Technical Screening Round at Top Startups", summary: "Expect live coding, debugging, and API integration tasks during startup technical filters.", content: "Startups move fast and need engineers who can write clean, production-ready code immediately. Technical screens often involve writing a small server, integrating third-party APIs, or live coding on platforms like Zoom. Practice time-boxed tasks to succeed.", author: "Alok Singh", readTime: "3 min read" },
+  { title: "The Impact of 5G Rollout on IoT and Telecom Jobs in India", summary: "The deployment of 5G infrastructure is creating a massive demand for network planners and IoT architects.", content: "Telecom companies and industrial manufacturers are hiring for 5G network integration, radio frequency planning, and IoT application development. Cities with early 5G rollouts are seeing localized hiring booms in advanced communications.", author: "George Kutty", readTime: "4 min read" },
+  { title: "Mental Health Initiatives: How Tech Companies are Combating Burnout", summary: "Wellness allowances, mandatory leaves, and therapy sessions are becoming standard benefits.", content: "Long hours and tight deadlines often lead to burnout. In response, progressive Indian IT firms are introducing mental health days, counseling services, and strict policies against after-hours communications to ensure work-life balance.", author: "Tara Menon", readTime: "4 min read" },
+  { title: "The Rise of Low-Code and No-Code Platforms in Corporate India", summary: "Will low-code tools replace developers, or will they enable them to focus on complex engineering?", content: "Platforms like OutSystems, Webflow, and PowerApps are widely adopted by enterprises to build internal tools quickly. Experts suggest this shifts developer tasks from basic UI creation to complex API integrations, database design, and cloud scalability.", author: "Kiran Jacob", readTime: "4 min read" },
+  { title: "How Universities in Kerala are Partnering with IT Parks for Placements", summary: "Structured internship programs are bridging the industry-academia gap in Cochin and Trivandrum.", content: "Universities are aligning their computer science curriculums with the needs of IT companies in Infopark and Technopark. This partnership ensures students work on real-world projects during their studies, boosting immediate employment post-graduation.", author: "Sonia Varghese", readTime: "4 min read" },
+  { title: "Why Cyber Security Professionals command the Highest Salary Premium", summary: "A lack of qualified specialists has led to a bidding war for top-tier security talent in India.", content: "With data breaches on the rise, organizations are investing heavily in security. The demand for security architects, ethical hackers, and compliance managers far exceeds supply. Professionals with certifications like CISSP or CEH command high salary premiums.", author: "Joseph Sunny", readTime: "4 min read" },
+  { title: "Transitioning from QA/Testing to Software Development", summary: "Tips and strategies for manual and automation testers looking to move to full-stack roles.", content: "Many testers want to build features rather than test them. Start by learning programming languages deeply, contribute to developer tasks, and build automation frameworks from scratch. Show developers you understand system architecture, not just test cases.", author: "Anjali Das", readTime: "4 min read" },
+  { title: "The Future of Devops: Platform Engineering as the Next Evolution", summary: "Platform engineering aims to improve developer experience by providing self-service portals.", content: "As cloud systems become complex, companies are building Internal Developer Platforms (IDPs). This allows developers to spin up environments and deploy code without waiting for operations teams, making Platform Engineering a highly sought-after specialization.", author: "Binu Mathew", readTime: "4 min read" },
+  { title: "Why FinTech Startups are actively hiring iOS and Android Native Developers", summary: "Providing high-security, fast mobile applications is critical for consumer trust in finance.", content: "Web-wrapper apps are no longer sufficient for fintech. Companies are rebuilding their apps natively using Swift and Kotlin to ensure cryptographic security, smooth animations, and biometrics integration, leading to high demand for native mobile devs.", author: "Shaji P", readTime: "3 min read" },
+  { title: "How to Build an ATS-Friendly Resume for Indian Corporate Openings", summary: "Use simple layouts, standard headers, and target keywords to ensure your resume reaches a human.", content: "Applicant Tracking Systems (ATS) screen resumes before recruiters see them. Avoid complex tables, graphics, and custom fonts. Use bullet points and match keywords from the job description directly in your skills and experience sections.", author: "Sandhya Nair", readTime: "4 min read" },
+  { title: "Why Database Optimization (SQL Tuning) is a Core Skill for Backend Devs", summary: "Slow queries cause server crashes. Master indexes, execution plans, and queries to write scalable code.", content: "Most application bottlenecks are in the database. Product companies look for backend engineers who can optimize complex SQL queries, design proper indexes, and understand database clustering. Tuning queries can reduce server costs by 50%.", author: "Pradeep G", readTime: "4 min read" },
+  { title: "Understanding Docker and Containers: A Beginner's Guide for Freshers", summary: "Docker ensures your application runs the same way on your laptop as it does in production.", content: "Containers package code with all dependencies. Learning how to write a Dockerfile and manage basic container tasks is now an essential skill for entry-level developers. It solves the 'it works on my machine' problem permanently.", author: "Vivek R", readTime: "4 min read" },
+  { title: "The Growth of AgriTech Startups and New Tech Roles in Rural India", summary: "Leveraging IoT, drone imagery, and predictive analytics to revolutionize farming is creating jobs.", content: "AgriTech startups are deploying technology in rural areas. Developers, data analysts, and IoT hardware engineers are working on crop monitoring, supply chain optimization, and market forecasting tools, creating impactful career opportunities.", author: "Devan Nair", readTime: "4 min read" },
+  { title: "Why Microservices Architecture has Become the Standard for Enterprise Apps", summary: "Breaking monoliths into independent services improves deployment speeds and system reliability.", content: "Microservices allow teams to deploy features independently. However, they introduce networking and data consistency challenges. Engineers must learn gRPC, REST, and event-driven concepts (Kafka, RabbitMQ) to build modern microservice backends.", author: "Gireesh K", readTime: "5 min read" },
+  { title: "How to Prepare for a System Design Interview in 4 Weeks", summary: "A structured study guide covering system design basics, caching, load balancing, and storage.", content: "System design interviews evaluate your architecture skills. Week 1: learn basic components (web servers, databases). Week 2: scale database (sharding, replication). Week 3: implement caching and load balancing. Week 4: mock interviews and system case studies.", author: "Hari Prasadh", readTime: "5 min read" },
+  { title: "The Rise of HealthTech Startups and Careers in Digital Healthcare", summary: "Telemedicine, AI diagnosis, and electronic health records are driving hiring in healthcare IT.", content: "Startups are digitizing healthcare in India. There is an increasing demand for security-conscious developers, machine learning experts for diagnostic scans, and product designers who understand doctor-patient interaction workflows.", author: "Dr. Elizabeth Thomas", readTime: "4 min read" },
+  { title: "Why Web Accessibility (WCAG) is Crucial for Modern Frontend Developers", summary: "Learn to build inclusive websites that are usable by everyone, including people with disabilities.", content: "Web accessibility ensures that websites work with screen readers and keyboard navigation. Standard practices like proper semantic HTML, ARIA labels, and color contrast ratios are now required in global product development teams.", author: "Reshma R", readTime: "4 min read" },
+  { title: "Understanding API Gateways and Rate Limiting in Microservices", summary: "API gateways manage traffic, authenticate requests, and protect services from DDoS attacks.", content: "In a microservices setup, the API gateway is the single entry point. Implementing rate limiting (using Redis or Kong) ensures that no single user can overwhelm your backend services, maintaining high availability for all users.", author: "Manu Gopal", readTime: "4 min read" },
+  { title: "The Career Path of a Developer: Junior to Tech Lead and Architect", summary: "Understand the expectations and skills required at each level of the software engineering career.", content: "Engineering career paths split into individual contributor (Architect) and management (Tech Lead/EM) tracks. Junior developers focus on coding tasks. Mid-level devs own features. Senior devs design systems and mentor others. Choose your path early.", author: "Santhosh M", readTime: "5 min read" },
+  { title: "How to Build a Successful Career in Technical Writing", summary: "Documentation is code. Good technical writers are critical to developer tools and open-source projects.", content: "Technical writing involves documenting APIs, writing tutorials, and managing developer documentation. The role requires a strong understanding of coding concepts and exceptional writing skills, and offers great pay at product-first firms.", author: "Mary Philip", readTime: "4 min read" },
+  { title: "Why Continuous Integration and Continuous Deployment (CI/CD) is Vital", summary: "Automating testing and deployment pipelines helps companies release features daily with minimal bugs.", content: "CI/CD tools like GitHub Actions, GitLab CI, and Jenkins are the backbone of modern operations. Automating test runs and container deployment ensures code changes are verified and shipped safely, reducing manual release errors.", author: "Subin Sunny", readTime: "4 min read" },
+  { title: "The Impact of Artificial Intelligence on the Future of Coding Jobs", summary: "AI tools like GitHub Copilot are assistants, not replacements. Developers must learn to pair program with AI.", content: "Generative AI can draft boilerplate code, write test scripts, and debug syntax. However, human engineers are still needed to design architectures, solve complex business logic, and verify security, shifting developer roles to higher-level design.", author: "Prof. Krishnan Nair", readTime: "5 min read" },
+  { title: "Why Indian Developers are Contributing to International Open Source Projects", summary: "Open-source contributions build global credibility, improve coding skills, and attract remote employers.", content: "Contributing to repositories like Linux, React, or Kubernetes showcases your code to a global audience. It serves as an active, verified resume that can lead to direct sponsorship or job offers from foreign startups looking for top talent.", author: "Jeevan K", readTime: "4 min read" },
+  { title: "How to Choose Between a Boot Camp, a Degree, or Self-Teaching in Tech", summary: "Evaluate costs, timeline, and learning style to find your optimal path into software development.", content: "A computer science degree teaches theory, bootcamps focus on immediate job skills, and self-teaching offers flexibility. Indian recruiters are shifting toward skill-based hiring, meaning your projects and coding test results matter more than your degree.", author: "Sumi Alex", readTime: "4 min read" },
+  { title: "The Rise of EdTech for Professionals: Upskilling Platforms in India", summary: "Indian professionals are spending heavily on executive MBA and advanced engineering courses online.", content: "Continuous learning is essential as technologies change. Platforms like upGrad, Great Learning, and Scaler Academy offer cohort-based learning for working professionals. Focus on programs that offer mentor sessions and capstone projects.", author: "Rahul Dev", readTime: "4 min read" },
+  { title: "Why System Reliability (SRE) is the Backbone of High-Traffic Websites", summary: "SREs combine operations and software engineering to maintain server health and query performance.", content: "Site Reliability Engineers write code to automate operations, manage infrastructure scaling, and configure logging and alerts (Grafana, Datadog). SREs are critical during high-traffic events, ensuring services scale automatically under load.", author: "Vinod Kumar", readTime: "4 min read" }
 ];
 
+// Seed process
 async function seedDatabase() {
   try {
     console.log('Starting Database Seed Process...');
 
-    // 1. SEED USERS (Kept completely intact)
-    let adminUser = await User.findOne({ email: 'admin@jobportal.com' });
-    if (!adminUser) {
-      adminUser = new User({ name: 'System Admin', email: 'admin@jobportal.com', password: 'admin123', role: 'admin', isSuspended: false });
-      await adminUser.save();
-    }
-    let candidateUser = await User.findOne({ email: 'fasil@jobportal.com' });
-    if (!candidateUser) {
-      candidateUser = new User({ name: 'Fasil V (Candidate)', email: 'fasil@jobportal.com', password: 'fasil123', role: 'candidate', isSuspended: false, phone: '123-456-7890', location: 'New York', bio: 'Web developer.', skills: 'React, HTML, CSS', education: 'BS Computer Science', experience: '1 year React Dev', resumeName: 'fasil_resume.pdf' });
-      await candidateUser.save();
-    }
-    let employerUser = await User.findOne({ email: 'employer@jobportal.com' });
-    if (!employerUser) {
-      employerUser = new User({ name: 'Ajay S (Employer)', email: 'employer@jobportal.com', password: 'employer123', role: 'employer', isSuspended: false, companyName: 'Aura Tech Inc', companyLocation: 'San Francisco', companyDesc: 'Creative software agency.' });
-      await employerUser.save();
+    // 1. SEED USERS (with default avatars & headlines)
+    console.log('🧹 Clearing old users...');
+    await User.deleteMany({});
+    
+    const adminUser = new User({ 
+      name: 'System Admin', 
+      email: 'admin@jobportal.com', 
+      password: 'admin123', 
+      role: 'admin', 
+      isSuspended: false,
+      avatar: 'avatar1',
+      headline: 'Platform Administrator | SkillFetch Security'
+    });
+    await adminUser.save();
+
+    const employerUser = new User({ 
+      name: 'Ajay S (Employer)', 
+      email: 'employer@jobportal.com', 
+      password: 'employer123', 
+      role: 'employer', 
+      isSuspended: false, 
+      companyName: 'Aura Tech Inc', 
+      companyLocation: 'San Francisco', 
+      companyDesc: 'Creative software agency.',
+      avatar: 'avatar2',
+      companyLogo: 'https://ui-avatars.com/api/?name=Aura+Tech&background=0056b3&color=fff&size=128',
+      headline: 'Talent Acquisition Director at Aura Tech Inc'
+    });
+    await employerUser.save();
+
+    const candidates = [
+      {
+        name: 'Fasil V',
+        email: 'fasil@jobportal.com',
+        password: 'fasil123',
+        role: 'candidate',
+        phone: '987-654-3210',
+        location: 'Bangalore, Karnataka',
+        bio: 'Passionate Frontend Developer focused on React, UI/UX, and animations. Open to full-stack roles.',
+        skills: 'React, Angular, HTML, CSS, JavaScript, TailwindCSS',
+        education: 'B.Tech in Computer Science',
+        experience: '2 years as React developer',
+        avatar: 'avatar3',
+        headline: 'Frontend Engineer | React & UX Specialist | Open to Work',
+        resumeName: 'fasil_resume.pdf',
+        resume: {
+          data: dummyPdfBuffer,
+          contentType: 'application/pdf',
+          name: 'fasil_resume.pdf'
+        }
+      },
+      {
+        name: 'Dixon Anto',
+        email: 'dixon@jobportal.com',
+        password: 'fasil123',
+        role: 'candidate',
+        phone: '994-654-3211',
+        location: 'Trivandrum, Kerala',
+        bio: 'Backend enthusiast specializing in scalable Node.js microservices and database clustering.',
+        skills: 'Node.js, Express, MongoDB, Redis, Docker, Go',
+        education: 'MCA, Kerala University',
+        experience: '3 years in backend microservices',
+        avatar: 'avatar4',
+        headline: 'Backend Engineer | Node.js & Redis Expert | Systems Architect',
+        resumeName: 'dixon_resume.pdf',
+        resume: {
+          data: dummyPdfBuffer,
+          contentType: 'application/pdf',
+          name: 'dixon_resume.pdf'
+        }
+      },
+      {
+        name: 'Karthi S',
+        email: 'karthi@jobportal.com',
+        password: 'fasil123',
+        role: 'candidate',
+        phone: '988-654-3212',
+        location: 'Chennai, Tamil Nadu',
+        bio: 'Data Engineer focused on big data ETL pipelines and Snowflake warehousing. Passionate about machine learning.',
+        skills: 'Python, Spark, Airflow, Snowflake, SQL, Pandas',
+        education: 'MS in Data Science',
+        experience: '1 year Data Engineer at TCS',
+        avatar: 'avatar5',
+        headline: 'Data Engineer | Apache Spark & Python Developer',
+        resumeName: 'karthi_resume.pdf',
+        resume: {
+          data: dummyPdfBuffer,
+          contentType: 'application/pdf',
+          name: 'karthi_resume.pdf'
+        }
+      },
+      {
+        name: 'Jain Jose',
+        email: 'jain@jobportal.com',
+        password: 'fasil123',
+        role: 'candidate',
+        phone: '989-654-3213',
+        location: 'Kochi, Kerala',
+        bio: 'Full Stack Developer with a knack for systems design and fast prototype releases.',
+        skills: 'MongoDB, Express, React, Node.js, Next.js, AWS',
+        education: 'B.Sc. in Computer Science',
+        experience: '2.5 years MERN stack developer',
+        avatar: 'avatar6',
+        headline: 'Full Stack MERN Developer | Cloud Architect',
+        resumeName: 'jain_resume.pdf',
+        resume: {
+          data: dummyPdfBuffer,
+          contentType: 'application/pdf',
+          name: 'jain_resume.pdf'
+        }
+      },
+      {
+        name: 'Deepa Nair',
+        email: 'deepa@jobportal.com',
+        password: 'fasil123',
+        role: 'candidate',
+        phone: '977-654-3214',
+        location: 'Mumbai, Maharashtra',
+        bio: 'UI/UX Designer who bridges user research and front-end interface development.',
+        skills: 'Figma, Adobe Creative Suite, CSS, HTML, Wireframing',
+        education: 'BFA in Visual Design',
+        experience: '3 years UI/UX Product Designer',
+        avatar: 'avatar7',
+        headline: 'Product UI/UX Designer | Figma Specialist',
+        resumeName: 'deepa_resume.pdf',
+        resume: {
+          data: dummyPdfBuffer,
+          contentType: 'application/pdf',
+          name: 'deepa_resume.pdf'
+        }
+      }
+    ];
+
+    const seededCandidates = [];
+    for (const cand of candidates) {
+      const userObj = new User(cand);
+      await userObj.save();
+      seededCandidates.push(userObj);
+      console.log(`👤 Seeded Candidate: ${cand.name}`);
     }
 
     // 2. PRE-DOWNLOAD UNIQUE LOGOS TO MEMORY TO SPEED UP INSERTS
@@ -228,26 +351,68 @@ async function seedDatabase() {
       });
     }
 
-    // 4. APPEND THE 50 CUSTOM IT JOBS
+    // Custom hand-crafted jobs can also be appended
+    const additionalJobsToSeed = [
+      { title: "Senior Web Designer", companyName: "CreativePulse Agency", category: "Design & Creative", type: "Full-time", location: "New York, NY", salaryRange: "$80,000 - $110,000", experienceLevel: "Senior", skillsRequired: "Figma, Adobe XD, HTML, CSS", description: "<p>We are seeking a visionary Web Designer to craft stunning, user-centric interfaces for our global clients.</p>", qualifications: "BFA in Design or equivalent, 5+ years of agency experience." },
+      { title: "UI/UX Product Designer", companyName: "FinTech Innovators", category: "Design & Creative", type: "Remote", location: "Remote", salaryRange: "$90,000 - $125,000", experienceLevel: "Mid-Level", skillsRequired: "Sketch, InVision, Wireframing, Prototyping", description: "<p>Join our core product team to improve the usability and aesthetic of our financial dashboard.</p>", qualifications: "3+ years designing complex SaaS products. Strong portfolio required." },
+      { title: "Android Mobile Engineer", companyName: "HealthTrack", category: "Mobile Development", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $140,000", experienceLevel: "Mid-Level", skillsRequired: "Kotlin, Android SDK, MVVM, Coroutines", description: "<p>Build life-saving features for our health tracking Android application used by millions.</p>", qualifications: "3+ years in native Android development. Published apps in the Play Store." },
+      { title: "Frontend React Developer", companyName: "CloudCRM", category: "Frontend Development", type: "Full-time", location: "Remote", salaryRange: "$100,000 - $130,000", experienceLevel: "Mid-Level", skillsRequired: "React, Redux Toolkit, Tailwind CSS, TypeScript", description: "<p>Develop complex single-page applications for our flagship CRM software.</p>", qualifications: "3+ years working with React and modern frontend build tools." },
+      { title: "Node.js Backend Engineer", companyName: "API Forge", category: "Backend Development", type: "Full-time", location: "Remote", salaryRange: "$110,000 - $145,000", experienceLevel: "Mid-Level", skillsRequired: "Node.js, Express, MongoDB, Redis", description: "<p>Design and build scalable RESTful APIs handling millions of requests per day.</p>", qualifications: "3+ years of backend Node.js experience." }
+    ];
+
     for (const customJob of additionalJobsToSeed) {
       jobsToInsert.push({
         ...customJob,
         employerId: employerUser._id,
         source: 'SkillFetch',
-        // Fallback UI Avatar for custom companies
         companyLogo: `https://ui-avatars.com/api/?name=${encodeURIComponent(customJob.companyName)}&background=0056b3&color=fff&size=128`
       });
     }
 
     const insertedJobs = await Job.insertMany(jobsToInsert);
-    console.log(`✅ Successfully stored ${insertedJobs.length} jobs with built-in images inside MongoDB!`);
+    console.log(`✅ Successfully stored ${insertedJobs.length} jobs inside MongoDB!`);
 
-    // 5. SEED APPLICATION
-    const appCount = await Application.countDocuments();
-    if (appCount === 0 && insertedJobs.length > 0 && candidateUser) {
-      const application = new Application({ jobId: insertedJobs[0]._id, candidateId: candidateUser._id, status: 'Applied', coverLetter: 'Applying with database-backed profile data.' });
+    // 4. SEED APPLICATION
+    await Application.deleteMany({});
+    console.log('🧹 Cleared old applications.');
+    if (insertedJobs.length > 0 && seededCandidates.length > 0) {
+      const application = new Application({ 
+        jobId: insertedJobs[0]._id, 
+        candidateId: seededCandidates[0]._id, 
+        status: 'Applied', 
+        coverLetter: 'Applying with database-backed profile data.' 
+      });
       await application.save();
+      console.log('📝 Seeded sample application.');
     }
+
+    // 5. SEED CONNECTIONS
+    await Connection.deleteMany({});
+    console.log('🧹 Cleared old connections.');
+    // Dixon requests connection to Fasil
+    if (seededCandidates.length > 1) {
+      const conn1 = new Connection({
+        senderId: seededCandidates[1]._id,
+        receiverId: seededCandidates[0]._id,
+        status: 'pending'
+      });
+      await conn1.save();
+
+      // Karthi and Fasil are already connected
+      const conn2 = new Connection({
+        senderId: seededCandidates[2]._id,
+        receiverId: seededCandidates[0]._id,
+        status: 'accepted'
+      });
+      await conn2.save();
+      console.log('🔗 Seeded sample connections.');
+    }
+
+    // 6. SEED INDIA-FOCUSED STORIES
+    await Story.deleteMany({});
+    console.log('🧹 Cleared old stories.');
+    await Story.insertMany(careerStories);
+    console.log(`📰 Successfully seeded ${careerStories.length} India-focused stories!`);
 
     console.log('🚀 Database seeding completed successfully!');
   } catch (error) {
