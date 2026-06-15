@@ -75,6 +75,7 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
   const [stories, setStories] = useState(FALLBACK_STORIES);
   const [activeStory, setActiveStory] = useState(null);
   const [loadingStories, setLoadingStories] = useState(false);
+  const [showMobileDetail, setShowMobileDetail] = useState(false);
 
   // Auto-Complete lists
   const uniqueTitles = useMemo(() => [...new Set(jobs.map(j => j.title))].filter(Boolean), [jobs]);
@@ -187,11 +188,132 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
     }
   };
 
-  const currentJobId = selectedJob?._id || selectedJob?.id;
-  const hasApplied = currentUser && applications?.some(app => app.jobId === currentJobId && app.candidateId === (currentUser?._id || currentUser?.id));
-
-  // Default avatars helper
   const userAvatar = currentUser ? getAvatarUrl(currentUser.avatar, currentUser.name) : '';
+
+  const renderJobDetailsContent = (job) => {
+    if (!job) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', padding: '40px 20px', textAlign: 'center' }}>
+          <FaBriefcase style={{ fontSize: '48px', marginBottom: '15px', opacity: 0.3 }} />
+          <p style={{ margin: 0, fontWeight: '600' }}>Select a job to view details</p>
+        </div>
+      );
+    }
+
+    const currentJobId = job._id || job.id;
+    const hasApplied = currentUser && applications?.some(app => app.jobId === currentJobId && app.candidateId === (currentUser?._id || currentUser?.id));
+
+    return (
+      <div style={{ padding: '5px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', marginBottom: '20px' }}>
+          <img 
+            src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0a66c2&color=fff`} 
+            alt={job.companyName}
+            style={{ width: "56px", height: "56px", borderRadius: "8px", objectFit: 'contain', border: '1px solid #f3f4f6' }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0a66c2&color=fff`;
+            }}
+          />
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>{job.title}</h2>
+            <p style={{ margin: 0, fontSize: '15px', color: '#4b5563' }}>{job.companyName}</p>
+            <p style={{ margin: '2px 0 0 0', fontSize: '14px', color: '#6b7280' }}>{job.location}</p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '25px' }}>
+          <div className="job-detail-spec">
+            <span className="spec-label">Job Type</span>
+            <span className="spec-val">{job.type}</span>
+          </div>
+          <div className="job-detail-spec">
+            <span className="spec-label">Salary Range</span>
+            <span className="spec-val">{job.salaryRange || 'Not disclosed'}</span>
+          </div>
+          {job.experienceLevel && (
+            <div className="job-detail-spec">
+              <span className="spec-label">Experience</span>
+              <span className="spec-val">{job.experienceLevel}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Apply Actions */}
+        <div style={{ marginBottom: '25px' }}>
+          {hasApplied ? (
+            <div style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '10px 16px', borderRadius: '20px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '600' }}>
+              ✓ Application Submitted
+            </div>
+          ) : showApplyForm ? (
+            <form onSubmit={handleApplySubmit} style={{ backgroundColor: '#f9fafb', padding: '15px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '700' }}>Write a cover letter</h4>
+              <textarea 
+                className="form-control" 
+                rows={3} 
+                placeholder="Introduce yourself and explain why you're a great fit for this job..."
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+                required
+                style={{ marginBottom: '12px', fontSize: '13px', width: '100%' }}
+              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="submit" className="btn" style={{ padding: '6px 12px', fontSize: '13px' }}>
+                  <FaPaperPlane style={{ marginRight: '5px' }} /> Submit App
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowApplyForm(false)} style={{ padding: '6px 12px', fontSize: '13px' }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <button 
+              className="btn" 
+              style={{ padding: '10px 24px', fontSize: '14px' }}
+              onClick={() => {
+                if (!currentUser) {
+                  toast.error('Please log in as a candidate to apply!');
+                  setCurrentPage('login');
+                  return;
+                }
+                if (currentUser.role !== 'candidate') {
+                  toast.error('Only candidates can apply to job listings.');
+                  return;
+                }
+                setShowApplyForm(true);
+              }}
+            >
+              Apply Now
+            </button>
+          )}
+        </div>
+
+        {/* Description body */}
+        <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '20px', fontSize: '14px', lineHeight: '1.6', color: '#374151' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#111827', margin: '0 0 12px 0' }}>Full Job Description</h3>
+          <p style={{ whiteSpace: 'pre-line', margin: '0 0 20px 0' }}>
+            {job.description}
+          </p>
+
+          {job.qualifications && (
+            <>
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', margin: '20px 0 10px 0' }}>Qualifications / Requirements</h3>
+              <p style={{ whiteSpace: 'pre-line' }}>
+                {job.qualifications}
+              </p>
+            </>
+          )}
+
+          {job.skillsRequired && (
+            <>
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', margin: '20px 0 10px 0' }}>Required Skills</h3>
+              <p><code>{job.skillsRequired}</code></p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="home-feed-container">
@@ -254,13 +376,13 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
         </div>
       </div>
 
-      {/* Main 3-Column Layout */}
+      {/* Main 2-Column Layout */}
       <div className="feed-layout-grid">
         
-        {/* LEFT COLUMN: Profile Card / CTAs */}
+        {/* LEFT COLUMN: Profile Card + News stacked */}
         <div className="feed-left-col">
           {currentUser ? (
-            <div className="card profile-preview-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="card profile-preview-card" style={{ padding: 0, overflow: 'hidden', marginBottom: '20px' }}>
               <div className="profile-card-banner"></div>
               <div style={{ padding: '0 20px 20px 20px', textAlign: 'center', marginTop: '-35px' }}>
                 <img 
@@ -311,8 +433,8 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
               </div>
             </div>
           ) : (
-            <div className="card login-cta-card" style={{ padding: '25px 20px', textAlign: 'center' }}>
-              <FaBriefcase style={{ fontSize: '32px', color: '#2563EB', marginBottom: '15px' }} />
+            <div className="card login-cta-card" style={{ padding: '25px 20px', textAlign: 'center', marginBottom: '20px' }}>
+              <FaBriefcase style={{ fontSize: '32px', color: '#0a66c2', marginBottom: '15px' }} />
               <h3 style={{ fontSize: '18px', margin: '0 0 10px 0', fontWeight: '700' }}>Accelerate your career</h3>
               <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 20px 0', lineHeight: '1.4' }}>
                 Join SkillFetch to network with candidates, post jobs, and apply directly with custom resumes.
@@ -334,6 +456,41 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
             </div>
           )}
 
+          {/* SkillFetch News Sidebar stacked directly underneath */}
+          <div className="card news-sidebar-card" style={{ padding: '20px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FaNewspaper style={{ color: '#0a66c2' }} /> SkillFetch News
+              </h3>
+              <button 
+                onClick={fetchStories} 
+                style={{ background: 'none', border: 'none', color: '#0a66c2', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                disabled={loadingStories}
+              >
+                {loadingStories ? 'Shuffling...' : 'Shuffle 🔄'}
+              </button>
+            </div>
+
+            <div className="stories-list">
+              {stories.length === 0 ? (
+                <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>No stories loaded.</p>
+              ) : (
+                stories.map((story, index) => (
+                  <div 
+                    key={story._id || story.id || index} 
+                    className="story-sidebar-item"
+                    onClick={() => setActiveStory(story)}
+                  >
+                    <h4 className="story-sidebar-title">{story.title}</h4>
+                    <p className="story-sidebar-meta">
+                      {story.readTime} • By {story.author}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
           {/* Quick Stats / Footer links */}
           <div style={{ padding: '0 10px', fontSize: '11px', color: '#9ca3af', lineHeight: '1.6' }}>
             <p style={{ margin: '0 0 8px 0' }}>About • Help Center • Terms • Privacy</p>
@@ -341,7 +498,7 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
           </div>
         </div>
 
-        {/* MIDDLE COLUMN: Scrollable Job Feed + Sticky Detail */}
+        {/* RIGHT COLUMN (holds search filters and job listing split-layout) */}
         <div className="feed-middle-col">
           <div className="filter-pills-row">
             {['All', 'Remote', 'Full-time', 'Internship'].map(filter => (
@@ -371,16 +528,19 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
                   <div 
                     key={job._id || job.id} 
                     className={`linkedin-job-card ${(selectedJob?._id || selectedJob?.id) === (job._id || job.id) ? 'active-card' : ''}`}
-                    onClick={() => setSelectedJob(job)}
+                    onClick={() => {
+                      setSelectedJob(job);
+                      setShowMobileDetail(true);
+                    }}
                   >
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                       <img 
-                        src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=2563EB&color=fff`}
+                        src={job.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0a66c2&color=fff`}
                         alt={job.companyName}
                         className="feed-company-logo"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=2563EB&color=fff`;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName || 'C')}&background=0a66c2&color=fff`;
                         }}
                       />
                       <div style={{ flex: 1 }}>
@@ -401,157 +561,32 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
 
             {/* Right Sticky Detail Column */}
             <div className="job-detail-sticky">
-              {selectedJob ? (
-                <div style={{ padding: '5px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', marginBottom: '20px' }}>
-                    <img 
-                      src={selectedJob.companyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedJob.companyName || 'C')}&background=2563EB&color=fff`} 
-                      alt={selectedJob.companyName}
-                      style={{ width: "56px", height: "56px", borderRadius: "8px", objectFit: 'contain', border: '1px solid #f3f4f6' }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>{selectedJob.title}</h2>
-                      <p style={{ margin: 0, fontSize: '15px', color: '#4b5563' }}>{selectedJob.companyName}</p>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '14px', color: '#6b7280' }}>{selectedJob.location}</p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '25px' }}>
-                    <div className="job-detail-spec">
-                      <span className="spec-label">Job Type</span>
-                      <span className="spec-val">{selectedJob.type}</span>
-                    </div>
-                    <div className="job-detail-spec">
-                      <span className="spec-label">Salary Range</span>
-                      <span className="spec-val">{selectedJob.salaryRange || 'Not disclosed'}</span>
-                    </div>
-                    {selectedJob.experienceLevel && (
-                      <div className="job-detail-spec">
-                        <span className="spec-label">Experience</span>
-                        <span className="spec-val">{selectedJob.experienceLevel}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Apply Actions */}
-                  <div style={{ marginBottom: '25px' }}>
-                    {hasApplied ? (
-                      <div style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '10px 16px', borderRadius: '20px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '600' }}>
-                        ✓ Application Submitted
-                      </div>
-                    ) : showApplyForm ? (
-                      <form onSubmit={handleApplySubmit} style={{ backgroundColor: '#f9fafb', padding: '15px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '700' }}>Write a cover letter</h4>
-                        <textarea 
-                          className="form-control" 
-                          rows={3} 
-                          placeholder="Introduce yourself and explain why you're a great fit for this job..."
-                          value={coverLetter}
-                          onChange={(e) => setCoverLetter(e.target.value)}
-                          style={{ marginBottom: '12px', fontSize: '13px' }}
-                          required
-                        />
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button type="submit" className="btn" style={{ padding: '6px 12px', fontSize: '13px' }}>
-                            <FaPaperPlane style={{ marginRight: '5px' }} /> Submit App
-                          </button>
-                          <button type="button" onClick={() => setShowApplyForm(false)} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}>
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    ) : (
-                      <button 
-                        className="btn"
-                        style={{ padding: '10px 24px', fontSize: '14px' }}
-                        onClick={() => {
-                          if (!currentUser) {
-                            toast.error('Please log in as a candidate to apply!');
-                            setCurrentPage('login');
-                            return;
-                          }
-                          if (currentUser.role !== 'candidate') {
-                            toast.error('Only candidates can apply to job listings.');
-                            return;
-                          }
-                          setShowApplyForm(true);
-                        }}
-                      >
-                        Apply Now
-                      </button>
-                    )}
-                  </div>
-
-                  <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '20px 0' }} />
-
-                  {/* Job Description details */}
-                  <div className="job-desc-content" style={{ fontSize: '14px', lineHeight: '1.6', color: '#374151' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '10px', color: '#111827' }}>Full Job Description</h3>
-                    <div dangerouslySetInnerHTML={{ __html: selectedJob.description }} />
-                    
-                    {selectedJob.qualifications && (
-                      <>
-                        <h3 style={{ fontSize: '16px', fontWeight: '700', marginTop: '20px', marginBottom: '10px', color: '#111827' }}>Qualifications</h3>
-                        <p>{selectedJob.qualifications}</p>
-                      </>
-                    )}
-
-                    {selectedJob.skillsRequired && (
-                      <>
-                        <h3 style={{ fontSize: '16px', fontWeight: '700', marginTop: '20px', marginBottom: '10px', color: '#111827' }}>Required Skills</h3>
-                        <p><code>{selectedJob.skillsRequired}</code></p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', padding: '40px' }}>
-                  <FaBriefcase style={{ fontSize: '40px', marginBottom: '15px', opacity: 0.3 }} />
-                  <p>Select a job to view details</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: Shuffled India Career Stories */}
-        <div className="feed-right-col">
-          <div className="card news-sidebar-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaNewspaper style={{ color: '#2563EB' }} /> SkillFetch News
-              </h3>
-              <button 
-                onClick={fetchStories} 
-                style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                disabled={loadingStories}
-              >
-                {loadingStories ? 'Shuffling...' : 'Shuffle 🔄'}
-              </button>
-            </div>
-
-            <div className="stories-list">
-              {stories.length === 0 ? (
-                <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>No stories loaded.</p>
-              ) : (
-                stories.map((story, index) => (
-                  <div 
-                    key={story._id || story.id || index} 
-                    className="story-sidebar-item"
-                    onClick={() => setActiveStory(story)}
-                  >
-                    <h4 className="story-sidebar-title">{story.title}</h4>
-                    <p className="story-sidebar-meta">
-                      {story.readTime} • By {story.author}
-                    </p>
-                  </div>
-                ))
-              )}
+              {renderJobDetailsContent(selectedJob)}
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* Mobile Job Detail Modal Overlay */}
+      {showMobileDetail && selectedJob && (
+        <div className="review-modal-overlay mobile-detail-overlay">
+          <div className="review-modal-container mobile-detail-container" style={{ maxWidth: '600px', height: 'auto', maxHeight: '90vh' }}>
+            <div className="review-modal-header" style={{ padding: '15px 20px', borderBottom: '1px solid #f3f4f6' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', margin: 0 }}>Job Details</h3>
+              <button 
+                onClick={() => setShowMobileDetail(false)} 
+                style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#9ca3af' }}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div style={{ padding: '20px', overflowY: 'auto', maxHeight: 'calc(90vh - 80px)' }}>
+              {renderJobDetailsContent(selectedJob)}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* LinkedIn-style expand Story Modal */}
       {activeStory && (

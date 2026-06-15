@@ -109,7 +109,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       </div>
 
       {/* Main Content Split */}
-      <div className="dashboard-content-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+      <div className="dashboard-content-grid">
         
         {/* Left Side: My Posted Listings */}
         <div>
@@ -218,7 +218,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
             </div>
 
             {/* Split Body */}
-            <div className="review-modal-body" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '25px', padding: '0 25px 25px 25px' }}>
+            <div className="review-modal-body" style={{ padding: '0 25px 25px 25px', gap: '25px' }}>
               
               {/* Left Panel: Info & Actions */}
               <div className="review-left-panel" style={{ display: 'flex', flexDirection: 'column', gap: '15px', overflowY: 'auto', maxHeight: '60vh' }}>

@@ -169,7 +169,7 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
               👤 Personal Information
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div className="form-row-2col">
               <div className="form-group">
                 <label><FaUser style={{ marginRight: '6px' }} /> Full Name</label>
                 <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -180,7 +180,7 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div className="form-row-2col">
               <div className="form-group">
                 <label><FaMapMarkerAlt style={{ marginRight: '6px' }} /> Location / City</label>
                 <input type="text" className="form-control" placeholder="e.g. Bangalore, Karnataka" value={location} onChange={(e) => setLocation(e.target.value)} />
@@ -214,7 +214,7 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
                   <input type="text" className="form-control" placeholder="e.g. React, Node.js, CSS, Python" value={skills} onChange={(e) => setSkills(e.target.value)} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div className="form-row-2col">
                   <div className="form-group">
                     <label><FaGraduationCap /> Highest Education</label>
                     <input type="text" className="form-control" placeholder="e.g. BS Computer Science" value={education} onChange={(e) => setEducation(e.target.value)} />
@@ -234,7 +234,7 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
                   🏢 Company Details
                 </h3>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div className="form-row-2col">
                   <div className="form-group">
                     <label><FaBuilding /> Company Name</label>
                     <input type="text" className="form-control" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />

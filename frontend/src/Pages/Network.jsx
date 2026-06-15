@@ -154,7 +154,7 @@ function Network({ currentUser, API_BASE_URL }) {
       </div>
 
       {/* Grid of Sections */}
-      <div className="network-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
+      <div className="network-layout-grid">
         
         {/* LEFT PANEL: Recommendations & Connection List */}
         <div>
