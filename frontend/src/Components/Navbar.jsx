@@ -95,12 +95,7 @@ function Navbar({ currentUser, currentPage, setCurrentPage, handleLogout }) {
                   Sign In
                 </span>
                 <div className="sf-nav-divider"></div>
-                <button 
-                  className="btn btn-secondary sf-nav-postjob-btn"
-                  onClick={() => setCurrentPage('login')}
-                >
-                  Employers / Post Job
-                </button>
+                
               </div>
             )}
           </div>
