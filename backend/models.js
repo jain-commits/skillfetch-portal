@@ -8,7 +8,12 @@ const userSchema = new mongoose.Schema({
   role: { type: String, required: true, enum: ['candidate', 'employer', 'admin'] },
   isSuspended: { type: Boolean, default: false },
   
-// Candidate profile fields
+  // Profile system enhancements
+  avatar: { type: String, default: '' },      // Holds base64 or selected default avatar URL/key
+  headline: { type: String, default: '' },    // Professional headline
+  companyLogo: { type: String, default: '' }, // For employers, base64 or URL
+
+  // Candidate profile fields
   phone: { type: String, default: '' },
   location: { type: String, default: '' },
   bio: { type: String, default: '' },
@@ -24,7 +29,7 @@ const userSchema = new mongoose.Schema({
   },
 
   // Employer profile fields
-  companyName: { type: String, defaut: '' },
+  companyName: { type: String, default: '' },
   companyLocation: { type: String, default: '' },
   companyDesc: { type: String, default: '' }
 }, 
@@ -46,37 +51,34 @@ const userSchema = new mongoose.Schema({
 // ==================== JOB SCHEMA ====================
 
 const jobSchema = new mongoose.Schema({
-  // Make employerId optional for API-fetched jobs
   employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
-  
-  // New field to identify where the job came from
   source: { type: String, default: 'SkillFetch' }, 
-  
   companyName: { type: String, required: true },
   companyLogo: { type: String, default: '' },
   title: { type: String, required: true },
-  
-  // Make category/qualifications optional for Adzuna jobs
   category: { type: String },
   description: { type: String, required: true },
   qualifications: { type: String },
-  
   salaryRange: { type: String, required: true },
   location: { type: String, required: true },
   type: { type: String, required: true },
-  
-  // Make experience/skills optional for Adzuna jobs
   experienceLevel: { type: String },
   skillsRequired: { type: String }
 }, {
   timestamps: true,
-  // ... (rest of our toJSON logic remains exactly the same)
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: { virtuals: true }
 });
 
-
-
 // ==================== APPLICATION SCHEMA ====================
-
 
 const applicationSchema = new mongoose.Schema({
   jobId: { type: mongoose.Schema.Types.ObjectId, ref: 'Job', required: true },
@@ -97,8 +99,53 @@ const applicationSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+// ==================== CONNECTION SCHEMA ====================
+
+const connectionSchema = new mongoose.Schema({
+  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  receiverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
+}, {
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: { virtuals: true }
+});
+
+// ==================== STORY / NEWS SCHEMA ====================
+
+const storySchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  summary: { type: String, required: true },
+  author: { type: String, default: 'SkillFetch Editorial' },
+  readTime: { type: String, default: '3 min read' },
+  publishedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: { virtuals: true }
+});
+
 const User = mongoose.model('User', userSchema);
 const Job = mongoose.model('Job', jobSchema);
 const Application = mongoose.model('Application', applicationSchema);
+const Connection = mongoose.model('Connection', connectionSchema);
+const Story = mongoose.model('Story', storySchema);
 
-module.exports = { User, Job, Application };
+module.exports = { User, Job, Application, Connection, Story };

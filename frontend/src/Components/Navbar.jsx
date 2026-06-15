@@ -1,109 +1,112 @@
 import React from 'react';
-import { FaApple } from 'react-icons/fa';
-import { IoSearchOutline, IoBagOutline } from 'react-icons/io5';
+import { FaUserCircle, FaNetworkWired, FaBriefcase, FaSignOutAlt, FaInfoCircle, FaUser } from 'react-icons/fa';
+import { getAvatarUrl } from '../utils/avatars';
 
-function AppleNavbar() {
+function Navbar({ currentUser, currentPage, setCurrentPage, handleLogout }) {
+  const isCandidate = currentUser?.role === 'candidate';
+  const isEmployer = currentUser?.role === 'employer';
+  const isAdmin = currentUser?.role === 'admin';
+
+  const avatarUrl = currentUser ? getAvatarUrl(currentUser.avatar, currentUser.name) : '';
+
   return (
-    <nav className="apple-navbar">
-      <div className="apple-navbar-container">
+    <nav className="sf-navbar">
+      <div className="sf-navbar-container">
         
-        {/* Logo */}
-        <a href="/" className="apple-nav-icon">
-          <FaApple style={{ fontSize: '18px' }} />
-        </a>
+        {/* Left Side: Logo + Main Nav Links */}
+        <div className="sf-nav-left">
+          <div 
+            className="sf-nav-logo"
+            onClick={() => setCurrentPage('home')}
+          >
+            SkillFetch
+          </div>
 
-        {/* Navigation Links */}
-        <a href="#store" className="apple-nav-link">Store</a>
-        <a href="#mac" className="apple-nav-link">Mac</a>
-        <a href="#ipad" className="apple-nav-link">iPad</a>
-        <a href="#iphone" className="apple-nav-link">iPhone</a>
-        <a href="#watch" className="apple-nav-link">Watch</a>
-        <a href="#vision" className="apple-nav-link">Vision</a>
-        <a href="#airpods" className="apple-nav-link">AirPods</a>
-        <a href="#tv" className="apple-nav-link">TV & Home</a>
-        <a href="#entertainment" className="apple-nav-link">Entertainment</a>
-        <a href="#accessories" className="apple-nav-link">Accessories</a>
-        <a href="#support" className="apple-nav-link">Support</a>
+          <div className="sf-nav-links">
+            <span 
+              className={`sf-nav-link-item ${currentPage === 'home' || currentPage === 'job-listings' || currentPage === 'job-detail' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('home')}
+            >
+              <FaBriefcase className="nav-icon" /> Find Jobs
+            </span>
 
-        {/* Right Side Icons */}
-        <a href="#search" className="apple-nav-icon">
-          <IoSearchOutline />
-        </a>
-        <a href="#cart" className="apple-nav-icon">
-          <IoBagOutline />
-        </a>
+            {isCandidate && (
+              <span 
+                className={`sf-nav-link-item ${currentPage === 'network' ? 'active' : ''}`}
+                onClick={() => setCurrentPage('network')}
+              >
+                <FaNetworkWired className="nav-icon" /> Network
+              </span>
+            )}
+
+            {currentUser && (
+              <span 
+                className={`sf-nav-link-item ${currentPage.includes('dashboard') || currentPage === 'admin-panel' || currentPage === 'post-job' ? 'active' : ''}`}
+                onClick={() => {
+                  if (isEmployer) setCurrentPage('employer-dashboard');
+                  else if (isAdmin) setCurrentPage('admin-panel');
+                  else setCurrentPage('candidate-dashboard');
+                }}
+              >
+                <FaUserCircle className="nav-icon" /> Dashboard
+              </span>
+            )}
+
+            <span 
+              className={`sf-nav-link-item ${currentPage === 'about' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('about')}
+            >
+              <FaInfoCircle className="nav-icon" /> About
+            </span>
+          </div>
+        </div>
+
+        {/* Right Side: Profile & Authentication */}
+        <div className="sf-nav-right">
+          {currentUser ? (
+            <div className="sf-nav-user-area">
+              <div 
+                className="sf-nav-profile-trigger"
+                onClick={() => setCurrentPage('profile')}
+              >
+                <img 
+                  src={avatarUrl} 
+                  alt="My avatar" 
+                  className="sf-nav-avatar"
+                />
+                <span className="sf-nav-username">{currentUser.name}</span>
+              </div>
+              <div className="sf-nav-divider"></div>
+              <button 
+                onClick={handleLogout} 
+                className="sf-nav-signout-btn"
+                title="Sign Out"
+              >
+                <FaSignOutAlt style={{ marginRight: '6px' }} /> Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="sf-nav-auth-buttons">
+              <span 
+                className="sf-nav-link-item blue-text"
+                onClick={() => setCurrentPage('login')}
+              >
+                Sign In
+              </span>
+              <div className="sf-nav-divider"></div>
+              <button 
+                className="btn btn-secondary sf-nav-postjob-btn"
+                onClick={() => setCurrentPage('login')}
+              >
+                Employers / Post Job
+              </button>
+            </div>
+          )}
+        </div>
 
       </div>
     </nav>
   );
 }
 
-export default AppleNavbar;
-
-
-// .css file to be pasted on index.css when used
-
-// .apple-navbar {
-//   background-color: rgba(255, 255, 255, 0.72); /* Slight transparency */
-//   backdrop-filter: saturate(180%) blur(20px); /* The frosted glass effect */
-//   -webkit-backdrop-filter: saturate(180%) blur(20px); /* For Safari */
-//   position: fixed;
-//   top: 0;
-//   left: 0;
-//   right: 0;
-//   height: 44px;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   z-index: 9999;
-//   border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* Very subtle bottom border */
-//   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-// }
-
-// .apple-navbar-container {
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   width: 100%;
-//   max-width: 1024px; /* Keeps links from spreading too far on giant screens */
-//   padding: 0 16px;
-// }
-
-// .apple-nav-link,
-// .apple-nav-icon {
-//   color: rgba(0, 0, 0, 0.8);
-//   text-decoration: none;
-//   font-size: 12px;
-//   font-weight: 400;
-//   letter-spacing: -0.01em;
-//   transition: color 0.3s ease, opacity 0.3s ease;
-//   display: flex;
-//   align-items: center;
-//   cursor: pointer;
-// }
-
-// .apple-nav-icon {
-//   font-size: 16px; /* Icons are slightly larger than the text */
-//   opacity: 0.8;
-// }
-
-// /* Hover effect: text gets slightly darker, just like Apple's site */
-// .apple-nav-link:hover {
-//   color: #000000;
-// }
-
-// .apple-nav-icon:hover {
-//   opacity: 1;
-// }
-
-// /* Ensure the rest of your app doesn't hide behind the fixed navbar */
-// body {
-//   padding-top: 44px; 
-// }
-
-// /* Mobile Responsiveness - Hide text links on small screens */
-// @media (max-width: 833px) {
-//   .apple-nav-link {
-//     display: none;
-//   }
-// }
+export default Navbar;
