@@ -468,7 +468,7 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
                 style={{ background: 'none', border: 'none', color: '#0a66c2', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
                 disabled={loadingStories}
               >
-                {loadingStories ? 'Shuffling...' : 'Shuffle 🔄'}
+                {loadingStories ? 'Shuffling...' : 'Shuffle'}
               </button>
             </div>
 
