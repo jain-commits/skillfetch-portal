@@ -1,17 +1,60 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const SMTP_FROM = process.env.SMTP_FROM || 'SkillFetch <onboarding@resend.dev>';
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_FROM = process.env.SMTP_FROM || 'no-reply@skillfetch.com';
 
-let resend = null;
-let isDevMode = true;
+let transporter = null;
+let isTestAccount = false;
 
-if (RESEND_API_KEY) {
-  resend = new Resend(RESEND_API_KEY);
-  isDevMode = false;
-  console.log('✉️ Mailer: Initialized with Resend HTTP API.');
-} else {
-  console.log('✉️ Mailer: RESEND_API_KEY is not configured in backend/.env. Running in console logging (development) fallback mode.');
+/**
+ * Gets or initializes the email transporter.
+ * If SMTP details are not configured, dynamically creates a test SMTP account via Ethereal Email.
+ */
+async function getTransporter() {
+  if (transporter) return transporter;
+
+  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+    transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465, // true for 465 (Gmail SSL), false for other ports
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS,
+      },
+    });
+    isTestAccount = false;
+    console.log(`✉️ Mailer: Initialized with SMTP host: ${SMTP_HOST}`);
+    return transporter;
+  }
+
+  // Fallback: Create Ethereal test SMTP credentials dynamically
+  console.log('✉️ Mailer: SMTP environment variables are not configured in backend/.env.');
+  console.log('✉️ Mailer: Dynamically generating a test SMTP account via Ethereal Email...');
+  try {
+    const testAccount = await nodemailer.createTestAccount();
+    transporter = nodemailer.createTransport({
+      host: testAccount.smtp.host,
+      port: testAccount.smtp.port,
+      secure: testAccount.smtp.secure,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+    isTestAccount = true;
+    console.log(`✉️ Mailer: Ethereal test SMTP account created!`);
+    console.log(`   - Username: ${testAccount.user}`);
+    console.log(`   - Host: ${testAccount.smtp.host}`);
+    console.log('   - Note: Real SMTP emails will be sent and preview links printed in the logs.');
+    return transporter;
+  } catch (err) {
+    console.error('❌ Mailer: Failed to generate Ethereal SMTP account. Falling back to dummy log-only transport.', err);
+    return null;
+  }
 }
 
 /**
@@ -61,30 +104,34 @@ async function sendWelcomeEmail(user) {
     </div>
   `;
 
-  if (isDevMode) {
-    console.log('\n=================== RESEND API FALLBACK LOG (WELCOME) ===================');
+  const client = await getTransporter();
+
+  if (!client) {
+    console.log('\n=================== DUMMY MODE: EMAIL LOGGED ===================');
     console.log(`TO: ${user.email}`);
     console.log(`SUBJECT: ${subject}`);
     console.log('HTML CONTENT:');
     console.log(htmlContent);
-    console.log('=========================================================================\n');
+    console.log('=======================================================================\n');
     return true;
   }
 
   try {
-    const response = await resend.emails.send({
+    const info = await client.sendMail({
       from: SMTP_FROM,
       to: user.email,
       subject: subject,
       html: htmlContent,
     });
+    console.log(`✉️ Welcome email sent successfully to ${user.email}. MessageId: ${info.messageId}`);
     
-    if (response.error) {
-      console.error(`❌ Resend API failed to send welcome email to ${user.email}:`, response.error);
-      throw new Error(response.error.message || 'Resend error');
+    // Log Ethereal preview link if applicable
+    if (isTestAccount) {
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      if (previewUrl) {
+        console.log(`🔗 Ethereal Inbox Link (Click to inspect sent mail): ${previewUrl}`);
+      }
     }
-    
-    console.log(`✉️ Welcome email sent successfully to ${user.email} (Id: ${response.data.id})`);
     return true;
   } catch (error) {
     console.error(`❌ Failed to send welcome email to ${user.email}:`, error);
@@ -171,30 +218,34 @@ async function sendHiredEmail(application) {
     </div>
   `;
 
-  if (isDevMode) {
-    console.log('\n=================== RESEND API FALLBACK LOG (HIRED) ===================');
+  const client = await getTransporter();
+
+  if (!client) {
+    console.log('\n=================== DUMMY MODE: EMAIL LOGGED ===================');
     console.log(`TO: ${candidate.email}`);
     console.log(`SUBJECT: ${subject}`);
     console.log('HTML CONTENT:');
     console.log(htmlContent);
-    console.log('========================================================================\n');
+    console.log('=======================================================================\n');
     return true;
   }
 
   try {
-    const response = await resend.emails.send({
+    const info = await client.sendMail({
       from: SMTP_FROM,
       to: candidate.email,
       subject: subject,
       html: htmlContent,
     });
+    console.log(`✉️ Hired email sent successfully to candidate ${candidate.email}. MessageId: ${info.messageId}`);
     
-    if (response.error) {
-      console.error(`❌ Resend API failed to send hired offer email to ${candidate.email}:`, response.error);
-      throw new Error(response.error.message || 'Resend error');
+    // Log Ethereal preview link if applicable
+    if (isTestAccount) {
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      if (previewUrl) {
+        console.log(`🔗 Ethereal Inbox Link (Click to inspect sent mail): ${previewUrl}`);
+      }
     }
-    
-    console.log(`✉️ Hired offer email sent successfully to ${candidate.email} (Id: ${response.data.id})`);
     return true;
   } catch (error) {
     console.error(`❌ Failed to send hired email to ${candidate.email}:`, error);
