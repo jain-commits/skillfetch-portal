@@ -21,6 +21,7 @@ async function getTransporter() {
 
   if (SMTP_USER && SMTP_PASS) {
     const config = {
+      family: 4, // Force IPv4 to bypass ENETUNREACH issues in cloud environments like Render (which lack IPv6 routing)
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS,
@@ -33,17 +34,17 @@ async function getTransporter() {
 
     if (isGmail) {
       config.service = 'gmail';
-      console.log('✉️ Mailer: Using built-in Gmail service configuration.');
+      console.log('✉️ Mailer: Using built-in Gmail service configuration (forcing IPv4).');
     } else if (SMTP_HOST) {
       config.host = SMTP_HOST;
       config.port = SMTP_PORT;
       config.secure = SMTP_PORT === 465;
-      console.log(`✉️ Mailer: Using custom SMTP host: ${SMTP_HOST}:${SMTP_PORT}`);
+      console.log(`✉️ Mailer: Using custom SMTP host: ${SMTP_HOST}:${SMTP_PORT} (forcing IPv4)`);
     } else {
       // Default fallback if host is missing but user is gmail-like
       if (SMTP_USER.includes('gmail.com')) {
         config.service = 'gmail';
-        console.log('✉️ Mailer: Detected Gmail address, using Gmail service configuration.');
+        console.log('✉️ Mailer: Detected Gmail address, using Gmail service configuration (forcing IPv4).');
       } else {
         config.host = SMTP_HOST || 'localhost';
         config.port = SMTP_PORT;
