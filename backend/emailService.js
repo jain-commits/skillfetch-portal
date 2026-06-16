@@ -1,10 +1,11 @@
 const nodemailer = require('nodemailer');
 
+const SMTP_SERVICE = process.env.SMTP_SERVICE;
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM || 'no-reply@skillfetch.com';
+const SMTP_FROM = process.env.SMTP_FROM; // Will fall back to SMTP_USER if not set
 
 let transporter = null;
 let isTestAccount = false;
@@ -16,18 +17,53 @@ let isTestAccount = false;
 async function getTransporter() {
   if (transporter) return transporter;
 
-  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465, // true for 465 (Gmail SSL), false for other ports
+  const resolvedFrom = SMTP_FROM || (SMTP_USER ? `SkillFetch <${SMTP_USER}>` : 'no-reply@skillfetch.com');
+
+  if (SMTP_USER && SMTP_PASS) {
+    const config = {
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS,
-      },
-    });
+      }
+    };
+
+    // Auto-detect Gmail to bypass port/SSL connection blocks
+    const isGmail = (SMTP_SERVICE && SMTP_SERVICE.toLowerCase() === 'gmail') || 
+                    (SMTP_HOST && SMTP_HOST.toLowerCase().includes('gmail'));
+
+    if (isGmail) {
+      config.service = 'gmail';
+      console.log('✉️ Mailer: Using built-in Gmail service configuration.');
+    } else if (SMTP_HOST) {
+      config.host = SMTP_HOST;
+      config.port = SMTP_PORT;
+      config.secure = SMTP_PORT === 465;
+      console.log(`✉️ Mailer: Using custom SMTP host: ${SMTP_HOST}:${SMTP_PORT}`);
+    } else {
+      // Default fallback if host is missing but user is gmail-like
+      if (SMTP_USER.includes('gmail.com')) {
+        config.service = 'gmail';
+        console.log('✉️ Mailer: Detected Gmail address, using Gmail service configuration.');
+      } else {
+        config.host = SMTP_HOST || 'localhost';
+        config.port = SMTP_PORT;
+        config.secure = SMTP_PORT === 465;
+      }
+    }
+
+    transporter = nodemailer.createTransport(config);
     isTestAccount = false;
-    console.log(`✉️ Mailer: Initialized with SMTP host: ${SMTP_HOST}`);
+
+    // Run connection diagnostic check
+    try {
+      await transporter.verify();
+      console.log('✅ Mailer: SMTP connection verified successfully! Ready to send emails.');
+    } catch (err) {
+      console.error('❌ Mailer: SMTP connection verification failed!');
+      console.error('   Error details:', err.message);
+      console.error('   Please check your SMTP credentials, App Password, or network restrictions.');
+    }
+
     return transporter;
   }
 
@@ -49,7 +85,6 @@ async function getTransporter() {
     console.log(`✉️ Mailer: Ethereal test SMTP account created!`);
     console.log(`   - Username: ${testAccount.user}`);
     console.log(`   - Host: ${testAccount.smtp.host}`);
-    console.log('   - Note: Real SMTP emails will be sent and preview links printed in the logs.');
     return transporter;
   } catch (err) {
     console.error('❌ Mailer: Failed to generate Ethereal SMTP account. Falling back to dummy log-only transport.', err);
@@ -105,6 +140,7 @@ async function sendWelcomeEmail(user) {
   `;
 
   const client = await getTransporter();
+  const fromField = SMTP_FROM || (SMTP_USER ? `SkillFetch <${SMTP_USER}>` : 'no-reply@skillfetch.com');
 
   if (!client) {
     console.log('\n=================== DUMMY MODE: EMAIL LOGGED ===================');
@@ -118,7 +154,7 @@ async function sendWelcomeEmail(user) {
 
   try {
     const info = await client.sendMail({
-      from: SMTP_FROM,
+      from: fromField,
       to: user.email,
       subject: subject,
       html: htmlContent,
@@ -219,6 +255,7 @@ async function sendHiredEmail(application) {
   `;
 
   const client = await getTransporter();
+  const fromField = SMTP_FROM || (SMTP_USER ? `SkillFetch <${SMTP_USER}>` : 'no-reply@skillfetch.com');
 
   if (!client) {
     console.log('\n=================== DUMMY MODE: EMAIL LOGGED ===================');
@@ -232,7 +269,7 @@ async function sendHiredEmail(application) {
 
   try {
     const info = await client.sendMail({
-      from: SMTP_FROM,
+      from: fromField,
       to: candidate.email,
       subject: subject,
       html: htmlContent,
