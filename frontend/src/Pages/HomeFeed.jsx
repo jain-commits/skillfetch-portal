@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { FaSearch, FaMapMarkerAlt, FaRegBookmark, FaBookmark, FaRegClock, FaTimes, FaUserCircle, FaPaperPlane, FaBriefcase, FaNewspaper } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { getAvatarUrl } from '../utils/avatars';
@@ -569,7 +570,7 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
       </div>
 
       {/* Mobile Job Detail Modal Overlay */}
-      {showMobileDetail && selectedJob && (
+      {showMobileDetail && selectedJob && createPortal(
         <div className="review-modal-overlay mobile-detail-overlay">
           <div className="review-modal-container mobile-detail-container" style={{ maxWidth: '600px', height: 'auto', maxHeight: '90vh' }}>
             <div className="review-modal-header" style={{ padding: '15px 20px', borderBottom: '1px solid #f3f4f6' }}>
@@ -585,11 +586,12 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
               {renderJobDetailsContent(selectedJob)}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* LinkedIn-style expand Story Modal */}
-      {activeStory && (
+      {activeStory && createPortal(
         <div className="review-modal-overlay">
           <div className="review-modal-container story-modal-container" style={{ maxWidth: '650px', height: 'auto', maxHeight: '90vh' }}>
             <div className="review-modal-header" style={{ padding: '20px 25px', borderBottom: '1px solid #f3f4f6' }}>
@@ -640,7 +642,8 @@ function HomeFeed({ jobs = [], currentUser, setCurrentPage, setSelectedJobId, ap
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

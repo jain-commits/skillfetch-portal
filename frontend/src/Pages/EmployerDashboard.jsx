@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'react-hot-toast';
 import { FaMapMarkerAlt, FaClock, FaEnvelope, FaPhone, FaDownload, FaTimes, FaUserCheck, FaUserTimes, FaEye } from 'react-icons/fa';
 import { getAvatarUrl } from '../utils/avatars';
@@ -184,7 +185,7 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
       </div>
 
       {/* Sleek ATS Split-Screen Review Modal */}
-      {selectedApp && selectedCandidate && (
+      {selectedApp && selectedCandidate && createPortal(
         <div className="review-modal-overlay">
           <div className="review-modal-container" style={{ maxWidth: '900px' }}>
             
@@ -287,7 +288,8 @@ function EmployerDashboard({ jobs, setJobs, applications, setApplications, users
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
