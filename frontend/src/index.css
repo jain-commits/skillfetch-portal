@@ -836,8 +836,44 @@ body {
 @media (max-width: 900px) {
   .split-layout { grid-template-columns: 1fr; }
   .job-detail-sticky { display: none; }
-  .search-bar-wrapper { border-radius: 8px; flex-direction: column; padding: 10px; border: 1px solid #b2b2b2; }
-  .search-btn { width: 100%; border-radius: 8px; margin-top: 10px; }
+  
+  .search-bar-wrapper { 
+    border-radius: 18px; 
+    flex-direction: column; 
+    padding: 16px; 
+    border: 1px solid #e5e7eb; 
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  }
+
+  .search-bar-wrapper .search-input-group {
+    width: 100%;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 2px 14px;
+    transition: all 0.2s ease;
+  }
+
+  .search-bar-wrapper .search-input-group:focus-within {
+    border-color: #0a66c2;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.12);
+  }
+
+  .search-bar-wrapper .search-input-group input {
+    background: transparent;
+    padding: 12px 8px;
+  }
+
+  .search-bar-wrapper .search-btn { 
+    width: 100%; 
+    border-radius: 12px; 
+    margin-top: 4px; 
+    padding: 14px 24px;
+    font-weight: 700;
+  }
+  
   .search-divider { display: none; }
 }
 
