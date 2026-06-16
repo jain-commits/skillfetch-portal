@@ -22,6 +22,23 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
   const [companyName, setCompanyName] = useState(currentUser?.companyName || '');
   const [companyLocation, setCompanyLocation] = useState(currentUser?.companyLocation || '');
   const [companyDesc, setCompanyDesc] = useState(currentUser?.companyDesc || '');
+  const [gender, setGender] = useState(currentUser?.gender || '');
+  const [dbAvatars, setDbAvatars] = useState([]);
+
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/avatars`);
+        if (res.ok) {
+          const data = await res.json();
+          setDbAvatars(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch avatars:', err);
+      }
+    };
+    fetchAvatars();
+  }, [API_BASE_URL]);
 
   // Avatar State
   const [selectedAvatar, setSelectedAvatar] = useState(currentUser?.avatar || 'avatar1');
@@ -73,6 +90,7 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
       experience,
       headline,
       avatar: avatarValue,
+      gender: isCandidate ? gender : '',
     };
 
     if (isEmployer) {
@@ -209,9 +227,20 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
                   💼 Career & Professional Details
                 </h3>
 
-                <div className="form-group">
-                  <label>Skills (comma separated)</label>
-                  <input type="text" className="form-control" placeholder="e.g. React, Node.js, CSS, Python" value={skills} onChange={(e) => setSkills(e.target.value)} />
+                <div className="form-row-2col">
+                  <div className="form-group">
+                    <label>Gender</label>
+                    <select className="form-control" value={gender} onChange={(e) => setGender(e.target.value)}>
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Skills (comma separated)</label>
+                    <input type="text" className="form-control" placeholder="e.g. React, Node.js, CSS, Python" value={skills} onChange={(e) => setSkills(e.target.value)} />
+                  </div>
                 </div>
 
                 <div className="form-row-2col">
@@ -279,7 +308,46 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
 
             {/* Default Avatar Preset Grid */}
             <div className="avatar-preset-grid">
-              {defaultAvatars.map((av) => (
+              {isCandidate && gender === 'male' && dbAvatars.filter(av => av.name.startsWith('male')).map((av) => (
+                <button
+                  key={av.id}
+                  onClick={() => handleAvatarSelect(av.data)}
+                  type="button"
+                  className={`avatar-preset-dot ${selectedAvatar === av.data ? 'active-dot' : ''}`}
+                  style={{ 
+                    backgroundImage: `url(${av.data})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    border: selectedAvatar === av.data ? '3px solid #0a66c2' : '1px solid #e5e7eb',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%'
+                  }}
+                  title={av.name}
+                />
+              ))}
+
+              {isCandidate && gender === 'female' && dbAvatars.filter(av => av.name.startsWith('female')).map((av) => (
+                <button
+                  key={av.id}
+                  onClick={() => handleAvatarSelect(av.data)}
+                  type="button"
+                  className={`avatar-preset-dot ${selectedAvatar === av.data ? 'active-dot' : ''}`}
+                  style={{ 
+                    backgroundImage: `url(${av.data})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    border: selectedAvatar === av.data ? '3px solid #0a66c2' : '1px solid #e5e7eb',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%'
+                  }}
+                  title={av.name}
+                />
+              ))}
+
+              {/* Show gradient presets if not candidate, or gender is other/empty */}
+              {(!isCandidate || (gender !== 'male' && gender !== 'female')) && defaultAvatars.map((av) => (
                 <button
                   key={av.id}
                   onClick={() => handleAvatarSelect(av.id)}
@@ -290,6 +358,12 @@ function Profile({ currentUser, setCurrentUser, API_BASE_URL }) {
                 />
               ))}
             </div>
+
+            {isCandidate && !gender && (
+              <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '10px', fontWeight: '600' }}>
+                Select Male or Female gender in profile details to unlock vector avatars!
+              </p>
+            )}
 
             {/* Custom Image Upload */}
             <div style={{ marginTop: '20px', borderTop: '1px solid #f3f4f6', paddingTop: '15px' }}>

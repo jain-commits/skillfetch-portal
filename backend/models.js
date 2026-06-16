@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, required: true, enum: ['candidate', 'employer', 'admin'] },
   isSuspended: { type: Boolean, default: false },
+  gender: { type: String, default: '' },      // For candidates: 'male', 'female', 'other'
   
   // Profile system enhancements
   avatar: { type: String, default: '' },      // Holds base64 or selected default avatar URL/key
@@ -142,10 +143,30 @@ const storySchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+// ==================== AVATAR SCHEMA ====================
+
+const avatarSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  data: { type: String, required: true }
+}, {
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: { virtuals: true }
+});
+
 const User = mongoose.model('User', userSchema);
 const Job = mongoose.model('Job', jobSchema);
 const Application = mongoose.model('Application', applicationSchema);
 const Connection = mongoose.model('Connection', connectionSchema);
 const Story = mongoose.model('Story', storySchema);
+const Avatar = mongoose.model('Avatar', avatarSchema);
 
-module.exports = { User, Job, Application, Connection, Story };
+module.exports = { User, Job, Application, Connection, Story, Avatar };

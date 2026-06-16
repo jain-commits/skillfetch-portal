@@ -9,12 +9,17 @@ function Register({ setCurrentPage, API_BASE_URL }) {
   const [password, setPassword] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [companyLocation, setCompanyLocation] = useState('');
+  const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (role === 'candidate' && !gender) {
+      toast.error("Please select your gender.");
       return;
     }
     if (role === 'employer' && (!companyName || !companyLocation)) {
@@ -32,6 +37,7 @@ function Register({ setCurrentPage, API_BASE_URL }) {
           name,
           email,
           password,
+          gender: role === 'candidate' ? gender : '',
           companyName,
           companyLocation
         })
@@ -73,6 +79,24 @@ function Register({ setCurrentPage, API_BASE_URL }) {
               <option value="employer">Employer / Recruiter</option>
             </select>
           </div>
+
+          {role === 'candidate' && (
+            <div className="form-group" style={{ animation: 'fadeSlideUp 0.3s ease-out' }}>
+              <label htmlFor="reg-gender">Gender</label>
+              <select 
+                id="reg-gender"
+                className="form-control" 
+                value={gender} 
+                onChange={(e) => setGender(e.target.value)}
+                required
+              >
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="reg-name">

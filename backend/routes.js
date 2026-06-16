@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Job, Application, Connection, Story } = require('./models');
+const { User, Job, Application, Connection, Story, Avatar } = require('./models');
 const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -83,7 +83,7 @@ router.get('/users/:id/resume', async (req, res) => {
 // Register
 router.post('/auth/register', async (req, res) => {
   try {
-    const { role, name, email, password, companyName, companyLocation } = req.body;
+    const { role, name, email, password, gender, companyName, companyLocation } = req.body;
     
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -97,6 +97,7 @@ router.post('/auth/register', async (req, res) => {
       email,
       password,
       role,
+      gender: role === 'candidate' ? (gender || '') : '',
       isSuspended: false
     };
 
@@ -146,7 +147,7 @@ router.put('/users/:id/profile', async (req, res) => {
     const { id } = req.params;
     const { 
       name, phone, location, bio, skills, education, experience, resumeName,
-      avatar, headline, companyName, companyLocation, companyDesc, companyLogo
+      avatar, headline, gender, companyName, companyLocation, companyDesc, companyLogo
     } = req.body;
 
     const user = await User.findById(id);
@@ -164,6 +165,7 @@ router.put('/users/:id/profile', async (req, res) => {
     user.resumeName = resumeName !== undefined ? resumeName : user.resumeName;
     user.avatar = avatar !== undefined ? avatar : user.avatar;
     user.headline = headline !== undefined ? headline : user.headline;
+    user.gender = gender !== undefined ? gender : user.gender;
 
     if (user.role === 'employer') {
       user.companyName = companyName !== undefined ? companyName : user.companyName;
@@ -533,6 +535,17 @@ router.get('/stories', async (req, res) => {
   } catch (err) {
     console.error('Error fetching stories:', err);
     res.status(500).json({ message: 'Error fetching stories' });
+  }
+});
+
+// Get all stored avatars
+router.get('/avatars', async (req, res) => {
+  try {
+    const avatars = await Avatar.find({});
+    res.json(avatars);
+  } catch (err) {
+    console.error('Error fetching avatars:', err);
+    res.status(500).json({ message: 'Error fetching avatars' });
   }
 });
 

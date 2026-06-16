@@ -169,13 +169,51 @@ const careerStories = [
 // Seed process
 async function seedDatabase() {
   try {
+    // 1. SEED AVATARS
+    const { Avatar } = require('./models');
+    const fs = require('fs');
+    const path = require('path');
+    
+    const avatarCount = await Avatar.countDocuments();
+    if (avatarCount === 0) {
+      console.log('🖼️ Seeding avatars...');
+      const avatarPackPath = '/Users/jain/Desktop/avatar_pack';
+      if (fs.existsSync(avatarPackPath)) {
+        const files = fs.readdirSync(avatarPackPath);
+        const avatarsToInsert = [];
+        
+        for (const file of files) {
+          if (file.endsWith('.png')) {
+            const filePath = path.join(avatarPackPath, file);
+            const base64Data = fs.readFileSync(filePath).toString('base64');
+            const dataUrl = `data:image/png;base64,${base64Data}`;
+            const avatarName = file.replace('.png', ''); // e.g. 'male1', 'female12'
+            
+            avatarsToInsert.push({
+              name: avatarName,
+              data: dataUrl
+            });
+          }
+        }
+        
+        if (avatarsToInsert.length > 0) {
+          await Avatar.insertMany(avatarsToInsert);
+          console.log(`🖼️ Successfully seeded ${avatarsToInsert.length} avatars permanently in MongoDB!`);
+        }
+      } else {
+        console.log(`⚠️ Avatar pack path not found at ${avatarPackPath}`);
+      }
+    } else {
+      console.log(`🖼️ Avatars already exist in DB (${avatarCount}). Skipping avatar seeding.`);
+    }
+
     console.log('Checking database state...');
     const userCount = await User.countDocuments();
     const jobCount = await Job.countDocuments();
     const storyCount = await Story.countDocuments();
 
     if (userCount > 0 || jobCount > 0 || storyCount > 0) {
-      console.log(`📊 DB already contains data (${userCount} users, ${jobCount} jobs, ${storyCount} stories). Skipping seeding to preserve all data.`);
+      console.log(`📊 DB already contains data (${userCount} users, ${jobCount} jobs, ${storyCount} stories). Skipping other data seeding.`);
       return;
     }
 
