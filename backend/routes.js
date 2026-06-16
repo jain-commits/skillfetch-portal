@@ -411,7 +411,9 @@ router.delete('/users/:id', async (req, res) => {
 router.get('/connections', async (req, res) => {
   try {
     const { userId } = req.query;
-    if (!userId) return res.status(400).json({ message: 'userId is required' });
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Valid userId is required' });
+    }
     
     const conns = await Connection.find({
       $or: [{ senderId: userId }, { receiverId: userId }]
@@ -491,7 +493,9 @@ router.delete('/connections/:id', async (req, res) => {
 router.get('/users/network-recommendations', async (req, res) => {
   try {
     const { userId } = req.query;
-    if (!userId) return res.status(400).json({ message: 'userId is required' });
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Valid userId is required' });
+    }
     
     // Find all connections for the user
     const conns = await Connection.find({

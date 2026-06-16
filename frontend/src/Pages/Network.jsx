@@ -8,20 +8,22 @@ function Network({ currentUser, API_BASE_URL }) {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const userId = currentUser?._id || currentUser?.id;
+
   // Fetch connections and recommendations
   const fetchData = async () => {
-    if (!currentUser) return;
+    if (!userId) return;
     setLoading(true);
     try {
       // 1. Fetch connections
-      const connRes = await fetch(`${API_BASE_URL}/api/connections?userId=${currentUser.id}`);
+      const connRes = await fetch(`${API_BASE_URL}/api/connections?userId=${userId}`);
       if (connRes.ok) {
         const connData = await connRes.json();
         setConnections(connData);
       }
 
       // 2. Fetch recommendations
-      const recRes = await fetch(`${API_BASE_URL}/api/users/network-recommendations?userId=${currentUser.id}`);
+      const recRes = await fetch(`${API_BASE_URL}/api/users/network-recommendations?userId=${userId}`);
       if (recRes.ok) {
         const recData = await recRes.json();
         setRecommendations(recData);
@@ -44,7 +46,7 @@ function Network({ currentUser, API_BASE_URL }) {
       const response = await fetch(`${API_BASE_URL}/api/connections/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderId: currentUser.id, receiverId: targetId })
+        body: JSON.stringify({ senderId: userId, receiverId: targetId })
       });
       const data = await response.json();
       if (!response.ok) {
@@ -86,7 +88,7 @@ function Network({ currentUser, API_BASE_URL }) {
       }
       
       // Refresh recommendations list as accepted users might have friends or we need clean lists
-      const recRes = await fetch(`${API_BASE_URL}/api/users/network-recommendations?userId=${currentUser.id}`);
+      const recRes = await fetch(`${API_BASE_URL}/api/users/network-recommendations?userId=${userId}`);
       if (recRes.ok) {
         const recData = await recRes.json();
         setRecommendations(recData);
@@ -109,7 +111,7 @@ function Network({ currentUser, API_BASE_URL }) {
         setConnections(connections.filter(c => (c._id !== connectionId && c.id !== connectionId)));
         
         // Refresh recommendations
-        const recRes = await fetch(`${API_BASE_URL}/api/users/network-recommendations?userId=${currentUser.id}`);
+        const recRes = await fetch(`${API_BASE_URL}/api/users/network-recommendations?userId=${userId}`);
         if (recRes.ok) {
           const recData = await recRes.json();
           setRecommendations(recData);
@@ -124,8 +126,8 @@ function Network({ currentUser, API_BASE_URL }) {
   };
 
   // Filter lists
-  const pendingRequests = connections.filter(c => c.status === 'pending' && (c.receiverId?._id === currentUser?.id || c.receiverId?.id === currentUser?.id));
-  const sentPending = connections.filter(c => c.status === 'pending' && (c.senderId?._id === currentUser?.id || c.senderId?.id === currentUser?.id));
+  const pendingRequests = connections.filter(c => c.status === 'pending' && (c.receiverId?._id === userId || c.receiverId?.id === userId));
+  const sentPending = connections.filter(c => c.status === 'pending' && (c.senderId?._id === userId || c.senderId?.id === userId));
   const myConnections = connections.filter(c => c.status === 'accepted');
 
   if (loading) {
@@ -270,7 +272,7 @@ function Network({ currentUser, API_BASE_URL }) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {myConnections.map(c => {
-                  const partner = c.senderId?._id === currentUser.id ? c.receiverId : c.senderId;
+                  const partner = c.senderId?._id === userId || c.senderId?.id === userId ? c.receiverId : c.senderId;
                   if (!partner) return null;
                   const partnerAvatar = getAvatarUrl(partner.avatar, partner.name);
                   return (
