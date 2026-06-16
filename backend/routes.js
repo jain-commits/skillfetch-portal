@@ -355,9 +355,10 @@ router.get('/users/network-recommendations', async (req, res) => {
     );
     connectedUserIds.push(userId); // Exclude self
     
-    // Recommend users who are not connected
+    // Recommend users who are not connected (excluding admins)
     const recommendations = await User.find({
       _id: { $nin: connectedUserIds },
+      role: { $ne: 'admin' },
       isSuspended: false
     }).select('name email avatar headline location bio skills education experience role');
     
