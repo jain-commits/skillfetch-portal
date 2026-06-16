@@ -187,7 +187,9 @@ function JobSearchEngine({ jobs = [], setCurrentPage, currentUser, applications 
         {renderSearchBar()}
         
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h1 className="hero-logo-large">SkillFetch</h1>
+          <div className="hero-logo-large-container">
+            <img src="/logo.png" alt="SkillFetch Logo" className="hero-logo-large-img" />
+          </div>
           <h2 style={{ fontSize: '20px', fontWeight: '700', margin: '0 0 8px 0' }}>Your next job starts here</h2>
           <p style={{ color: '#4b4b4b', margin: '0 0 20px 0', fontSize: '14px' }}>
             Create an account or sign in to see your personalised job recommendations.

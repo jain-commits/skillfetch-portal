@@ -20,7 +20,7 @@ function Navbar({ currentUser, currentPage, setCurrentPage, handleLogout }) {
               className="sf-nav-logo"
               onClick={() => setCurrentPage('home')}
             >
-              SkillFetch
+              <img src="/logo.png" alt="SkillFetch" />
             </div>
 
             <div className="sf-nav-links">

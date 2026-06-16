@@ -300,7 +300,9 @@ export default function App() {
         <div className="container footer-content">
           
           <div className="footer-section">
-            <h3>SkillFetch</h3>
+            <div className="footer-logo-container">
+              <img src="/logo.png" alt="SkillFetch" className="footer-logo-img" />
+            </div>
             <p>
               Connecting talented professionals with top employers.
               Find your dream job and grow your career.

@@ -162,6 +162,25 @@ nav {
   margin-top: 60px;
 }
 
+.footer-logo-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.footer-logo-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+  transition: opacity 0.2s ease;
+}
+
+.footer-logo-img:hover {
+  opacity: 1;
+}
+
 .footer-content {
   display: flex;
   justify-content: space-between;
@@ -712,12 +731,18 @@ body {
   min-height: calc(100vh - 64px);
 }
 
-.hero-logo-large {
-  font-size: 64px;
-  font-weight: 700;
-  color: #0a66c2;
-  letter-spacing: -2px;
-  margin: 60px 0 10px 0;
+.hero-logo-large-container {
+  margin: 50px 0 15px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-logo-large-img {
+  height: 80px;
+  width: auto;
+  max-width: 90%;
+  object-fit: contain;
 }
 
 .get-started-btn {
@@ -878,12 +903,21 @@ body {
 }
 
 .sf-nav-logo {
-  font-size: 22px;
-  font-weight: 800;
-  color: #2563EB; /* Bright brand blue */
-  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
+}
+
+.sf-nav-logo img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.sf-nav-logo img:hover {
+  transform: scale(1.02);
 }
 
 .sf-nav-links {
