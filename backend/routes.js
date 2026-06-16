@@ -3,7 +3,6 @@ const router = express.Router();
 const { User, Job, Application, Connection, Story, Avatar } = require('./models');
 const multer = require('multer');
 const path = require('path');
-const { sendWelcomeEmail, sendHiredEmail } = require('./emailService');
 const mongoose = require('mongoose');
 const cors = require("cors");
 const axios = require('axios');
@@ -110,11 +109,6 @@ router.post('/auth/register', async (req, res) => {
 
     const newUser = new User(userData);
     await newUser.save();
-
-    // Trigger welcome email asynchronously
-    sendWelcomeEmail(newUser).catch(err => {
-      console.error('Welcome email failed to send:', err);
-    });
 
     res.status(201).json(newUser);
   } catch (error) {
@@ -318,28 +312,8 @@ router.put('/applications/:id/status', async (req, res) => {
       return res.status(404).json({ message: 'Application not found' });
     }
 
-    const oldStatus = application.status;
     application.status = status;
     await application.save();
-
-    // Trigger email notification if status updated to 'Hired'
-    if (status === 'Hired' && oldStatus !== 'Hired') {
-      try {
-        const populatedApp = await Application.findById(application._id)
-          .populate('candidateId')
-          .populate({
-            path: 'jobId',
-            populate: { path: 'employerId' }
-          });
-        if (populatedApp && populatedApp.candidateId && populatedApp.jobId) {
-          sendHiredEmail(populatedApp).catch(err => {
-            console.error('Hired email notification failed:', err);
-          });
-        }
-      } catch (err) {
-        console.error('Failed to trigger hired email flow:', err);
-      }
-    }
 
     res.json(application);
   } catch (error) {
