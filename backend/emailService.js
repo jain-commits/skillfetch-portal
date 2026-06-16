@@ -1,109 +1,131 @@
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 const dns = require('dns');
 
 // Force Node's DNS resolver to prioritize IPv4 addresses.
-// This prevents ENETUNREACH errors in environments like Render where outbound IPv6 is blocked.
 if (typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first');
-  console.log('✉️ Mailer: Global DNS resolution configured to prefer IPv4 first.');
 }
 
-const SMTP_SERVICE = process.env.SMTP_SERVICE;
+// Environment Credentials
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM; // Will fall back to SMTP_USER if not set
 
-let transporter = null;
-let isTestAccount = false;
+const SMTP_FROM = process.env.SMTP_FROM || (SMTP_USER ? `SkillFetch <${SMTP_USER}>` : 'no-reply@skillfetch.com');
+
+// Initialize SMTP transporter if SMTP credentials are provided (fallback for non-Render environments)
+let smtpTransporter = null;
+if (SMTP_USER && SMTP_PASS) {
+  const config = {
+    family: 4,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS
+    }
+  };
+  if (SMTP_HOST && SMTP_HOST.includes('gmail')) {
+    config.service = 'gmail';
+  } else if (SMTP_HOST) {
+    config.host = SMTP_HOST;
+    config.port = SMTP_PORT;
+    config.secure = SMTP_PORT === 465;
+  } else {
+    config.host = 'localhost';
+    config.port = SMTP_PORT;
+  }
+  smtpTransporter = nodemailer.createTransport(config);
+}
 
 /**
- * Gets or initializes the email transporter.
- * If SMTP details are not configured, dynamically creates a test SMTP account via Ethereal Email.
+ * Universal email sender. Automatically checks environment variables and chooses 
+ * the appropriate delivery method: SendGrid API, Brevo API, SMTP, or Console Logging.
  */
-async function getTransporter() {
-  if (transporter) return transporter;
+async function sendMail({ to, subject, html }) {
+  const fromName = 'SkillFetch';
+  // Strip HTML tags for from email address
+  const fromEmail = SMTP_FROM.includes('<') ? SMTP_FROM.split('<')[1].replace('>', '').trim() : SMTP_FROM;
 
-  const resolvedFrom = SMTP_FROM || (SMTP_USER ? `SkillFetch <${SMTP_USER}>` : 'no-reply@skillfetch.com');
-
-  if (SMTP_USER && SMTP_PASS) {
-    const config = {
-      family: 4, // Force IPv4 to bypass ENETUNREACH issues in cloud environments like Render (which lack IPv6 routing)
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS,
-      }
-    };
-
-    // Auto-detect Gmail to bypass port/SSL connection blocks
-    const isGmail = (SMTP_SERVICE && SMTP_SERVICE.toLowerCase() === 'gmail') || 
-                    (SMTP_HOST && SMTP_HOST.toLowerCase().includes('gmail'));
-
-    if (isGmail) {
-      config.service = 'gmail';
-      console.log('✉️ Mailer: Using built-in Gmail service configuration (forcing IPv4).');
-    } else if (SMTP_HOST) {
-      config.host = SMTP_HOST;
-      config.port = SMTP_PORT;
-      config.secure = SMTP_PORT === 465;
-      console.log(`✉️ Mailer: Using custom SMTP host: ${SMTP_HOST}:${SMTP_PORT} (forcing IPv4)`);
-    } else {
-      // Default fallback if host is missing but user is gmail-like
-      if (SMTP_USER.includes('gmail.com')) {
-        config.service = 'gmail';
-        console.log('✉️ Mailer: Detected Gmail address, using Gmail service configuration (forcing IPv4).');
-      } else {
-        config.host = SMTP_HOST || 'localhost';
-        config.port = SMTP_PORT;
-        config.secure = SMTP_PORT === 465;
-      }
-    }
-
-    transporter = nodemailer.createTransport(config);
-    isTestAccount = false;
-
-    // Run connection diagnostic check
+  // 1. Check for SendGrid HTTP API (Port 443 - Allowed on Render)
+  if (SENDGRID_API_KEY) {
     try {
-      await transporter.verify();
-      console.log('✅ Mailer: SMTP connection verified successfully! Ready to send emails.');
-    } catch (err) {
-      console.error('❌ Mailer: SMTP connection verification failed!');
-      console.error('   Error details:', err.message);
-      console.error('   Please check your SMTP credentials, App Password, or network restrictions.');
+      console.log(`✉️ Mailer: Sending email to ${to} via SendGrid HTTP API...`);
+      const response = await axios.post('https://api.sendgrid.com/v3/mail/send', {
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: fromEmail, name: fromName },
+        subject: subject,
+        content: [{ type: 'text/html', value: html }]
+      }, {
+        headers: {
+          'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log(`✅ Mailer: SendGrid email sent successfully (Status: ${response.status})`);
+      return true;
+    } catch (error) {
+      console.error('❌ Mailer: SendGrid API error details:', error.response ? error.response.data : error.message);
+      throw error;
     }
-
-    return transporter;
   }
 
-  // Fallback: Create Ethereal test SMTP credentials dynamically
-  console.log('✉️ Mailer: SMTP environment variables are not configured in backend/.env.');
-  console.log('✉️ Mailer: Dynamically generating a test SMTP account via Ethereal Email...');
-  try {
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      secure: testAccount.smtp.secure,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-    isTestAccount = true;
-    console.log(`✉️ Mailer: Ethereal test SMTP account created!`);
-    console.log(`   - Username: ${testAccount.user}`);
-    console.log(`   - Host: ${testAccount.smtp.host}`);
-    return transporter;
-  } catch (err) {
-    console.error('❌ Mailer: Failed to generate Ethereal SMTP account. Falling back to dummy log-only transport.', err);
-    return null;
+  // 2. Check for Brevo HTTP API (Port 443 - Allowed on Render)
+  if (BREVO_API_KEY) {
+    try {
+      console.log(`✉️ Mailer: Sending email to ${to} via Brevo HTTP API...`);
+      const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
+        sender: { name: fromName, email: fromEmail },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html
+      }, {
+        headers: {
+          'api-key': BREVO_API_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log(`✅ Mailer: Brevo email sent successfully (MessageId: ${response.data.messageId})`);
+      return true;
+    } catch (error) {
+      console.error('❌ Mailer: Brevo API error details:', error.response ? error.response.data : error.message);
+      throw error;
+    }
   }
+
+  // 3. Fallback to standard SMTP (May fail on Render due to port blocks, but works locally)
+  if (smtpTransporter) {
+    try {
+      console.log(`✉️ Mailer: Sending email to ${to} via SMTP...`);
+      const info = await smtpTransporter.sendMail({
+        from: SMTP_FROM,
+        to: to,
+        subject: subject,
+        html: html
+      });
+      console.log(`✅ Mailer: SMTP email sent successfully (MessageId: ${info.messageId})`);
+      return true;
+    } catch (error) {
+      console.error('❌ Mailer: SMTP connection failed. Check if your hosting provider blocks ports 465/587.', error.message);
+      throw error;
+    }
+  }
+
+  // 4. Default Local Development Log fallback
+  console.log('\n=================== DUMMY MODE: EMAIL LOGGED ===================');
+  console.log(`TO: ${to}`);
+  console.log(`SUBJECT: ${subject}`);
+  console.log('HTML CONTENT:');
+  console.log(html);
+  console.log('=======================================================================\n');
+  return true;
 }
 
 /**
  * Sends a welcome email to a new user
- * @param {Object} user - User document
  */
 async function sendWelcomeEmail(user) {
   const subject = 'Welcome to SkillFetch - Start Your Journey!';
@@ -148,45 +170,11 @@ async function sendWelcomeEmail(user) {
     </div>
   `;
 
-  const client = await getTransporter();
-  const fromField = SMTP_FROM || (SMTP_USER ? `SkillFetch <${SMTP_USER}>` : 'no-reply@skillfetch.com');
-
-  if (!client) {
-    console.log('\n=================== DUMMY MODE: EMAIL LOGGED ===================');
-    console.log(`TO: ${user.email}`);
-    console.log(`SUBJECT: ${subject}`);
-    console.log('HTML CONTENT:');
-    console.log(htmlContent);
-    console.log('=======================================================================\n');
-    return true;
-  }
-
-  try {
-    const info = await client.sendMail({
-      from: fromField,
-      to: user.email,
-      subject: subject,
-      html: htmlContent,
-    });
-    console.log(`✉️ Welcome email sent successfully to ${user.email}. MessageId: ${info.messageId}`);
-    
-    // Log Ethereal preview link if applicable
-    if (isTestAccount) {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log(`🔗 Ethereal Inbox Link (Click to inspect sent mail): ${previewUrl}`);
-      }
-    }
-    return true;
-  } catch (error) {
-    console.error(`❌ Failed to send welcome email to ${user.email}:`, error);
-    throw error;
-  }
+  return sendMail({ to: user.email, subject, html: htmlContent });
 }
 
 /**
  * Sends a job offer / hired email to a candidate containing employer details and job info
- * @param {Object} application - Populated application document
  */
 async function sendHiredEmail(application) {
   const candidate = application.candidateId;
@@ -263,40 +251,7 @@ async function sendHiredEmail(application) {
     </div>
   `;
 
-  const client = await getTransporter();
-  const fromField = SMTP_FROM || (SMTP_USER ? `SkillFetch <${SMTP_USER}>` : 'no-reply@skillfetch.com');
-
-  if (!client) {
-    console.log('\n=================== DUMMY MODE: EMAIL LOGGED ===================');
-    console.log(`TO: ${candidate.email}`);
-    console.log(`SUBJECT: ${subject}`);
-    console.log('HTML CONTENT:');
-    console.log(htmlContent);
-    console.log('=======================================================================\n');
-    return true;
-  }
-
-  try {
-    const info = await client.sendMail({
-      from: fromField,
-      to: candidate.email,
-      subject: subject,
-      html: htmlContent,
-    });
-    console.log(`✉️ Hired email sent successfully to candidate ${candidate.email}. MessageId: ${info.messageId}`);
-    
-    // Log Ethereal preview link if applicable
-    if (isTestAccount) {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log(`🔗 Ethereal Inbox Link (Click to inspect sent mail): ${previewUrl}`);
-      }
-    }
-    return true;
-  } catch (error) {
-    console.error(`❌ Failed to send hired email to ${candidate.email}:`, error);
-    throw error;
-  }
+  return sendMail({ to: candidate.email, subject, html: htmlContent });
 }
 
 module.exports = {
