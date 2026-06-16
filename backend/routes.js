@@ -337,6 +337,37 @@ router.get('/users', async (req, res) => {
   }
 });
 
+// Network Recommendations ("People You May Know")
+router.get('/users/network-recommendations', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Valid userId is required' });
+    }
+    
+    // Find all connections for the user
+    const conns = await Connection.find({
+      $or: [{ senderId: userId }, { receiverId: userId }]
+    });
+    
+    const connectedUserIds = conns.map(c => 
+      c.senderId.toString() === userId ? c.receiverId.toString() : c.senderId.toString()
+    );
+    connectedUserIds.push(userId); // Exclude self
+    
+    // Recommend users who are not connected
+    const recommendations = await User.find({
+      _id: { $nin: connectedUserIds },
+      isSuspended: false
+    }).select('name email avatar headline location bio skills education experience role');
+    
+    res.json(recommendations);
+  } catch (err) {
+    console.error('Error fetching recommendations:', err);
+    res.status(500).json({ message: 'Error fetching network recommendations' });
+  }
+});
+
 // Get Single User Profile
 router.get('/users/:id', async (req, res) => {
   try {
@@ -489,36 +520,6 @@ router.delete('/connections/:id', async (req, res) => {
   }
 });
 
-// Network Recommendations ("People You May Know")
-router.get('/users/network-recommendations', async (req, res) => {
-  try {
-    const { userId } = req.query;
-    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Valid userId is required' });
-    }
-    
-    // Find all connections for the user
-    const conns = await Connection.find({
-      $or: [{ senderId: userId }, { receiverId: userId }]
-    });
-    
-    const connectedUserIds = conns.map(c => 
-      c.senderId.toString() === userId ? c.receiverId.toString() : c.senderId.toString()
-    );
-    connectedUserIds.push(userId); // Exclude self
-    
-    // Recommend users who are not connected
-    const recommendations = await User.find({
-      _id: { $nin: connectedUserIds },
-      isSuspended: false
-    }).select('name email avatar headline location bio skills education experience role');
-    
-    res.json(recommendations);
-  } catch (err) {
-    console.error('Error fetching recommendations:', err);
-    res.status(500).json({ message: 'Error fetching network recommendations' });
-  }
-});
 
 // ==================== CAREER STORIES / NEWS ROUTES ====================
 
