@@ -503,12 +503,11 @@ router.get('/users/network-recommendations', async (req, res) => {
     );
     connectedUserIds.push(userId); // Exclude self
     
-    // Recommend candidates who are not connected
+    // Recommend users who are not connected
     const recommendations = await User.find({
-      role: 'candidate',
       _id: { $nin: connectedUserIds },
       isSuspended: false
-    }).select('name email avatar headline location bio skills education experience');
+    }).select('name email avatar headline location bio skills education experience role');
     
     res.json(recommendations);
   } catch (err) {

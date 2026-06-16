@@ -176,7 +176,7 @@ function Network({ currentUser, API_BASE_URL }) {
                         <img src={senderAvatar} alt={sender.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
                         <div>
                           <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#1f2937' }}>{sender.name}</h4>
-                          <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#4b5563', lineHeight: '1.3' }}>{sender.headline || 'Software Professional'}</p>
+                          <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#4b5563', lineHeight: '1.3' }}>{sender.headline || (sender.role === 'employer' ? 'Employer' : sender.role === 'admin' ? 'Administrator' : 'Software Professional')}</p>
                           <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#9ca3af' }}><FaMapMarkerAlt /> {sender.location || 'India'}</p>
                         </div>
                       </div>
@@ -222,7 +222,7 @@ function Network({ currentUser, API_BASE_URL }) {
                       </h4>
                       
                       <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#4b5563', lineHeight: '1.3', minHeight: '30px' }}>
-                        {person.headline || 'Software Developer'}
+                        {person.headline || (person.role === 'employer' ? 'Employer' : person.role === 'admin' ? 'Administrator' : 'Software Developer')}
                       </p>
                       
                       <button 
@@ -279,7 +279,7 @@ function Network({ currentUser, API_BASE_URL }) {
                         <img src={partnerAvatar} alt={partner.name} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937' }}>{partner.name}</div>
-                          <div style={{ fontSize: '10px', color: '#6b7280', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '130px' }}>{partner.headline || 'Connected'}</div>
+                          <div style={{ fontSize: '10px', color: '#6b7280', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '130px' }}>{partner.headline || (partner.role === 'employer' ? 'Employer' : partner.role === 'admin' ? 'Administrator' : 'Connected')}</div>
                         </div>
                       </div>
                       
