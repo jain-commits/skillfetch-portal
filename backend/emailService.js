@@ -1,28 +1,17 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM || 'no-reply@skillfetch.com';
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const SMTP_FROM = process.env.SMTP_FROM || 'SkillFetch <onboarding@resend.dev>';
 
-let transporter = null;
+let resend = null;
 let isDevMode = true;
 
-if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465, // true for 465, false for other ports
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
-    },
-  });
+if (RESEND_API_KEY) {
+  resend = new Resend(RESEND_API_KEY);
   isDevMode = false;
-  console.log(`✉️ Mailer initialized with SMTP host: ${SMTP_HOST}`);
+  console.log('✉️ Mailer: Initialized with Resend HTTP API.');
 } else {
-  console.log('✉️ Mailer: SMTP environment variables are incomplete. Running in console logging (development) fallback mode.');
+  console.log('✉️ Mailer: RESEND_API_KEY is not configured in backend/.env. Running in console logging (development) fallback mode.');
 }
 
 /**
@@ -73,23 +62,29 @@ async function sendWelcomeEmail(user) {
   `;
 
   if (isDevMode) {
-    console.log('\n=================== DEVELOPMENT MODE: EMAIL LOGGED ===================');
+    console.log('\n=================== RESEND API FALLBACK LOG (WELCOME) ===================');
     console.log(`TO: ${user.email}`);
     console.log(`SUBJECT: ${subject}`);
     console.log('HTML CONTENT:');
     console.log(htmlContent);
-    console.log('=======================================================================\n');
+    console.log('=========================================================================\n');
     return true;
   }
 
   try {
-    const info = await transporter.sendMail({
+    const response = await resend.emails.send({
       from: SMTP_FROM,
       to: user.email,
       subject: subject,
       html: htmlContent,
     });
-    console.log(`✉️ Welcome email sent successfully to ${user.email}. MessageId: ${info.messageId}`);
+    
+    if (response.error) {
+      console.error(`❌ Resend API failed to send welcome email to ${user.email}:`, response.error);
+      throw new Error(response.error.message || 'Resend error');
+    }
+    
+    console.log(`✉️ Welcome email sent successfully to ${user.email} (Id: ${response.data.id})`);
     return true;
   } catch (error) {
     console.error(`❌ Failed to send welcome email to ${user.email}:`, error);
@@ -177,23 +172,29 @@ async function sendHiredEmail(application) {
   `;
 
   if (isDevMode) {
-    console.log('\n=================== DEVELOPMENT MODE: EMAIL LOGGED ===================');
+    console.log('\n=================== RESEND API FALLBACK LOG (HIRED) ===================');
     console.log(`TO: ${candidate.email}`);
     console.log(`SUBJECT: ${subject}`);
     console.log('HTML CONTENT:');
     console.log(htmlContent);
-    console.log('=======================================================================\n');
+    console.log('========================================================================\n');
     return true;
   }
 
   try {
-    const info = await transporter.sendMail({
+    const response = await resend.emails.send({
       from: SMTP_FROM,
       to: candidate.email,
       subject: subject,
       html: htmlContent,
     });
-    console.log(`✉️ Hired email sent successfully to candidate ${candidate.email}. MessageId: ${info.messageId}`);
+    
+    if (response.error) {
+      console.error(`❌ Resend API failed to send hired offer email to ${candidate.email}:`, response.error);
+      throw new Error(response.error.message || 'Resend error');
+    }
+    
+    console.log(`✉️ Hired offer email sent successfully to ${candidate.email} (Id: ${response.data.id})`);
     return true;
   } catch (error) {
     console.error(`❌ Failed to send hired email to ${candidate.email}:`, error);
