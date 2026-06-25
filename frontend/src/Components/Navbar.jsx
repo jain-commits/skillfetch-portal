@@ -83,7 +83,7 @@ function Navbar({ currentUser, currentPage, setCurrentPage, handleLogout }) {
                   className="sf-nav-signout-btn"
                   title="Sign Out"
                 >
-                  <FaSignOutAlt style={{ marginRight: '6px' }} /> Sign out
+                  <FaSignOutAlt style={{ marginRight: '6px' }} /> Sign Out
                 </button>
               </div>
             ) : (
